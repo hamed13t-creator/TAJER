@@ -48,6 +48,35 @@
     width:34px; height:34px; font-size:16px; display:flex; align-items:center; justify-content:center;
     margin-left:8px; flex-shrink:0;
   }
+  .search-result-item{display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line); cursor:pointer;}
+  .search-result-item:last-child{border-bottom:none;}
+  .search-result-item:active{background:var(--bg);}
+  .search-result-tag{font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; padding:2px 6px; border-radius:6px; background:var(--bg); color:var(--muted); flex-shrink:0;}
+  .search-empty{padding:14px 12px; font-size:12.5px; color:var(--muted); text-align:center;}
+
+  /* ===== Confirmation animée (vente / encaissement) ===== */
+  .confirm-overlay{
+    position:fixed; inset:0; z-index:200; display:none; align-items:center; justify-content:center;
+    background:rgba(10,20,18,.35); pointer-events:none;
+  }
+  .confirm-overlay.show{display:flex;}
+  .confirm-check{
+    width:86px; height:86px; border-radius:50%; background:var(--green);
+    display:flex; align-items:center; justify-content:center;
+    transform:scale(0); animation:confirmPop .45s cubic-bezier(.22,1.4,.4,1) forwards;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);
+  }
+  .confirm-check svg{width:44px; height:44px;}
+  .confirm-check path{
+    stroke:#fff; stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:40; stroke-dashoffset:40; animation:confirmDraw .3s .25s ease-out forwards;
+  }
+  @keyframes confirmPop{
+    0%{ transform:scale(0); opacity:0; }
+    60%{ transform:scale(1.08); opacity:1; }
+    100%{ transform:scale(1); opacity:1; }
+  }
+  @keyframes confirmDraw{ to{ stroke-dashoffset:0; } }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;height:100%;}
   body{
@@ -184,6 +213,22 @@
   <!-- VENTE -->
   <section class="view active" id="view-vente">
     <h2 class="title">Nouvelle vente</h2>
+
+    <div class="card search-box" style="position:relative;">
+      <input type="text" id="rechercheGlobale" placeholder="🔍 Rechercher un produit, client, vente..." autocomplete="off" oninput="rechercheGlobaleInput()" onfocus="rechercheGlobaleInput()">
+      <div id="rechercheGlobaleResults" style="display:none; position:absolute; left:12px; right:12px; top:100%; background:var(--card); border:1px solid var(--line); border-radius:0 0 var(--radius) var(--radius); box-shadow:0 8px 18px rgba(0,0,0,.15); z-index:40; max-height:320px; overflow-y:auto;"></div>
+    </div>
+
+    <div class="card" id="resumeJourCard">
+      <div class="row" style="margin-bottom:2px;">
+        <span style="font-weight:800; font-size:13px; color:var(--navy);">Aujourd'hui</span>
+      </div>
+      <div class="stat-grid" style="margin-top:8px; margin-bottom:0;">
+        <div class="stat"><div class="v" id="jourNbVentes">0</div><div class="l">Ventes</div></div>
+        <div class="stat amber"><div class="v" id="jourEncaisse">0</div><div class="l">Encaissé</div></div>
+        <div class="stat"><div class="v" id="jourResteDu">0</div><div class="l">Reste à encaisser</div></div>
+      </div>
+    </div>
 
     <div class="card">
       <label class="field">Client (optionnel en comptant, obligatoire à crédit)</label>
@@ -601,6 +646,12 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-check">
+    <svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6"/></svg>
+  </div>
+</div>
+
 <script>
 /* ===================== BASE DE DONNÉES (IndexedDB) ===================== */
 let db;
@@ -679,6 +730,13 @@ function toast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 2200);
+}
+// Micro-animation de confirmation (vente encaissée / paiement reçu) + vibration tactile
+function confirmerAnimation(){
+  const overlay = document.getElementById('confirmOverlay');
+  overlay.classList.add('show');
+  if(navigator.vibrate) navigator.vibrate(60);
+  setTimeout(()=> overlay.classList.remove('show'), 900);
 }
 function nowISO(){ return new Date().toISOString(); }
 function dateFR(iso){
@@ -937,6 +995,8 @@ async function validerVente(){
     document.getElementById('venteClient').value='';
     document.getElementById('venteMontantPaye').value='';
     setModePaiement('comptant');
+    confirmerAnimation();
+    renderResumeJour();
     toast('Vente enregistrée ✓');
   });
 }
@@ -1291,6 +1351,8 @@ async function encaisserPaiementClient(){
   await put('caisse', mvt); CAISSE.push(mvt);
   closeModal('modalClientDetail');
   renderClients();
+  confirmerAnimation();
+  renderResumeJour();
   toast('Paiement encaissé ✓');
 }
 
@@ -1698,6 +1760,81 @@ function tickClock(){
 setInterval(tickClock, 1000*30);
 
 /* ===================== INIT ===================== */
+/* ===================== RÉSUMÉ DU JOUR (page Vente) ===================== */
+function renderResumeJour(){
+  const el = document.getElementById('jourNbVentes');
+  if(!el) return;
+  const debut = new Date(); debut.setHours(0,0,0,0);
+  const ventesJour = VENTES.filter(v=> new Date(v.date) >= debut);
+  const encaisse = ventesJour.reduce((s,v)=>s+(v.montantPaye||0),0);
+  const resteDu = ventesJour.reduce((s,v)=>s+(v.total-(v.montantPaye||0)),0);
+  document.getElementById('jourNbVentes').textContent = ventesJour.length;
+  document.getElementById('jourEncaisse').textContent = fmt(encaisse);
+  document.getElementById('jourResteDu').textContent = fmt(resteDu);
+}
+
+/* ===================== RECHERCHE GLOBALE (page Vente) ===================== */
+function rechercheGlobaleInput(){
+  const q = document.getElementById('rechercheGlobale').value.trim().toLowerCase();
+  const box = document.getElementById('rechercheGlobaleResults');
+  if(!q){ box.style.display='none'; box.innerHTML=''; return; }
+
+  const produits = PRODUITS.filter(p=>p.nom.toLowerCase().includes(q)).slice(0,5);
+  const clients = CLIENTS.filter(c=>c.nom.toLowerCase().includes(q)).slice(0,5);
+  const ventes = VENTES.filter(v=>v.numero.toLowerCase().includes(q)).slice(0,5);
+
+  let html = '';
+  produits.forEach(p=>{
+    html += `<div class="search-result-item" onclick="rechercheChoisirProduit('${p.id}')">
+      <span class="search-result-tag">Produit</span>
+      <div style="flex:1;"><div class="name">${p.nom}</div><div class="meta">Stock: ${fmt(p.stock)} · Vente: ${fmt(p.prixVente)}</div></div>
+    </div>`;
+  });
+  clients.forEach(c=>{
+    html += `<div class="search-result-item" onclick="rechercheOuvrirClient('${c.id}')">
+      <span class="search-result-tag">Client</span>
+      <div style="flex:1;"><div class="name">${c.nom}</div><div class="meta">${(c.solde||0)>0 ? 'Doit '+fmt(c.solde) : 'À jour'}</div></div>
+    </div>`;
+  });
+  ventes.forEach(v=>{
+    const c = CLIENTS.find(x=>x.id===v.clientId);
+    html += `<div class="search-result-item" onclick="rechercheOuvrirVente('${v.id}')">
+      <span class="search-result-tag">Vente</span>
+      <div style="flex:1;"><div class="name">${v.numero}${c?' · '+c.nom:''}</div><div class="meta">${fmt(v.total)}</div></div>
+    </div>`;
+  });
+
+  box.innerHTML = html || '<div class="search-empty">Aucun résultat pour "'+q+'"</div>';
+  box.style.display = 'block';
+}
+function fermerRechercheGlobale(){
+  document.getElementById('rechercheGlobale').value='';
+  document.getElementById('rechercheGlobaleResults').style.display='none';
+}
+function rechercheChoisirProduit(id){
+  document.getElementById('venteProduitSelect').value = id;
+  document.getElementById('venteProduitSelect').dispatchEvent(new Event('change'));
+  fermerRechercheGlobale();
+  document.getElementById('venteProduitSelect').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function rechercheOuvrirClient(id){
+  fermerRechercheGlobale();
+  switchView('clients');
+  setTimeout(()=> openClientDetail(id), 80);
+}
+function rechercheOuvrirVente(id){
+  fermerRechercheGlobale();
+  switchView('historique');
+  setTimeout(()=> openVenteDetail(id), 80);
+}
+document.addEventListener('click', function(e){
+  const box = document.getElementById('rechercheGlobaleResults');
+  const input = document.getElementById('rechercheGlobale');
+  if(box && input && !box.contains(e.target) && e.target!==input){
+    box.style.display='none';
+  }
+});
+
 async function init(){
   try{
     await openDB();
@@ -1713,6 +1850,7 @@ async function init(){
   setModePaiement('comptant');
   tickClock();
   renderBilan();
+  renderResumeJour();
 
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('service-worker.js').catch(()=>{});
