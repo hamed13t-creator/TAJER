@@ -268,7 +268,13 @@
       <div class="card" style="margin-top:0;">
         <label class="field" style="margin-top:0;">Client (optionnel en comptant, obligatoire à crédit)</label>
         <div class="row" style="gap:8px;">
-          <select id="venteClient" style="flex:1;"><option value="">-- Client de passage (comptant) --</option></select>
+          <div style="flex:1; position:relative;">
+            <input type="text" id="venteClientSearch" placeholder="-- Client de passage (comptant) --" autocomplete="off"
+              oninput="filtrerClientVente()" onfocus="filtrerClientVente()"
+              onblur="setTimeout(()=>{document.getElementById('venteClientResults').style.display='none';},150)">
+            <input type="hidden" id="venteClient" value="">
+            <div id="venteClientResults" style="display:none; position:absolute; left:0; right:0; top:100%; margin-top:4px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:0 8px 18px rgba(0,0,0,.15); z-index:40; max-height:240px; overflow-y:auto;"></div>
+          </div>
           <button class="btn outline sm" onclick="ouvrirNouveauClientDepuisVente()">+ Nouveau</button>
         </div>
       </div>
@@ -935,8 +941,33 @@ function ajusterQte(delta){
 
 /* ===================== VENTE ===================== */
 function remplirSelectClients(){
-  document.getElementById('venteClient').innerHTML = '<option value="">-- Client de passage (comptant) --</option>' +
-    CLIENTS.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  // Conservé pour compatibilité (appelé après ajout/import), ne fait plus rien
+  // car le champ client de la vente est désormais un champ de recherche libre.
+}
+function filtrerClientVente(){
+  const q = document.getElementById('venteClientSearch').value.trim().toLowerCase();
+  const box = document.getElementById('venteClientResults');
+  const matches = (q ? CLIENTS.filter(c=>c.nom.toLowerCase().includes(q)) : CLIENTS).slice(0,8);
+  if(matches.length===0){
+    box.innerHTML = q ? '<div class="search-empty">Aucun client trouvé</div>' : '<div class="search-empty">Aucun client enregistré</div>';
+    box.style.display='block';
+    return;
+  }
+  box.innerHTML = matches.map(c=>`
+    <div class="list-item" style="cursor:pointer; padding:9px 10px;" onmousedown="choisirClientVente('${c.id}')">
+      <div>
+        <div class="name">${c.nom}</div>
+        <div class="meta">${c.tel||'—'}${(c.solde||0)>0 ? ' · Doit '+fmt(c.solde) : ''}</div>
+      </div>
+    </div>`).join('');
+  box.style.display='block';
+}
+function choisirClientVente(id){
+  const c = CLIENTS.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('venteClient').value = id;
+  document.getElementById('venteClientSearch').value = c.nom;
+  document.getElementById('venteClientResults').style.display='none';
 }
 function ajouterLigneVente(){
   const pid = document.getElementById('venteProduitSelect').value;
@@ -1036,6 +1067,7 @@ async function validerVente(){
     setTimeout(()=> afficherRecuVente(vente), 80);
     panierVente = []; renderPanierVente();
     document.getElementById('venteClient').value='';
+    document.getElementById('venteClientSearch').value='';
     document.getElementById('venteMontantPaye').value='';
     setModePaiement('comptant');
     confirmerAnimation();
@@ -1331,6 +1363,7 @@ async function enregistrerClient(){
   closeModal('modalClient');
   if(window._clientModalContext==='vente'){
     document.getElementById('venteClient').value = c.id;
+    document.getElementById('venteClientSearch').value = c.nom;
   }
   toast('Client enregistré ✓');
 }
