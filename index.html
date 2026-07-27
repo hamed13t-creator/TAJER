@@ -54,6 +54,19 @@
   .search-result-tag{font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; padding:2px 6px; border-radius:6px; background:var(--bg); color:var(--muted); flex-shrink:0;}
   .search-empty{padding:14px 12px; font-size:12.5px; color:var(--muted); text-align:center;}
 
+  .chip-toggle{display:inline-flex; background:#EFEBE2; border-radius:8px; padding:2px;}
+  .chip-toggle button{padding:6px 11px; font-size:11.5px; font-weight:700; border:none; background:none; border-radius:6px; color:var(--muted); font-family:inherit;}
+  .chip-toggle button.active{background:var(--navy); color:#fff;}
+  [data-theme="dark"] .chip-toggle{background:#20292B;}
+
+  .mini-cart-bar{
+    position:fixed; left:12px; right:12px; bottom:calc(70px + env(safe-area-inset-bottom)); z-index:26;
+    background:var(--navy); color:#fff; border-radius:14px; padding:13px 16px; display:none;
+    align-items:center; justify-content:space-between; box-shadow:0 6px 18px rgba(0,0,0,.28); cursor:pointer;
+    font-size:13px; font-weight:700;
+  }
+  .mini-cart-bar.show{display:flex;}
+
   /* ===== Confirmation animée (vente / encaissement) ===== */
   .confirm-overlay{
     position:fixed; inset:0; z-index:200; display:none; align-items:center; justify-content:center;
@@ -192,6 +205,7 @@
     .stat-grid{ grid-template-columns:1fr 1fr 1fr; }
     .modal-bg{ align-items:center; }
     .modal{ border-radius:18px; max-width:480px; max-height:85vh; }
+    .mini-cart-bar{ bottom:24px; left:24px; right:24px; max-width:850px; margin:0 auto; }
   }
 </style>
 </head>
@@ -210,80 +224,99 @@
 
 <main>
 
-  <!-- VENTE -->
+  <!-- VENTE (ACCUEIL) -->
   <section class="view active" id="view-vente">
-    <h2 class="title">Nouvelle vente</h2>
+    <h2 class="title">Accueil</h2>
 
     <div class="card search-box" style="position:relative;">
       <input type="text" id="rechercheGlobale" placeholder="🔍 Rechercher un produit, client, vente..." autocomplete="off" oninput="rechercheGlobaleInput()" onfocus="rechercheGlobaleInput()">
       <div id="rechercheGlobaleResults" style="display:none; position:absolute; left:12px; right:12px; top:100%; background:var(--card); border:1px solid var(--line); border-radius:0 0 var(--radius) var(--radius); box-shadow:0 8px 18px rgba(0,0,0,.15); z-index:40; max-height:320px; overflow-y:auto;"></div>
     </div>
 
-    <div class="card" id="resumeJourCard">
+    <button class="btn amber block" style="padding:15px; font-size:15px; margin-bottom:10px;" onclick="ouvrirModalVente()">🛒 Nouvelle vente</button>
+
+    <div class="card">
       <div class="row" style="margin-bottom:2px;">
-        <span style="font-weight:800; font-size:13px; color:var(--navy);">Aujourd'hui</span>
+        <span style="font-weight:800; font-size:13px; color:var(--navy);">Aperçu des ventes</span>
+        <div class="chip-toggle">
+          <button id="graphSemaine" class="active" onclick="setGraphMode('semaine')">Semaine</button>
+          <button id="graphMois" onclick="setGraphMode('mois')">Mois</button>
+        </div>
       </div>
-      <div class="stat-grid" style="margin-top:8px; margin-bottom:0;">
-        <div class="stat"><div class="v" id="jourNbVentes">0</div><div class="l">Ventes</div></div>
-        <div class="stat amber"><div class="v" id="jourEncaisse">0</div><div class="l">Encaissé</div></div>
-        <div class="stat"><div class="v" id="jourResteDu">0</div><div class="l">Reste à encaisser</div></div>
-      </div>
+      <div id="ventesChartBox" style="margin-top:6px;"></div>
+      <div class="meta" id="graphTotalInfo" style="margin-top:4px;"></div>
     </div>
 
     <div class="card">
-      <label class="field">Client (optionnel en comptant, obligatoire à crédit)</label>
-      <div class="row" style="gap:8px;">
-        <select id="venteClient" style="flex:1;"><option value="">-- Client de passage (comptant) --</option></select>
-        <button class="btn outline sm" onclick="ouvrirNouveauClientDepuisVente()">+ Nouveau</button>
+      <div class="row" style="margin-bottom:6px;">
+        <span style="font-weight:800; font-size:13px; color:var(--navy);">Ventes récentes</span>
+        <a class="linklike" onclick="switchView('historique')" style="cursor:pointer;">Tout voir</a>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="row" style="margin-bottom:8px;">
-        <label class="field" style="margin:0;">Ajouter un produit</label>
-        <button class="btn outline sm" onclick="openProduitModal()">+ Nouveau produit</button>
-      </div>
-      <select id="venteProduitSelect"></select>
-      <div class="meta" id="venteStockInfo" style="margin-top:6px;"></div>
-      <div class="grid2" style="margin-top:8px;">
-        <div>
-          <label class="field">Quantité</label>
-          <div class="row" style="gap:6px;">
-            <button type="button" class="qbtn" onclick="ajusterQte(-1)">−</button>
-            <input type="number" id="venteQte" value="1" min="0.01" step="any" inputmode="decimal" style="text-align:center;">
-            <button type="button" class="qbtn" onclick="ajusterQte(1)">+</button>
-          </div>
-        </div>
-        <div>
-          <label class="field">Prix unitaire</label>
-          <input type="number" id="ventePU" min="0" step="any" inputmode="decimal">
-        </div>
-      </div>
-      <button class="btn amber block" style="margin-top:10px;" onclick="ajouterLigneVente()">Ajouter au panier</button>
-    </div>
-
-    <div class="card" id="panierCard" style="display:none;">
-      <label class="field" style="margin-top:0;">Panier</label>
-      <div id="panierLignes"></div>
-      <div class="row" style="margin-top:10px; padding-top:10px; border-top:2px solid var(--line);">
-        <span style="font-weight:800;">Total</span>
-        <span class="amount" id="panierTotal">0</span>
-      </div>
-    </div>
-
-    <div class="card" id="paiementCard" style="display:none;">
-      <label class="field" style="margin-top:0;">Mode de paiement</label>
-      <div class="segmented">
-        <button id="modeComptant" class="active" onclick="setModePaiement('comptant')">Comptant</button>
-        <button id="modeCredit" onclick="setModePaiement('credit')">Crédit</button>
-      </div>
-      <div id="montantPayeBox">
-        <label class="field">Montant payé maintenant</label>
-        <input type="number" id="venteMontantPaye" min="0" step="any" inputmode="decimal">
-      </div>
-      <button class="btn block" id="btnValiderVente" style="margin-top:12px; background:var(--green);" onclick="validerVente()">Encaisser la vente</button>
+      <div id="ventesRecentesCard"></div>
     </div>
   </section>
+
+  <!-- MODAL: Nouvelle vente -->
+  <div class="modal-bg" id="modalNouvelleVente">
+    <div class="modal">
+      <button class="modal-close" onclick="fermerModalVente()">×</button>
+      <h3 style="margin-bottom:10px;">Nouvelle vente</h3>
+
+      <div class="card" style="margin-top:0;">
+        <label class="field" style="margin-top:0;">Client (optionnel en comptant, obligatoire à crédit)</label>
+        <div class="row" style="gap:8px;">
+          <select id="venteClient" style="flex:1;"><option value="">-- Client de passage (comptant) --</option></select>
+          <button class="btn outline sm" onclick="ouvrirNouveauClientDepuisVente()">+ Nouveau</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom:8px;">
+          <label class="field" style="margin:0;">Ajouter un produit</label>
+          <button class="btn outline sm" onclick="openProduitModal()">+ Nouveau produit</button>
+        </div>
+        <select id="venteProduitSelect"></select>
+        <div class="meta" id="venteStockInfo" style="margin-top:6px;"></div>
+        <div class="grid2" style="margin-top:8px;">
+          <div>
+            <label class="field">Quantité</label>
+            <div class="row" style="gap:6px;">
+              <button type="button" class="qbtn" onclick="ajusterQte(-1)">−</button>
+              <input type="number" id="venteQte" value="1" min="0.01" step="any" inputmode="decimal" style="text-align:center;">
+              <button type="button" class="qbtn" onclick="ajusterQte(1)">+</button>
+            </div>
+          </div>
+          <div>
+            <label class="field">Prix unitaire</label>
+            <input type="number" id="ventePU" min="0" step="any" inputmode="decimal">
+          </div>
+        </div>
+        <button class="btn amber block" style="margin-top:10px;" onclick="ajouterLigneVente()">Ajouter au panier</button>
+      </div>
+
+      <div class="card" id="panierCard" style="display:none;">
+        <label class="field" style="margin-top:0;">Panier</label>
+        <div id="panierLignes"></div>
+        <div class="row" style="margin-top:10px; padding-top:10px; border-top:2px solid var(--line);">
+          <span style="font-weight:800;">Total</span>
+          <span class="amount" id="panierTotal">0</span>
+        </div>
+      </div>
+
+      <div class="card" id="paiementCard" style="display:none; margin-bottom:0;">
+        <label class="field" style="margin-top:0;">Mode de paiement</label>
+        <div class="segmented">
+          <button id="modeComptant" class="active" onclick="setModePaiement('comptant')">Comptant</button>
+          <button id="modeCredit" onclick="setModePaiement('credit')">Crédit</button>
+        </div>
+        <div id="montantPayeBox">
+          <label class="field">Montant payé maintenant</label>
+          <input type="number" id="venteMontantPaye" min="0" step="any" inputmode="decimal">
+        </div>
+        <button class="btn block" id="btnValiderVente" style="margin-top:12px; background:var(--green);" onclick="validerVente()">Encaisser la vente</button>
+      </div>
+    </div>
+  </div>
 
   <!-- CLIENTS -->
   <section class="view" id="view-clients">
@@ -646,6 +679,11 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="mini-cart-bar" id="miniCartBar" onclick="ouvrirModalVente()">
+  <span id="miniCartInfo">🛒 0 article</span>
+  <span>Continuer →</span>
+</div>
+
 <div class="confirm-overlay" id="confirmOverlay">
   <div class="confirm-check">
     <svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6"/></svg>
@@ -921,7 +959,7 @@ function ajouterLigneVente(){
 function renderPanierVente(){
   const card = document.getElementById('panierCard');
   const paie = document.getElementById('paiementCard');
-  if(panierVente.length===0){ card.style.display='none'; paie.style.display='none'; return; }
+  if(panierVente.length===0){ card.style.display='none'; paie.style.display='none'; updateMiniCartBar(); return; }
   card.style.display='block'; paie.style.display='block';
   let total=0;
   document.getElementById('panierLignes').innerHTML = panierVente.map((l,i)=>{
@@ -939,6 +977,7 @@ function renderPanierVente(){
   if(document.getElementById('venteMontantPaye').value===''){
     document.getElementById('venteMontantPaye').value = modePaiementVente==='comptant' ? total : 0;
   }
+  updateMiniCartBar();
 }
 function retirerLigneVente(i){ panierVente.splice(i,1); renderPanierVente(); }
 function setModePaiement(mode){
@@ -990,13 +1029,15 @@ async function validerVente(){
       await put('caisse', mvt); CAISSE.push(mvt);
     }
 
-    afficherRecuVente(vente);
+    fermerModalVente();
+    setTimeout(()=> afficherRecuVente(vente), 80);
     panierVente = []; renderPanierVente();
     document.getElementById('venteClient').value='';
     document.getElementById('venteMontantPaye').value='';
     setModePaiement('comptant');
     confirmerAnimation();
-    renderResumeJour();
+    renderVentesChart();
+    renderVentesRecentes();
     toast('Vente enregistrée ✓');
   });
 }
@@ -1352,7 +1393,8 @@ async function encaisserPaiementClient(){
   closeModal('modalClientDetail');
   renderClients();
   confirmerAnimation();
-  renderResumeJour();
+  renderVentesChart();
+  renderVentesRecentes();
   toast('Paiement encaissé ✓');
 }
 
@@ -1761,16 +1803,97 @@ setInterval(tickClock, 1000*30);
 
 /* ===================== INIT ===================== */
 /* ===================== RÉSUMÉ DU JOUR (page Vente) ===================== */
-function renderResumeJour(){
-  const el = document.getElementById('jourNbVentes');
-  if(!el) return;
-  const debut = new Date(); debut.setHours(0,0,0,0);
-  const ventesJour = VENTES.filter(v=> new Date(v.date) >= debut);
-  const encaisse = ventesJour.reduce((s,v)=>s+(v.montantPaye||0),0);
-  const resteDu = ventesJour.reduce((s,v)=>s+(v.total-(v.montantPaye||0)),0);
-  document.getElementById('jourNbVentes').textContent = ventesJour.length;
-  document.getElementById('jourEncaisse').textContent = fmt(encaisse);
-  document.getElementById('jourResteDu').textContent = fmt(resteDu);
+/* ===================== APERÇU DES VENTES (graphique semaine/mois) ===================== */
+let graphMode = 'semaine';
+function calculerDonneesGraph(mode){
+  const labels=[], values=[], counts=[];
+  if(mode==='semaine'){
+    for(let i=6;i>=0;i--){
+      const jour = new Date(); jour.setHours(0,0,0,0); jour.setDate(jour.getDate()-i);
+      const finJour = new Date(jour); finJour.setHours(23,59,59,999);
+      const ventesJour = VENTES.filter(v=>{ const d=new Date(v.date); return d>=jour && d<=finJour; });
+      labels.push(jour.toLocaleDateString('fr-FR',{weekday:'short'}));
+      values.push(ventesJour.reduce((s,v)=>s+v.total,0));
+      counts.push(ventesJour.length);
+    }
+  } else {
+    const now = new Date();
+    const finMois = new Date(now.getFullYear(), now.getMonth()+1, 0);
+    const joursDansMois = finMois.getDate();
+    const nbTranches = Math.ceil(joursDansMois/7);
+    for(let s=0; s<nbTranches; s++){
+      const jourDebut = s*7+1;
+      const jourFin = Math.min(jourDebut+6, joursDansMois);
+      const debut = new Date(now.getFullYear(), now.getMonth(), jourDebut, 0,0,0,0);
+      const fin = new Date(now.getFullYear(), now.getMonth(), jourFin, 23,59,59,999);
+      const ventesTranche = VENTES.filter(v=>{ const d=new Date(v.date); return d>=debut && d<=fin; });
+      labels.push('S'+(s+1));
+      values.push(ventesTranche.reduce((s2,v)=>s2+v.total,0));
+      counts.push(ventesTranche.length);
+    }
+  }
+  return {labels, values, counts};
+}
+function renderVentesChart(){
+  const box = document.getElementById('ventesChartBox');
+  if(!box) return;
+  const {labels, values, counts} = calculerDonneesGraph(graphMode);
+  const max = Math.max(1, ...values);
+  const w = 320, h = 120, padBottom = 18, gap = 8;
+  const barW = (w - gap*(values.length-1)) / values.length;
+  let bars = '';
+  values.forEach((v,i)=>{
+    const barH = Math.max(2, (v/max) * (h-padBottom-8));
+    const x = i*(barW+gap);
+    const y = (h-padBottom) - barH;
+    bars += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" style="fill:var(--amber);"></rect>`;
+    bars += `<text x="${x+barW/2}" y="${h-4}" font-size="8" text-anchor="middle" style="fill:var(--muted);">${labels[i]}</text>`;
+  });
+  box.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:120px; display:block;">${bars}</svg>`;
+  const total = values.reduce((s,v)=>s+v,0);
+  const nb = counts.reduce((s,c)=>s+c,0);
+  document.getElementById('graphTotalInfo').textContent =
+    (graphMode==='semaine' ? '7 derniers jours' : 'Ce mois-ci') + ' — ' + fmt(total) + ' · ' + nb + ' vente'+(nb>1?'s':'');
+}
+function setGraphMode(mode){
+  graphMode = mode;
+  document.getElementById('graphSemaine').classList.toggle('active', mode==='semaine');
+  document.getElementById('graphMois').classList.toggle('active', mode==='mois');
+  renderVentesChart();
+}
+function renderVentesRecentes(){
+  const card = document.getElementById('ventesRecentesCard');
+  if(!card) return;
+  const list = VENTES.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,4);
+  card.innerHTML = list.length ? list.map(v=>{
+    const c = CLIENTS.find(x=>x.id===v.clientId);
+    return `<div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
+      <div><div class="name">${v.numero} ${c?'· '+c.nom:''}</div><div class="meta">${dateFR(v.date)}</div></div>
+      <div class="amount">${fmt(v.total)}</div>
+    </div>`;
+  }).join('') : '<div class="empty">Aucune vente pour l\'instant.</div>';
+}
+
+/* ===================== MODALE NOUVELLE VENTE ===================== */
+function ouvrirModalVente(){
+  openModal('modalNouvelleVente');
+  updateMiniCartBar();
+}
+function fermerModalVente(){
+  closeModal('modalNouvelleVente');
+  updateMiniCartBar();
+}
+function updateMiniCartBar(){
+  const bar = document.getElementById('miniCartBar');
+  if(!bar) return;
+  const modalOuverte = currentModalId === 'modalNouvelleVente';
+  if(panierVente.length>0 && !modalOuverte){
+    const total = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
+    document.getElementById('miniCartInfo').textContent = '🛒 '+panierVente.length+' article'+(panierVente.length>1?'s':'')+' · '+fmt(total);
+    bar.classList.add('show');
+  } else {
+    bar.classList.remove('show');
+  }
 }
 
 /* ===================== RECHERCHE GLOBALE (page Vente) ===================== */
@@ -1850,7 +1973,8 @@ async function init(){
   setModePaiement('comptant');
   tickClock();
   renderBilan();
-  renderResumeJour();
+  renderVentesChart();
+  renderVentesRecentes();
 
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('service-worker.js').catch(()=>{});
