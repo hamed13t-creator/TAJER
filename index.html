@@ -248,11 +248,14 @@
     </div>
 
     <div class="card">
-      <div class="row" style="margin-bottom:6px;">
+      <div class="row" style="cursor:pointer;" onclick="toggleVentesRecentes()">
         <span style="font-weight:800; font-size:13px; color:var(--navy);">Ventes récentes</span>
-        <a class="linklike" onclick="switchView('historique')" style="cursor:pointer;">Tout voir</a>
+        <span class="linklike" id="toggleVentesRecentesLabel">Afficher ▾</span>
       </div>
-      <div id="ventesRecentesCard"></div>
+      <div id="ventesRecentesWrap" style="display:none;">
+        <div id="ventesRecentesCard" style="margin-top:8px;"></div>
+        <a class="linklike" onclick="switchView('historique')" style="cursor:pointer; display:block; margin-top:8px; text-align:center;">Tout voir</a>
+      </div>
     </div>
   </section>
 
@@ -1872,6 +1875,13 @@ function renderVentesRecentes(){
       <div class="amount">${fmt(v.total)}</div>
     </div>`;
   }).join('') : '<div class="empty">Aucune vente pour l\'instant.</div>';
+}
+let ventesRecentesOuvert = false;
+function toggleVentesRecentes(){
+  ventesRecentesOuvert = !ventesRecentesOuvert;
+  document.getElementById('ventesRecentesWrap').style.display = ventesRecentesOuvert ? 'block' : 'none';
+  document.getElementById('toggleVentesRecentesLabel').textContent = ventesRecentesOuvert ? 'Masquer ▴' : 'Afficher ▾';
+  if(ventesRecentesOuvert) renderVentesRecentes();
 }
 
 /* ===================== MODALE NOUVELLE VENTE ===================== */
