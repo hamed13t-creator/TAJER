@@ -1,4 +1,4 @@
-const CACHE = 'tajer-v5';
+const CACHE = 'tajer-v6';
 const ASSETS = ['./index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
