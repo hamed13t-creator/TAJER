@@ -5,35 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>TAJER</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0F3D3E">
+<meta name="theme-color" content="#131A24">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
   :root{
-    --navy:#0F3D3E;
-    --navy-dark:#0A2B2C;
-    --amber:#F4A100;
-    --amber-dark:#C97F00;
-    --bg:#FAF8F4;
+    --navy:#1C2534;
+    --navy-dark:#131A24;
+    --amber:#C9A86A;
+    --amber-dark:#8A6B3A;
+    --amber-light:#E7CC93;
+    --bg:#FAF7F1;
     --card:#FFFFFF;
-    --text:#1C2523;
-    --muted:#6B7570;
-    --line:#E4E0D8;
+    --text:#20262F;
+    --muted:#7A8390;
+    --line:#E9E2D2;
     --red:#C0392B;
     --green:#2C7A4B;
     --radius:14px;
   }
   [data-theme="dark"]{
-    --navy:#123B3C;
-    --navy-dark:#081E1F;
-    --amber:#F4A100;
-    --amber-dark:#FFB703;
-    --bg:#12181A;
-    --card:#1B2426;
-    --text:#EDEFEE;
-    --muted:#93A19D;
-    --line:#2E3A3A;
+    --navy:#1C2534;
+    --navy-dark:#0D131C;
+    --amber:#E7CC93;
+    --amber-dark:#8A7548;
+    --amber-light:#F3E3BE;
+    --bg:#111822;
+    --card:#1C2534;
+    --text:#E1E5EB;
+    --muted:#9BA5B4;
+    --line:rgba(201,168,106,0.14);
     --red:#E5695A;
     --green:#4CAF7D;
   }
@@ -98,14 +100,28 @@
     display:flex; flex-direction:column; min-height:100vh;
     overscroll-behavior:none;
   }
-  header{
-    background:var(--navy); color:#fff; padding:14px 16px 12px;
-    display:flex; align-items:center; justify-content:space-between;
-    position:sticky; top:0; z-index:20;
+  body::before{
+    content:'';
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='76.2'%3E%3Cg fill='none' stroke='%23C9A86A' stroke-opacity='0.07' stroke-width='1'%3E%3Cpolygon points='22,0 44,12.7 44,38.1 22,50.8 0,38.1 0,12.7'/%3E%3Cpolygon points='0,38.1 22,50.8 22,76.2 0,88.9'/%3E%3Cpolygon points='44,38.1 22,50.8 22,76.2 44,88.9'/%3E%3C/g%3E%3C/svg%3E");
+    -webkit-mask-image:radial-gradient(ellipse at top, rgba(0,0,0,.9) 0%, rgba(0,0,0,.3) 55%, transparent 90%);
+    mask-image:radial-gradient(ellipse at top, rgba(0,0,0,.9) 0%, rgba(0,0,0,.3) 55%, transparent 90%);
   }
+  header{
+    background:linear-gradient(165deg, var(--navy) 0%, var(--navy-dark) 100%);
+    color:#fff; padding:14px 16px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:20; overflow:hidden;
+  }
+  header::before{
+    content:'';
+    position:absolute; inset:0; z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='58.9'%3E%3Cg fill='none' stroke='%23E7CC93' stroke-opacity='0.16' stroke-width='1'%3E%3Cpolygon points='17,0 34,9.8 34,29.5 17,39.3 0,29.5 0,9.8'/%3E%3Cpolygon points='0,29.5 17,39.3 17,58.9 0,68.6'/%3E%3Cpolygon points='34,29.5 17,39.3 17,58.9 34,68.6'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  header > *{ position:relative; z-index:1; }
   header h1{font-size:17px; margin:0; font-weight:700; letter-spacing:.2px;}
   header .sub{font-size:11px; opacity:.75; margin-top:2px;}
-  main{flex:1; overflow-y:auto; padding:12px 12px 90px;}
+  main{flex:1; overflow-y:auto; padding:12px 12px 90px; position:relative; z-index:1;}
   nav.tabs{
     position:fixed; bottom:0; left:0; right:0; background:var(--navy-dark);
     display:flex; z-index:30; box-shadow:0 -2px 10px rgba(0,0,0,.2);
@@ -127,7 +143,11 @@
     background:var(--navy); color:#fff; border:none; border-radius:10px; padding:11px 14px;
     font-size:14px; font-weight:700; font-family:inherit;
   }
-  .btn.amber{background:var(--amber); color:#2A1D00;}
+  .btn.amber{
+    background:linear-gradient(135deg, var(--amber-light) 0%, var(--amber) 55%, var(--amber-dark) 100%);
+    color:#2A1D00;
+    box-shadow:0 6px 16px rgba(201,168,106,0.28), inset 0 1px 0 rgba(255,255,255,.35);
+  }
   .btn.outline{background:transparent; border:1.5px solid var(--navy); color:var(--navy);}
   .btn.red{background:var(--red); color:#fff;}
   .btn.sm{padding:7px 10px; font-size:12.5px; border-radius:8px;}
@@ -212,9 +232,22 @@
 <body>
 
 <header>
-  <div>
-    <h1 id="headerTitle">TAJER</h1>
-    <div class="sub" id="headerSub">Ta caisse, ton stock, tes clients</div>
+  <div style="display:flex; align-items:center; gap:11px;">
+    <svg width="38" height="38" viewBox="0 0 100 100" style="flex-shrink:0;">
+      <defs>
+        <linearGradient id="logoTop" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F3E3BE"/><stop offset="100%" stop-color="#D4AF6A"/></linearGradient>
+        <linearGradient id="logoLeft" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C9A86A"/><stop offset="100%" stop-color="#8A7548"/></linearGradient>
+        <linearGradient id="logoRight" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#B4934F"/><stop offset="100%" stop-color="#6B5A38"/></linearGradient>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill="#0D131C"/>
+      <polygon points="30,26 70,26 70,40 56,40 56,76 44,76 44,40 30,40" fill="url(#logoTop)"/>
+      <polygon points="30,26 44,40 44,76 30,68" fill="url(#logoLeft)"/>
+      <polygon points="70,26 56,40 56,76 70,68" fill="url(#logoRight)"/>
+    </svg>
+    <div>
+      <h1 id="headerTitle">TAJER</h1>
+      <div class="sub" id="headerSub">Ta caisse, ton stock, tes clients</div>
+    </div>
   </div>
   <div style="display:flex; align-items:center;">
     <div style="text-align:right; font-size:11px; opacity:.85;" id="clockBox"></div>
@@ -235,8 +268,9 @@
 
     <button class="btn amber block" style="padding:15px; font-size:15px; margin-bottom:10px;" onclick="ouvrirModalVente()">🛒 Nouvelle vente</button>
 
-    <div class="card">
-      <div class="row" style="margin-bottom:2px;">
+    <div class="card" style="position:relative; overflow:hidden;">
+      <span style="position:absolute; right:-10px; bottom:-16px; font-size:44px; font-weight:900; letter-spacing:1px; color:transparent; -webkit-text-stroke:1px rgba(201,168,106,0.12); pointer-events:none;">TAJER</span>
+      <div class="row" style="margin-bottom:2px; position:relative;">
         <span style="font-weight:800; font-size:13px; color:var(--navy);">Aperçu des ventes</span>
         <div class="chip-toggle">
           <button id="graphSemaine" class="active" onclick="setGraphMode('semaine')">Semaine</button>
@@ -721,8 +755,6 @@ function openDB(){
     };
     req.onsuccess = (e) => {
       db = e.target.result;
-      // Si une future mise à jour est nécessaire pendant que cette page est ouverte,
-      // on ferme proprement cette connexion pour ne jamais bloquer l'ouverture ailleurs.
       db.onversionchange = () => {
         db.close();
         toast("Mise à jour disponible — recharge l'application");
@@ -778,7 +810,6 @@ function toast(msg){
   t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 2200);
 }
-// Micro-animation de confirmation (vente encaissée / paiement reçu) + vibration tactile
 function confirmerAnimation(){
   const overlay = document.getElementById('confirmOverlay');
   overlay.classList.add('show');
@@ -795,7 +826,7 @@ function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
   document.getElementById('themeToggle').textContent = theme==='dark' ? '☀️' : '🌙';
   const meta = document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content', theme==='dark' ? '#081E1F' : '#0F3D3E');
+  if(meta) meta.setAttribute('content', theme==='dark' ? '#0D131C' : '#131A24');
 }
 function toggleTheme(){
   const current = document.documentElement.getAttribute('data-theme') || 'light';
@@ -810,7 +841,6 @@ function initTheme(){
   applyTheme(prefersDark ? 'dark' : 'light');
 }
 initTheme();
-// Empêche les doubles soumissions (double-tap) sur les actions asynchrones critiques
 async function withLock(btn, fn){
   if(!btn || btn.disabled) return;
   btn.disabled = true;
@@ -941,8 +971,6 @@ function ajusterQte(delta){
 
 /* ===================== VENTE ===================== */
 function remplirSelectClients(){
-  // Conservé pour compatibilité (appelé après ajout/import), ne fait plus rien
-  // car le champ client de la vente est désormais un champ de recherche libre.
 }
 function filtrerClientVente(){
   const q = document.getElementById('venteClientSearch').value.trim().toLowerCase();
@@ -977,7 +1005,6 @@ function ajouterLigneVente(){
   if(!produit){ toast('Choisis un produit'); return; }
   if(!qte || qte<=0){ toast('Quantité invalide'); return; }
   if(isNaN(pu) || pu<0){ toast('Prix invalide'); return; }
-  // Contrôle du stock disponible (en tenant compte de ce qui est déjà dans le panier)
   const dejaDansPanier = panierVente.filter(l=>l.produitId===produit.id).reduce((s,l)=>s+l.qte,0);
   if(qte + dejaDansPanier > (produit.stock||0)){
     toast('Stock insuffisant (dispo: '+fmt((produit.stock||0)-dejaDansPanier)+')');
@@ -1026,7 +1053,6 @@ async function validerVente(){
   await withLock(document.getElementById('btnValiderVente'), async ()=>{
     if(panierVente.length===0){ toast('Le panier est vide'); return; }
     const clientId = document.getElementById('venteClient').value || null;
-    // Client obligatoire uniquement en mode crédit (un client de passage payant comptant n'a pas besoin de fiche)
     if(modePaiementVente==='credit' && !clientId){
       toast('Sélectionne ou crée un client pour une vente à crédit'); return;
     }
@@ -1043,21 +1069,18 @@ async function validerVente(){
     await put('ventes', vente);
     VENTES.push(vente);
 
-    // Stock
     for(const l of panierVente){
       const p = PRODUITS.find(x=>x.id===l.produitId);
       if(p){ p.stock = (p.stock||0) - l.qte; await put('produits', p); }
     }
     remplirSelectProduits();
 
-    // Solde client (le reste dû s'ajoute au solde du client)
     const reste = total - montantPaye;
     if(clientId && reste>0){
       const c = CLIENTS.find(x=>x.id===clientId);
       if(c){ c.solde = (c.solde||0) + reste; await put('clients', c); }
     }
 
-    // Caisse : l'argent encaissé entre en caisse
     if(montantPaye>0){
       const mvt = {id:uid(), date:nowISO(), type:'entree', montant:montantPaye, motif:'Vente '+vente.numero, lien:{type:'vente', id:vente.id}};
       await put('caisse', mvt); CAISSE.push(mvt);
@@ -1147,14 +1170,12 @@ async function validerRetourVente(){
 
   await put('ventes', v);
 
-  // Remettre en stock
   for(const l of lignesRetour){
     const p = PRODUITS.find(x=>x.id===l.produitId);
     if(p){ p.stock = (p.stock||0) + l.qte; await put('produits', p); }
   }
   remplirSelectProduits();
 
-  // Impact client / caisse
   const client = CLIENTS.find(c=>c.id===v.clientId);
   let detteAnnulee = 0, remboursementCaisse = 0;
   if(client){
@@ -1218,7 +1239,6 @@ async function validerRetourAchat(){
 
   await put('achats', a);
 
-  // Retirer du stock (marchandise rendue au fournisseur)
   for(const l of lignesRetour){
     const p = PRODUITS.find(x=>x.id===l.produitId);
     if(p){ p.stock = Math.max(0,(p.stock||0) - l.qte); await put('produits', p); }
@@ -1248,11 +1268,10 @@ async function validerRetourAchat(){
 
 /* ===================== IMPRESSION TICKET (ESC/POS Bluetooth + fallback RawBT) ===================== */
 function texteVersESCPOS(texte){
-  // Encode le texte en commandes ESC/POS basiques : init, texte, saut de lignes, coupe papier
   const encoder = new TextEncoder();
-  const init = new Uint8Array([0x1B, 0x40]);            // ESC @ (reset imprimante)
+  const init = new Uint8Array([0x1B, 0x40]);
   const body = encoder.encode(texte + '\n\n\n');
-  const cut  = new Uint8Array([0x1D, 0x56, 0x42, 0x00]); // GS V B 0 (coupe papier, si supportée)
+  const cut  = new Uint8Array([0x1D, 0x56, 0x42, 0x00]);
   const out = new Uint8Array(init.length + body.length + cut.length);
   out.set(init, 0); out.set(body, init.length); out.set(cut, init.length+body.length);
   return out;
@@ -1261,9 +1280,6 @@ async function imprimerESCPOSBluetooth(texte){
   if(!('bluetooth' in navigator)){
     throw new Error('Web Bluetooth non supporté sur ce navigateur');
   }
-  // Filtre générique : la plupart des imprimantes thermiques exposent le
-  // service SPP-like 0000ffe0 ou le profil "Serial Port". On laisse le
-  // choix à l'utilisateur via le picker natif.
   const device = await navigator.bluetooth.requestDevice({
     acceptAllDevices: true,
     optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb', '0000ffe0-0000-1000-8000-00805f9b34fb']
@@ -1275,7 +1291,6 @@ async function imprimerESCPOSBluetooth(texte){
     for(const ch of chars){
       if(ch.properties.write || ch.properties.writeWithoutResponse){
         const data = texteVersESCPOS(texte);
-        // Découpe en paquets de 180 octets (limite BLE fréquente)
         for(let i=0;i<data.length;i+=180){
           await ch.writeValueWithoutResponse(data.slice(i,i+180));
         }
@@ -1288,15 +1303,12 @@ async function imprimerESCPOSBluetooth(texte){
 async function imprimerRawBT(){
   const texte = window._dernierRecu || document.getElementById('recuTexte').textContent;
   if(!texte){ toast('Rien à imprimer'); return; }
-  // 1) Tentative d'impression directe via Web Bluetooth (ESC/POS)
   try{
     toast('Recherche imprimante Bluetooth...');
     await imprimerESCPOSBluetooth(texte);
     toast('Ticket envoyé à l\'imprimante');
     return;
   }catch(e){
-    // 2) Fallback : intent Android vers l'app RawBT (nécessite RawBT installée
-    //    et l'imprimante déjà appairée dans les réglages Bluetooth du téléphone)
     const intentUrl = 'intent:#Intent;action=android.intent.action.SEND;' +
       'type=text/plain;package=ru.a402d.rawbtprinter;' +
       'S.android.intent.extra.TEXT=' + encodeURIComponent(texte) + ';end';
@@ -1750,7 +1762,6 @@ async function importerDonnees(evt){
     const stores = {produits:'produits', clients:'clients', fournisseurs:'fournisseurs', ventes:'ventes', achats:'achats', caisse:'caisse', retoursVente:'retoursVente', retoursAchat:'retoursAchat'};
     for(const key of Object.keys(stores)){
       const items = Array.isArray(data[key]) ? data[key] : [];
-      // Vide le store puis réinsère
       await new Promise((resolve,reject)=>{
         const r = txStore(stores[key], 'readwrite').clear();
         r.onsuccess = resolve; r.onerror = reject;
@@ -1838,8 +1849,6 @@ function tickClock(){
 setInterval(tickClock, 1000*30);
 
 /* ===================== INIT ===================== */
-/* ===================== RÉSUMÉ DU JOUR (page Vente) ===================== */
-/* ===================== APERÇU DES VENTES (graphique semaine/mois) ===================== */
 let graphMode = 'semaine';
 function calculerDonneesGraph(mode){
   const labels=[], values=[], counts=[];
@@ -1877,15 +1886,31 @@ function renderVentesChart(){
   const max = Math.max(1, ...values);
   const w = 320, h = 120, padBottom = 18, gap = 8;
   const barW = (w - gap*(values.length-1)) / values.length;
+  const barWReduced = barW * 0.55;
   let bars = '';
   values.forEach((v,i)=>{
     const barH = Math.max(2, (v/max) * (h-padBottom-8));
-    const x = i*(barW+gap);
+    const x = i*(barW+gap) + (barW-barWReduced)/2;
     const y = (h-padBottom) - barH;
-    bars += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="3" style="fill:var(--amber);"></rect>`;
-    bars += `<text x="${x+barW/2}" y="${h-4}" font-size="8" text-anchor="middle" style="fill:var(--muted);">${labels[i]}</text>`;
+    bars += `<rect x="${x}" y="${y}" width="${barWReduced}" height="${barH}" rx="3" fill="url(#hexBarFill)"></rect>`;
+    bars += `<rect x="${x}" y="${y}" width="${barWReduced}" height="${barH}" rx="3" fill="url(#hexPattern)"></rect>`;
+    bars += `<text x="${x+barWReduced/2}" y="${h-4}" font-size="8" text-anchor="middle" style="fill:var(--muted);">${labels[i]}</text>`;
   });
-  box.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:120px; display:block;">${bars}</svg>`;
+  box.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:120px; display:block;">
+    <defs>
+      <linearGradient id="hexBarFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--amber-light)"/>
+        <stop offset="100%" stop-color="var(--amber-dark)"/>
+      </linearGradient>
+      <pattern id="hexPattern" width="7" height="12.1" patternUnits="userSpaceOnUse">
+        <g fill="none" stroke="#0D131C" stroke-opacity="0.18" stroke-width="0.6">
+          <polygon points="3.5,0 7,2 7,6 3.5,8 0,6 0,2"/>
+          <polygon points="0,6 3.5,8 3.5,12.1 0,14.1"/>
+          <polygon points="7,6 3.5,8 3.5,12.1 7,14.1"/>
+        </g>
+      </pattern>
+    </defs>
+    ${bars}</svg>`;
   const total = values.reduce((s,v)=>s+v,0);
   const nb = counts.reduce((s,c)=>s+c,0);
   document.getElementById('graphTotalInfo').textContent =
