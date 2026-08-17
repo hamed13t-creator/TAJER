@@ -51,6 +51,19 @@
     width:34px; height:34px; font-size:16px; display:flex; align-items:center; justify-content:center;
     margin-left:8px; flex-shrink:0;
   }
+  .switch{position:relative; display:inline-block; width:44px; height:26px; flex-shrink:0;}
+  .switch input{opacity:0; width:0; height:0;}
+  .switch-slider{position:absolute; cursor:pointer; inset:0; background:#D8D2C4; transition:.2s; border-radius:26px;}
+  .switch-slider::before{position:absolute; content:""; height:20px; width:20px; left:3px; bottom:3px; background:#fff; transition:.2s; border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,.25);}
+  .switch input:checked + .switch-slider{background:var(--navy);}
+  [data-theme="dark"] .switch input:checked + .switch-slider{background:var(--amber);}
+  .switch input:checked + .switch-slider::before{transform:translateX(18px);}
+  .day-popover{
+    position:fixed; z-index:120; background:var(--navy); color:#fff; padding:10px 14px; border-radius:10px;
+    font-size:12.5px; font-weight:700; box-shadow:0 8px 20px rgba(0,0,0,.3); pointer-events:none;
+    opacity:0; transition:opacity .15s; text-align:center; white-space:nowrap;
+  }
+  .day-popover.show{opacity:1;}
   .search-result-item{display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--line); cursor:pointer;}
   .search-result-item:last-child{border-bottom:none;}
   .search-result-item:active{background:var(--bg);}
@@ -271,6 +284,7 @@
   <div style="display:flex; align-items:center;">
     <div style="text-align:right; font-size:11px; opacity:.85;" id="clockBox"></div>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
+    <button class="theme-toggle" id="settingsToggle" onclick="openParametres()" aria-label="Paramètres" title="Paramètres">⚙️</button>
   </div>
 </header>
 
@@ -286,6 +300,17 @@
     </div>
 
     <button class="btn amber block" style="padding:15px; font-size:15px; margin-bottom:10px;" onclick="ouvrirModalVente()">🛒 Nouvelle vente</button>
+
+    <div class="stat-grid">
+      <div class="stat" onclick="switchView('bilan')" style="cursor:pointer;">
+        <div class="v" id="homeSoldeCaisse">0</div>
+        <div class="l">Caisse</div>
+      </div>
+      <div class="stat amber" onclick="switchView('achats'); switchAchatsTab('stock');" style="cursor:pointer;">
+        <div class="v" id="homeValeurStock">0</div>
+        <div class="l">Valeur stock</div>
+      </div>
+    </div>
 
     <div class="card" style="position:relative; overflow:hidden;">
       <span style="position:absolute; right:-10px; bottom:-16px; font-size:44px; font-weight:900; letter-spacing:1px; color:transparent; -webkit-text-stroke:1px rgba(201,168,106,0.12); pointer-events:none;">TAJER</span>
@@ -319,6 +344,12 @@
       <h3 style="margin-bottom:10px;">Nouvelle vente</h3>
 
       <div class="card" style="margin-top:0;">
+        <label class="field" style="margin-top:0;">Date et heure de la vente</label>
+        <input type="datetime-local" id="venteDateHeure" onchange="verifierDateVente()">
+        <div class="meta" id="venteDateAvertissement" style="display:none; color:var(--red); margin-top:6px; font-weight:700;">⚠️ Cette vente sera enregistrée à une date passée.</div>
+      </div>
+
+      <div class="card">
         <label class="field" style="margin-top:0;">Client (optionnel en comptant, obligatoire à crédit)</label>
         <div class="row" style="gap:8px;">
           <div style="flex:1; position:relative;">
@@ -456,6 +487,7 @@
       <button id="histTabVentes" class="active" onclick="switchHistTab('ventes')">Ventes</button>
       <button id="histTabAchats" onclick="switchHistTab('achats')">Achats</button>
     </div>
+    <div class="card search-box"><input type="text" id="historiqueSearch" placeholder="Rechercher un numéro, client, fournisseur..." oninput="renderHistorique()"></div>
     <div class="card" id="historiqueListCard"></div>
   </section>
 
@@ -563,6 +595,7 @@
     <label class="field">Seuil d'alerte stock bas</label>
     <input type="number" id="pSeuilAlerte" value="5" min="0" step="any" inputmode="decimal">
     <button class="btn amber block" id="btnEnregistrerProduit" style="margin-top:14px;" onclick="enregistrerProduit()">Enregistrer</button>
+    <button class="btn red block" id="btnSupprimerProduit" style="margin-top:8px; display:none;" onclick="supprimerProduit()">🗑️ Supprimer ce produit</button>
   </div>
 </div>
 
@@ -627,6 +660,7 @@
     </div>
     <label class="field">Historique des ventes</label>
     <div id="cdHistorique"></div>
+    <button class="btn red block" style="margin-top:14px;" onclick="supprimerClient()">🗑️ Supprimer ce client</button>
   </div>
 </div>
 
@@ -655,6 +689,7 @@
     </div>
     <label class="field">Historique des achats</label>
     <div id="fdHistorique"></div>
+    <button class="btn red block" style="margin-top:14px;" onclick="supprimerFournisseur()">🗑️ Supprimer ce fournisseur</button>
   </div>
 </div>
 
@@ -669,6 +704,8 @@
       <option value="retour_investissement">↩️ Retour d'investissement (je retire mon argent)</option>
       <option value="fonds_roulement_ajout">🔄 Ajout fonds de roulement</option>
       <option value="fonds_roulement_retrait">🔄 Retrait fonds de roulement</option>
+      <option value="charges">⛽ Charges (carburant, factures...)</option>
+      <option value="solde_initial">📂 Ancien fonds / solde de départ</option>
       <option value="autre_entree">➕ Autre entrée</option>
       <option value="autre_sortie">➖ Autre dépense / sortie</option>
     </select>
@@ -731,6 +768,8 @@
       <option value="retour_investissement">↩️ Retour d'investissement</option>
       <option value="fonds_roulement_ajout">🔄 Ajout fonds de roulement</option>
       <option value="fonds_roulement_retrait">🔄 Retrait fonds de roulement</option>
+      <option value="charges">⛽ Charges (carburant, factures...)</option>
+      <option value="solde_initial">📂 Ancien fonds / solde de départ</option>
       <option value="autre_entree">➕ Autre entrée</option>
       <option value="autre_sortie">➖ Autre dépense / sortie</option>
     </select>
@@ -741,6 +780,60 @@
     <div class="grid2" style="margin-top:14px;">
       <button class="btn amber" onclick="enregistrerModifMouvement()">Enregistrer</button>
       <button class="btn red" onclick="supprimerMouvement()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Paramètres -->
+<div class="modal-bg" id="modalParametres">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalParametres')">×</button>
+    <h3 style="margin-bottom:10px;">Paramètres</h3>
+
+    <div class="card" style="margin-top:0;">
+      <div class="row">
+        <div>
+          <div class="name" style="font-size:13.5px;">Vibration</div>
+          <div class="meta">Vibrer lors des confirmations</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="paramVibration" onchange="majParametre('vibration', this.checked)">
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <div class="name" style="font-size:13.5px;">Plusieurs vendeurs</div>
+          <div class="meta">Suivre qui a réalisé chaque vente</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="paramMultiVendeur" onchange="majParametre('multiVendeur', this.checked)">
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <label class="field" style="margin-top:0;">Thème par défaut</label>
+      <select id="paramTheme" onchange="majParametreTheme(this.value)">
+        <option value="clair">Clair</option>
+        <option value="sombre">Sombre</option>
+        <option value="auto">Automatique (système)</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <label class="field" style="margin-top:0;">Symbole monétaire</label>
+      <input type="text" id="paramDevise" placeholder="Ex: DH, DA, FCFA, €" oninput="majParametre('devise', this.value)">
+    </div>
+
+    <div class="card" style="margin-bottom:0;">
+      <label class="field" style="margin-top:0;">Seuil d'alerte stock bas par défaut</label>
+      <input type="number" id="paramSeuilDefaut" min="0" step="any" inputmode="decimal" oninput="majParametre('seuilDefaut', parseFloat(this.value)||0)">
+      <div class="meta" style="margin-top:6px;">Utilisé comme valeur pré-remplie pour les nouveaux produits.</div>
     </div>
   </div>
 </div>
@@ -758,11 +851,13 @@
   </div>
 </div>
 
+<div class="day-popover" id="dayPopover"></div>
+
 <script>
 /* ===================== BASE DE DONNÉES (IndexedDB) ===================== */
 let db;
 const DB_NAME = 'mesventes_db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 function openDB(){
   return new Promise((resolve, reject) => {
@@ -777,6 +872,8 @@ function openDB(){
       if(!d.objectStoreNames.contains('caisse')) d.createObjectStore('caisse',{keyPath:'id'});
       if(!d.objectStoreNames.contains('retoursVente')) d.createObjectStore('retoursVente',{keyPath:'id'});
       if(!d.objectStoreNames.contains('retoursAchat')) d.createObjectStore('retoursAchat',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('parametres')) d.createObjectStore('parametres',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('vendeurs')) d.createObjectStore('vendeurs',{keyPath:'id'});
     };
     req.onsuccess = (e) => {
       db = e.target.result;
@@ -820,15 +917,20 @@ function del(store, id){
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 /* ===================== ETAT GLOBAL ===================== */
-let PRODUITS=[], CLIENTS=[], FOURNISSEURS=[], VENTES=[], ACHATS=[], CAISSE=[], RETOURS_VENTE=[], RETOURS_ACHAT=[];
+let PRODUITS=[], CLIENTS=[], FOURNISSEURS=[], VENTES=[], ACHATS=[], CAISSE=[], RETOURS_VENTE=[], RETOURS_ACHAT=[], VENDEURS=[];
 let panierVente = [];
 let panierAchat = [];
 let modePaiementVente = 'comptant';
 let periodeActuelle = 'jour';
+const PARAMETRES_DEFAUT = {
+  id:'parametres', vibration:true, multiVendeur:false, theme:'auto', devise:'', seuilDefaut:5
+};
+let PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT);
 
 function fmt(n){
   n = Number(n)||0;
-  return n.toLocaleString('fr-FR', {maximumFractionDigits:2});
+  const base = n.toLocaleString('fr-FR', {maximumFractionDigits:2});
+  return PARAMETRES.devise ? base+' '+PARAMETRES.devise : base;
 }
 function toast(msg){
   const t = document.getElementById('toast');
@@ -838,10 +940,30 @@ function toast(msg){
 function confirmerAnimation(){
   const overlay = document.getElementById('confirmOverlay');
   overlay.classList.add('show');
-  if(navigator.vibrate) navigator.vibrate(60);
+  if(navigator.vibrate && PARAMETRES.vibration) navigator.vibrate(60);
   setTimeout(()=> overlay.classList.remove('show'), 900);
 }
 function nowISO(){ return new Date().toISOString(); }
+function auMaintenantLocal(){
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0,16);
+}
+function verifierDateVente(){
+  const input = document.getElementById('venteDateHeure');
+  const warn = document.getElementById('venteDateAvertissement');
+  if(!input.value){ warn.style.display='none'; return; }
+  const choisie = new Date(input.value);
+  const now = new Date();
+  if(choisie > now){
+    toast('Impossible de choisir une date future');
+    input.value = auMaintenantLocal();
+    warn.style.display='none';
+    return;
+  }
+  const estAujourdhui = choisie.toDateString() === now.toDateString();
+  warn.style.display = estAujourdhui ? 'none' : 'block';
+}
 function dateFR(iso){
   const d = new Date(iso);
   return d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
@@ -866,6 +988,56 @@ function initTheme(){
   applyTheme(prefersDark ? 'dark' : 'light');
 }
 initTheme();
+
+/* ===================== PARAMÈTRES ===================== */
+async function chargerParametres(){
+  try{
+    const r = await new Promise((resolve,reject)=>{
+      const req = txStore('parametres').get('parametres');
+      req.onsuccess = ()=>resolve(req.result); req.onerror = reject;
+    });
+    if(r) PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT, r);
+  }catch(e){ /* pas encore de paramètres enregistrés */ }
+  if(PARAMETRES.theme==='clair') applyTheme('light');
+  else if(PARAMETRES.theme==='sombre') applyTheme('dark');
+  else if(!localStorage.getItem('theme')){
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+  }
+}
+function openParametres(){
+  document.getElementById('paramVibration').checked = !!PARAMETRES.vibration;
+  document.getElementById('paramMultiVendeur').checked = !!PARAMETRES.multiVendeur;
+  document.getElementById('paramTheme').value = PARAMETRES.theme || 'auto';
+  document.getElementById('paramDevise').value = PARAMETRES.devise || '';
+  document.getElementById('paramSeuilDefaut').value = PARAMETRES.seuilDefaut!=null ? PARAMETRES.seuilDefaut : 5;
+  openModal('modalParametres');
+}
+async function sauverParametres(){
+  await put('parametres', Object.assign({id:'parametres'}, PARAMETRES));
+}
+async function majParametre(cle, valeur){
+  PARAMETRES[cle] = valeur;
+  await sauverParametres();
+  if(cle==='multiVendeur') appliquerVisibiliteVendeur();
+  if(cle==='devise'){ renderBilan(); renderStock(); renderClients(); renderFournisseurs(); }
+}
+async function majParametreTheme(valeur){
+  PARAMETRES.theme = valeur;
+  await sauverParametres();
+  if(valeur==='clair'){ localStorage.setItem('theme','light'); applyTheme('light'); }
+  else if(valeur==='sombre'){ localStorage.setItem('theme','dark'); applyTheme('dark'); }
+  else{
+    localStorage.removeItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+  }
+}
+function appliquerVisibiliteVendeur(){
+  document.querySelectorAll('.vendeur-only').forEach(el=>{
+    el.style.display = PARAMETRES.multiVendeur ? '' : 'none';
+  });
+}
 async function withLock(btn, fn){
   if(!btn || btn.disabled) return;
   btn.disabled = true;
@@ -916,12 +1088,14 @@ function openProduitModal(id){
     document.getElementById('pPrixVente').value = p.prixVente;
     document.getElementById('pStock').value = p.stock;
     document.getElementById('pSeuilAlerte').value = (p.seuilAlerte!=null) ? p.seuilAlerte : 5;
+    document.getElementById('btnSupprimerProduit').style.display='block';
   } else {
     document.getElementById('pNom').value='';
     document.getElementById('pPrixAchat').value='';
     document.getElementById('pPrixVente').value='';
     document.getElementById('pStock').value='0';
-    document.getElementById('pSeuilAlerte').value='5';
+    document.getElementById('pSeuilAlerte').value= (PARAMETRES.seuilDefaut!=null ? PARAMETRES.seuilDefaut : 5);
+    document.getElementById('btnSupprimerProduit').style.display='none';
   }
   openModal('modalProduit');
 }
@@ -943,6 +1117,25 @@ async function enregistrerProduit(){
     closeModal('modalProduit');
     toast('Produit enregistré ✓');
   });
+}
+async function supprimerProduit(){
+  const id = document.getElementById('pId').value;
+  if(!id) return;
+  const p = PRODUITS.find(x=>x.id===id);
+  if(!p) return;
+  const utiliseDansVente = VENTES.some(v=>v.items.some(l=>l.produitId===id));
+  const utiliseDansAchat = ACHATS.some(a=>a.items.some(l=>l.produitId===id));
+  if(utiliseDansVente || utiliseDansAchat){
+    toast('Impossible : ce produit apparaît dans des ventes ou achats déjà enregistrés.');
+    return;
+  }
+  if(!confirm('Supprimer définitivement "'+p.nom+'" ? Cette action est irréversible.')) return;
+  await del('produits', id);
+  PRODUITS = PRODUITS.filter(x=>x.id!==id);
+  remplirSelectProduits();
+  renderStock();
+  closeModal('modalProduit');
+  toast('Produit supprimé');
 }
 function renderStock(){
   const listCard = document.getElementById('stockListCard');
@@ -1059,8 +1252,12 @@ function renderPanierVente(){
     </div>`;
   }).join('');
   document.getElementById('panierTotal').textContent = fmt(total);
-  if(document.getElementById('venteMontantPaye').value===''){
-    document.getElementById('venteMontantPaye').value = modePaiementVente==='comptant' ? total : 0;
+  const champPaye = document.getElementById('venteMontantPaye');
+  if(modePaiementVente==='comptant'){
+    // En comptant, le montant payé suit toujours le total du panier (paiement intégral).
+    champPaye.value = total;
+  } else if(champPaye.value===''){
+    champPaye.value = 0;
   }
   updateMiniCartBar();
 }
@@ -1086,8 +1283,13 @@ async function validerVente(){
       if(isNaN(montantPaye)) montantPaye = 0;
       montantPaye = Math.min(montantPaye, total);
 
+      const dateChoisieVal = document.getElementById('venteDateHeure').value;
+      let dateVente = dateChoisieVal ? new Date(dateChoisieVal) : new Date();
+      if(isNaN(dateVente.getTime()) || dateVente > new Date()) dateVente = new Date();
+      const dateVenteISO = dateVente.toISOString();
+
       const vente = {
-        id: uid(), date: nowISO(), clientId,
+        id: uid(), date: dateVenteISO, clientId,
         items: panierVente.slice(), total, montantPaye,
         mode: modePaiementVente, numero: 'V-'+Date.now().toString().slice(-8)
       };
@@ -1107,7 +1309,7 @@ async function validerVente(){
       }
 
       if(montantPaye>0){
-        const mvt = {id:uid(), date:nowISO(), type:'entree', montant:montantPaye, motif:'Vente '+vente.numero, lien:{type:'vente', id:vente.id}};
+        const mvt = {id:uid(), date:dateVenteISO, type:'entree', montant:montantPaye, motif:'Vente '+vente.numero, lien:{type:'vente', id:vente.id}};
         await put('caisse', mvt); CAISSE.push(mvt);
       }
 
@@ -1117,10 +1319,13 @@ async function validerVente(){
       document.getElementById('venteClient').value='';
       document.getElementById('venteClientSearch').value='';
       document.getElementById('venteMontantPaye').value='';
+      document.getElementById('venteDateHeure').value = auMaintenantLocal();
+      document.getElementById('venteDateAvertissement').style.display='none';
       setModePaiement('comptant');
       confirmerAnimation();
       renderVentesChart();
       renderVentesRecentes();
+      renderHomeWidgets();
       toast('Vente enregistrée ✓');
     }catch(err){
       console.error(err);
@@ -1230,7 +1435,7 @@ async function validerRetourVente(){
   await put('retoursVente', retour); RETOURS_VENTE.push(retour);
 
   closeModal('modalVenteDetail');
-  renderClients(); renderHistorique(); renderStock();
+  renderClients(); renderHistorique(); renderStock(); renderHomeWidgets(); renderVentesChart();
   toast('Retour enregistré : '+fmt(montantRetour));
 }
 
@@ -1307,7 +1512,7 @@ async function validerRetourAchat(){
   await put('retoursAchat', retour); RETOURS_ACHAT.push(retour);
 
   closeModal('modalAchatDetail');
-  renderFournisseurs(); renderHistorique(); renderStock();
+  renderFournisseurs(); renderHistorique(); renderStock(); renderHomeWidgets();
   toast('Retour marchandise enregistré : '+fmt(montantRetour));
 }
 
@@ -1488,7 +1693,29 @@ async function encaisserPaiementClient(){
   confirmerAnimation();
   renderVentesChart();
   renderVentesRecentes();
+  renderHomeWidgets();
   toast('Paiement encaissé ✓');
+}
+
+async function supprimerClient(){
+  const id = window._currentClientId;
+  const c = CLIENTS.find(x=>x.id===id);
+  if(!c) return;
+  if((c.solde||0) > 0){
+    toast('Impossible : ce client a encore une dette de '+fmt(c.solde)+'. Encaisse-la d\'abord.');
+    return;
+  }
+  const aDesVentes = VENTES.some(v=>v.clientId===id);
+  if(aDesVentes){
+    if(!confirm('Ce client a un historique de ventes. Le supprimer masquera son nom dans les ventes passées mais conservera les données. Continuer ?')) return;
+  } else {
+    if(!confirm('Supprimer définitivement ce client ? Cette action est irréversible.')) return;
+  }
+  await del('clients', id);
+  CLIENTS = CLIENTS.filter(x=>x.id!==id);
+  closeModal('modalClientDetail');
+  renderClients();
+  toast('Client supprimé');
 }
 
 /* ===================== FOURNISSEURS / ACHATS ===================== */
@@ -1545,6 +1772,26 @@ async function enregistrerFournisseur(){
   closeModal('modalFournisseur');
   toast('Fournisseur enregistré ✓');
 }
+async function supprimerFournisseur(){
+  const id = window._currentFournisseurId;
+  const f = FOURNISSEURS.find(x=>x.id===id);
+  if(!f) return;
+  if((f.solde||0) > 0){
+    toast('Impossible : il reste '+fmt(f.solde)+' à payer à ce fournisseur.');
+    return;
+  }
+  const aDesAchats = ACHATS.some(a=>a.fournisseurId===id);
+  if(aDesAchats){
+    if(!confirm('Ce fournisseur a un historique d\'achats. Le supprimer masquera son nom dans les achats passés mais conservera les données. Continuer ?')) return;
+  } else {
+    if(!confirm('Supprimer définitivement ce fournisseur ? Cette action est irréversible.')) return;
+  }
+  await del('fournisseurs', id);
+  FOURNISSEURS = FOURNISSEURS.filter(x=>x.id!==id);
+  closeModal('modalFournisseurDetail');
+  renderFournisseurs();
+  toast('Fournisseur supprimé');
+}
 function achatsRealisesFournisseur(id){
   const f = FOURNISSEURS.find(x=>x.id===id);
   return ACHATS.filter(a=>a.fournisseurId===id).reduce((s,a)=>s+a.total,0) + (f ? (f.caInitial||0) : 0);
@@ -1586,6 +1833,7 @@ async function payerFournisseur(){
   await put('caisse', mvt); CAISSE.push(mvt);
   closeModal('modalFournisseurDetail');
   renderFournisseurs();
+  renderHomeWidgets();
   toast('Paiement effectué ✓');
 }
 function ajouterLigneAchat(){
@@ -1651,6 +1899,7 @@ async function validerAchat(){
       }
       panierAchat=[]; renderPanierAchat();
       document.getElementById('achatFournisseur').value='';
+      renderHomeWidgets();
       toast('Achat enregistré ✓');
     }catch(err){
       console.error(err);
@@ -1669,8 +1918,15 @@ function switchHistTab(tab){
 }
 function renderHistorique(){
   const card = document.getElementById('historiqueListCard');
+  const q = (document.getElementById('historiqueSearch').value||'').toLowerCase().trim();
   if(histTab==='ventes'){
-    const list = VENTES.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    let list = VENTES.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(q){
+      list = list.filter(v=>{
+        const c = CLIENTS.find(x=>x.id===v.clientId);
+        return v.numero.toLowerCase().includes(q) || (c && c.nom.toLowerCase().includes(q));
+      });
+    }
     card.innerHTML = list.length ? list.map(v=>{
       const c = CLIENTS.find(x=>x.id===v.clientId);
       const retours = RETOURS_VENTE.filter(r=>r.venteId===v.id);
@@ -1679,9 +1935,15 @@ function renderHistorique(){
         <div><div class="name">${v.numero} ${c?'· '+c.nom:''} ${montantRetour>0?'<span class="pill warn">Retour</span>':''}</div><div class="meta">${dateFR(v.date)}</div></div>
         <div class="amount">${fmt(v.total)}${montantRetour>0?' <span class="meta neg" style="font-weight:700;">(-'+fmt(montantRetour)+')</span>':''}</div>
       </div>`;
-    }).join('') : '<div class="empty">Aucune vente enregistrée pour l\'instant.<br>Ta première vente apparaîtra ici.</div>';
+    }).join('') : (q ? '<div class="empty">Aucun résultat pour "'+q+'"</div>' : '<div class="empty">Aucune vente enregistrée pour l\'instant.<br>Ta première vente apparaîtra ici.</div>');
   } else {
-    const list = ACHATS.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    let list = ACHATS.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(q){
+      list = list.filter(a=>{
+        const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
+        return a.numero.toLowerCase().includes(q) || (f && f.nom.toLowerCase().includes(q));
+      });
+    }
     card.innerHTML = list.length ? list.map(a=>{
       const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
       const retours = RETOURS_ACHAT.filter(r=>r.achatId===a.id);
@@ -1707,6 +1969,8 @@ const MVT_LABELS = {
   retour_investissement: {type:'sortie', motifDefaut:"Retour d'investissement"},
   fonds_roulement_ajout: {type:'entree', motifDefaut:"Ajout fonds de roulement"},
   fonds_roulement_retrait: {type:'sortie', motifDefaut:"Retrait fonds de roulement"},
+  charges: {type:'sortie', motifDefaut:'Charges (carburant, factures...)'},
+  solde_initial: {type:'entree', motifDefaut:"Ancien fonds / solde de départ"},
   autre_entree: {type:'entree', motifDefaut:'Apport'},
   autre_sortie: {type:'sortie', motifDefaut:'Dépense'}
 };
@@ -1724,6 +1988,7 @@ async function enregistrerMouvement(){
   await put('caisse', mvt); CAISSE.push(mvt);
   closeModal('modalMouvement');
   renderBilan();
+  renderHomeWidgets();
   toast('Mouvement enregistré ✓');
 }
 function totalInvesti(){
@@ -1773,6 +2038,7 @@ async function enregistrerModifMouvement(){
   await put('caisse', m);
   closeModal('modalMouvementDetail');
   renderBilan();
+  renderHomeWidgets();
   toast('Mouvement modifié ✓');
 }
 async function supprimerMouvement(){
@@ -1783,6 +2049,7 @@ async function supprimerMouvement(){
   CAISSE = CAISSE.filter(x=>x.id!==id);
   closeModal('modalMouvementDetail');
   renderBilan();
+  renderHomeWidgets();
   toast('Mouvement supprimé');
 }
 function soldeCaisseActuel(){
@@ -1796,7 +2063,8 @@ async function exporterDonnees(){
     exporteLe: nowISO(),
     produits: PRODUITS, clients: CLIENTS, fournisseurs: FOURNISSEURS,
     ventes: VENTES, achats: ACHATS, caisse: CAISSE,
-    retoursVente: RETOURS_VENTE, retoursAchat: RETOURS_ACHAT
+    retoursVente: RETOURS_VENTE, retoursAchat: RETOURS_ACHAT,
+    vendeurs: VENDEURS, parametres: PARAMETRES
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1816,7 +2084,7 @@ async function importerDonnees(evt){
   try{
     const text = await file.text();
     const data = JSON.parse(text);
-    const stores = {produits:'produits', clients:'clients', fournisseurs:'fournisseurs', ventes:'ventes', achats:'achats', caisse:'caisse', retoursVente:'retoursVente', retoursAchat:'retoursAchat'};
+    const stores = {produits:'produits', clients:'clients', fournisseurs:'fournisseurs', ventes:'ventes', achats:'achats', caisse:'caisse', retoursVente:'retoursVente', retoursAchat:'retoursAchat', vendeurs:'vendeurs'};
     for(const key of Object.keys(stores)){
       const items = Array.isArray(data[key]) ? data[key] : [];
       await new Promise((resolve,reject)=>{
@@ -1828,8 +2096,11 @@ async function importerDonnees(evt){
     PRODUITS = data.produits||[]; CLIENTS = data.clients||[]; FOURNISSEURS = data.fournisseurs||[];
     VENTES = data.ventes||[]; ACHATS = data.achats||[]; CAISSE = data.caisse||[];
     RETOURS_VENTE = data.retoursVente||[]; RETOURS_ACHAT = data.retoursAchat||[];
+    VENDEURS = data.vendeurs||[];
+    if(data.parametres){ PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT, data.parametres); await sauverParametres(); }
     remplirSelectProduits(); remplirSelectClients(); remplirSelectFournisseurs();
     renderBilan(); renderClients(); renderFournisseurs(); renderStock(); renderHistorique();
+    renderVentesChart(); renderVentesRecentes(); renderHomeWidgets(); appliquerVisibiliteVendeur();
     toast('Données restaurées ✓');
   }catch(e){
     toast("Fichier invalide : "+e.message);
@@ -1890,7 +2161,9 @@ function renderBilan(){
     const badge = m.categorie==='investissement' ? '<span class="pill ok" style="margin-right:6px;">Investissement</span>'
       : m.categorie==='retour_investissement' ? '<span class="pill credit" style="margin-right:6px;">Retour invest.</span>'
       : m.categorie==='fonds_roulement_ajout' ? '<span class="pill ok" style="margin-right:6px;">Fonds roulement</span>'
-      : m.categorie==='fonds_roulement_retrait' ? '<span class="pill credit" style="margin-right:6px;">Fonds roulement</span>' : '';
+      : m.categorie==='fonds_roulement_retrait' ? '<span class="pill credit" style="margin-right:6px;">Fonds roulement</span>'
+      : m.categorie==='charges' ? '<span class="pill warn" style="margin-right:6px;">Charges</span>'
+      : m.categorie==='solde_initial' ? '<span class="pill ok" style="margin-right:6px;">Solde initial</span>' : '';
     return `<div class="list-item" onclick="openMouvementDetail('${m.id}')" style="cursor:pointer;">
       <div><div class="name">${badge}${m.motif}</div><div class="meta">${dateFR(m.date)}</div></div>
       <div class="amount ${m.type==='entree'?'pos':'neg'}">${m.type==='entree'?'+':'-'}${fmt(m.montant)}</div>
@@ -1949,9 +2222,11 @@ function renderVentesChart(){
     const barH = Math.max(2, (v/max) * (h-padBottom-8));
     const x = i*(barW+gap) + (barW-barWReduced)/2;
     const y = (h-padBottom) - barH;
-    bars += `<rect x="${x}" y="${y}" width="${barWReduced}" height="${barH}" rx="3" fill="url(#hexBarFill)"><title>${labels[i]} : ${fmt(v)} (${counts[i]} vente${counts[i]>1?'s':''})</title></rect>`;
+    const labelEch = (labels[i]+'').replace(/'/g,"\\'");
+    bars += `<rect x="${i*(barW+gap)}" y="0" width="${barW}" height="${h}" fill="transparent" style="cursor:pointer;" onclick="afficherJourDetail(event,'${labelEch}',${v},${counts[i]})"></rect>`;
+    bars += `<rect x="${x}" y="${y}" width="${barWReduced}" height="${barH}" rx="3" fill="url(#hexBarFill)" style="pointer-events:none;"><title>${labels[i]} : ${fmt(v)} (${counts[i]} vente${counts[i]>1?'s':''})</title></rect>`;
     bars += `<rect x="${x}" y="${y}" width="${barWReduced}" height="${barH}" rx="3" fill="url(#hexPattern)" style="pointer-events:none;"></rect>`;
-    bars += `<text x="${x+barWReduced/2}" y="${h-4}" font-size="8" text-anchor="middle" style="fill:var(--muted);">${labels[i]}</text>`;
+    bars += `<text x="${x+barWReduced/2}" y="${h-4}" font-size="8" text-anchor="middle" style="fill:var(--muted); pointer-events:none;">${labels[i]}</text>`;
   });
   box.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:120px; display:block;">
     <defs>
@@ -1973,11 +2248,29 @@ function renderVentesChart(){
   document.getElementById('graphTotalInfo').textContent =
     (graphMode==='semaine' ? '7 derniers jours' : 'Ce mois-ci') + ' — ' + fmt(total) + ' · ' + nb + ' vente'+(nb>1?'s':'');
 }
+let dayPopoverTimeout = null;
+function afficherJourDetail(evt, label, valeur, nb){
+  const pop = document.getElementById('dayPopover');
+  pop.innerHTML = label+'<br><span style="font-weight:900; font-size:14px;">'+fmt(valeur)+'</span><br><span style="font-weight:500; opacity:.8;">'+nb+' vente'+(nb>1?'s':'')+'</span>';
+  const rect = evt.currentTarget.closest('svg').getBoundingClientRect();
+  pop.style.left = Math.min(window.innerWidth-140, Math.max(8, evt.clientX-60))+'px';
+  pop.style.top = (rect.top - 66)+'px';
+  pop.classList.add('show');
+  clearTimeout(dayPopoverTimeout);
+  dayPopoverTimeout = setTimeout(()=> pop.classList.remove('show'), 2200);
+}
 function setGraphMode(mode){
   graphMode = mode;
   document.getElementById('graphSemaine').classList.toggle('active', mode==='semaine');
   document.getElementById('graphMois').classList.toggle('active', mode==='mois');
   renderVentesChart();
+}
+function renderHomeWidgets(){
+  const c = document.getElementById('homeSoldeCaisse');
+  const s = document.getElementById('homeValeurStock');
+  if(!c || !s) return;
+  c.textContent = fmt(soldeCaisseActuel());
+  s.textContent = fmt(PRODUITS.reduce((sum,p)=>sum+(p.stock||0)*(p.prixAchat||0),0));
 }
 function renderVentesRecentes(){
   const card = document.getElementById('ventesRecentesCard');
@@ -2086,9 +2379,10 @@ document.addEventListener('click', function(e){
 async function init(){
   try{
     await openDB();
-    [PRODUITS, CLIENTS, FOURNISSEURS, VENTES, ACHATS, CAISSE, RETOURS_VENTE, RETOURS_ACHAT] = await Promise.all([
-      getAll('produits'), getAll('clients'), getAll('fournisseurs'), getAll('ventes'), getAll('achats'), getAll('caisse'), getAll('retoursVente'), getAll('retoursAchat')
+    [PRODUITS, CLIENTS, FOURNISSEURS, VENTES, ACHATS, CAISSE, RETOURS_VENTE, RETOURS_ACHAT, VENDEURS] = await Promise.all([
+      getAll('produits'), getAll('clients'), getAll('fournisseurs'), getAll('ventes'), getAll('achats'), getAll('caisse'), getAll('retoursVente'), getAll('retoursAchat'), getAll('vendeurs')
     ]);
+    await chargerParametres();
   }catch(e){
     toast("Stockage indisponible dans cet aperçu. Installe l'app pour un usage réel.");
   }
@@ -2100,6 +2394,9 @@ async function init(){
   renderBilan();
   renderVentesChart();
   renderVentesRecentes();
+  renderHomeWidgets();
+  appliquerVisibiliteVendeur();
+  document.getElementById('venteDateHeure').value = auMaintenantLocal();
 
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('service-worker.js').catch(()=>{});
