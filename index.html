@@ -278,12 +278,11 @@
     </svg>
     <div>
       <h1 id="headerTitle">TAJER</h1>
-      <div class="sub" id="headerSub">Ta caisse, ton stock, tes clients</div>
+      <div class="sub" id="headerSub" data-i18n="header_sub">Ta caisse, ton stock, tes clients</div>
     </div>
   </div>
   <div style="display:flex; align-items:center;">
     <div style="text-align:right; font-size:11px; opacity:.85;" id="clockBox"></div>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
     <button class="theme-toggle" id="settingsToggle" onclick="openParametres()" aria-label="Paramètres" title="Paramètres">⚙️</button>
   </div>
 </header>
@@ -292,33 +291,33 @@
 
   <!-- VENTE (ACCUEIL) -->
   <section class="view active" id="view-vente">
-    <h2 class="title">Accueil</h2>
+    <h2 class="title" data-i18n="accueil">Accueil</h2>
 
     <div class="card search-box" style="position:relative;">
-      <input type="text" id="rechercheGlobale" placeholder="🔍 Rechercher un produit, client, vente..." autocomplete="off" oninput="rechercheGlobaleInput()" onfocus="rechercheGlobaleInput()">
+      <input type="text" id="rechercheGlobale" data-i18n-ph="rechercher_global" placeholder="🔍 Rechercher un produit, client, vente..." autocomplete="off" oninput="rechercheGlobaleInput()" onfocus="rechercheGlobaleInput()">
       <div id="rechercheGlobaleResults" style="display:none; position:absolute; left:12px; right:12px; top:100%; background:var(--card); border:1px solid var(--line); border-radius:0 0 var(--radius) var(--radius); box-shadow:0 8px 18px rgba(0,0,0,.15); z-index:40; max-height:320px; overflow-y:auto;"></div>
     </div>
 
-    <button class="btn amber block" style="padding:15px; font-size:15px; margin-bottom:10px;" onclick="ouvrirModalVente()">🛒 Nouvelle vente</button>
+    <button class="btn amber block" data-i18n="nouvelle_vente" style="padding:15px; font-size:15px; margin-bottom:10px;" onclick="ouvrirModalVente()">🛒 Nouvelle vente</button>
 
     <div class="stat-grid">
       <div class="stat" onclick="switchView('bilan')" style="cursor:pointer;">
         <div class="v" id="homeSoldeCaisse">0</div>
-        <div class="l">Caisse</div>
+        <div class="l" data-i18n="caisse">Caisse</div>
       </div>
       <div class="stat amber" onclick="switchView('achats'); switchAchatsTab('stock');" style="cursor:pointer;">
         <div class="v" id="homeValeurStock">0</div>
-        <div class="l">Valeur stock</div>
+        <div class="l" data-i18n="valeur_stock">Valeur stock</div>
       </div>
     </div>
 
     <div class="card" style="position:relative; overflow:hidden;">
       <span style="position:absolute; right:-10px; bottom:-16px; font-size:44px; font-weight:900; letter-spacing:1px; color:transparent; -webkit-text-stroke:1px rgba(201,168,106,0.12); pointer-events:none;">TAJER</span>
       <div class="row" style="margin-bottom:2px; position:relative;">
-        <span style="font-weight:800; font-size:13px; color:var(--navy);">Aperçu des ventes</span>
+        <span style="font-weight:800; font-size:13px; color:var(--navy);" data-i18n="apercu_ventes">Aperçu des ventes</span>
         <div class="chip-toggle">
-          <button id="graphSemaine" class="active" onclick="setGraphMode('semaine')">Semaine</button>
-          <button id="graphMois" onclick="setGraphMode('mois')">Mois</button>
+          <button id="graphSemaine" class="active" data-i18n="semaine" onclick="setGraphMode('semaine')">Semaine</button>
+          <button id="graphMois" data-i18n="mois" onclick="setGraphMode('mois')">Mois</button>
         </div>
       </div>
       <div id="ventesChartBox" style="margin-top:6px;"></div>
@@ -327,12 +326,12 @@
 
     <div class="card">
       <div class="row" style="cursor:pointer;" onclick="toggleVentesRecentes()">
-        <span style="font-weight:800; font-size:13px; color:var(--navy);">Ventes récentes</span>
-        <span class="linklike" id="toggleVentesRecentesLabel">Afficher ▾</span>
+        <span style="font-weight:800; font-size:13px; color:var(--navy);" data-i18n="ventes_recentes">Ventes récentes</span>
+        <span class="linklike" id="toggleVentesRecentesLabel" data-i18n="afficher">Afficher ▾</span>
       </div>
       <div id="ventesRecentesWrap" style="display:none;">
         <div id="ventesRecentesCard" style="margin-top:8px;"></div>
-        <a class="linklike" onclick="switchView('historique')" style="cursor:pointer; display:block; margin-top:8px; text-align:center;">Tout voir</a>
+        <a class="linklike" data-i18n="tout_voir" onclick="switchView('historique')" style="cursor:pointer; display:block; margin-top:8px; text-align:center;">Tout voir</a>
       </div>
     </div>
   </section>
@@ -341,16 +340,21 @@
   <div class="modal-bg" id="modalNouvelleVente">
     <div class="modal">
       <button class="modal-close" onclick="fermerModalVente()">×</button>
-      <h3 style="margin-bottom:10px;">Nouvelle vente</h3>
+      <h3 style="margin-bottom:10px;" data-i18n="titre_nouvelle_vente">Nouvelle vente</h3>
 
       <div class="card" style="margin-top:0;">
-        <label class="field" style="margin-top:0;">Date et heure de la vente</label>
+        <label class="field" style="margin-top:0;" data-i18n="date_heure_vente">Date et heure de la vente</label>
         <input type="datetime-local" id="venteDateHeure" onchange="verifierDateVente()">
         <div class="meta" id="venteDateAvertissement" style="display:none; color:var(--red); margin-top:6px; font-weight:700;">⚠️ Cette vente sera enregistrée à une date passée.</div>
       </div>
 
+      <div class="card vendeur-only" style="display:none;">
+        <label class="field" style="margin-top:0;" data-i18n="vendeur">Vendeur</label>
+        <select id="venteVendeurSelect"></select>
+      </div>
+
       <div class="card">
-        <label class="field" style="margin-top:0;">Client (optionnel en comptant, obligatoire à crédit)</label>
+        <label class="field" style="margin-top:0;" data-i18n="client_label">Client (optionnel en comptant, obligatoire à crédit)</label>
         <div class="row" style="gap:8px;">
           <div style="flex:1; position:relative;">
             <input type="text" id="venteClientSearch" placeholder="-- Client de passage (comptant) --" autocomplete="off"
@@ -365,14 +369,14 @@
 
       <div class="card">
         <div class="row" style="margin-bottom:8px;">
-          <label class="field" style="margin:0;">Ajouter un produit</label>
+          <label class="field" style="margin:0;" data-i18n="ajouter_produit">Ajouter un produit</label>
           <button class="btn outline sm" onclick="openProduitModal()">+ Nouveau produit</button>
         </div>
         <select id="venteProduitSelect"></select>
         <div class="meta" id="venteStockInfo" style="margin-top:6px;"></div>
         <div class="grid2" style="margin-top:8px;">
           <div>
-            <label class="field">Quantité</label>
+            <label class="field" data-i18n="quantite">Quantité</label>
             <div class="row" style="gap:6px;">
               <button type="button" class="qbtn" onclick="ajusterQte(-1)">−</button>
               <input type="number" id="venteQte" value="1" min="0.01" step="any" inputmode="decimal" style="text-align:center;">
@@ -380,7 +384,7 @@
             </div>
           </div>
           <div>
-            <label class="field">Prix unitaire</label>
+            <label class="field" data-i18n="prix_unitaire">Prix unitaire</label>
             <input type="number" id="ventePU" min="0" step="any" inputmode="decimal">
           </div>
         </div>
@@ -388,7 +392,7 @@
       </div>
 
       <div class="card" id="panierCard" style="display:none;">
-        <label class="field" style="margin-top:0;">Panier</label>
+        <label class="field" style="margin-top:0;" data-i18n="panier">Panier</label>
         <div id="panierLignes"></div>
         <div class="row" style="margin-top:10px; padding-top:10px; border-top:2px solid var(--line);">
           <span style="font-weight:800;">Total</span>
@@ -397,13 +401,13 @@
       </div>
 
       <div class="card" id="paiementCard" style="display:none; margin-bottom:0;">
-        <label class="field" style="margin-top:0;">Mode de paiement</label>
+        <label class="field" style="margin-top:0;" data-i18n="mode_paiement">Mode de paiement</label>
         <div class="segmented">
           <button id="modeComptant" class="active" onclick="setModePaiement('comptant')">Comptant</button>
           <button id="modeCredit" onclick="setModePaiement('credit')">Crédit</button>
         </div>
         <div id="montantPayeBox">
-          <label class="field">Montant payé maintenant</label>
+          <label class="field" data-i18n="montant_paye">Montant payé maintenant</label>
           <input type="number" id="venteMontantPaye" min="0" step="any" inputmode="decimal">
         </div>
         <button class="btn block" id="btnValiderVente" style="margin-top:12px; margin-bottom:6px; background:var(--green);" onclick="validerVente()">Valider la vente</button>
@@ -433,30 +437,30 @@
 
     <div id="achatsNouvel">
       <div class="card">
-        <label class="field" style="margin-top:0;">Fournisseur</label>
+        <label class="field" style="margin-top:0;" data-i18n="fournisseur">Fournisseur</label>
         <select id="achatFournisseur"></select>
       </div>
       <div class="card">
         <div class="row" style="margin-bottom:8px;">
-          <label class="field" style="margin:0;">Ajouter un produit acheté</label>
+          <label class="field" style="margin:0;" data-i18n="ajouter_produit_achete">Ajouter un produit acheté</label>
           <button class="btn outline sm" onclick="openProduitModal()">+ Nouveau produit</button>
         </div>
         <select id="achatProduitSelect"></select>
         <div class="grid2" style="margin-top:8px;">
-          <div><label class="field">Quantité</label><input type="number" id="achatQte" value="1" min="0.01" step="any" inputmode="decimal"></div>
-          <div><label class="field">Prix d'achat unitaire</label><input type="number" id="achatPU" min="0" step="any" inputmode="decimal"></div>
+          <div><label class="field" data-i18n="quantite">Quantité</label><input type="number" id="achatQte" value="1" min="0.01" step="any" inputmode="decimal"></div>
+          <div><label class="field" data-i18n="prix_achat_unitaire">Prix d'achat unitaire</label><input type="number" id="achatPU" min="0" step="any" inputmode="decimal"></div>
         </div>
         <button class="btn amber block" style="margin-top:10px;" onclick="ajouterLigneAchat()">Ajouter au bon d'achat</button>
       </div>
       <div class="card" id="achatPanierCard" style="display:none;">
-        <label class="field" style="margin-top:0;">Bon d'achat en cours</label>
+        <label class="field" style="margin-top:0;" data-i18n="bon_achat_cours">Bon d'achat en cours</label>
         <div id="achatPanierLignes"></div>
         <div class="row" style="margin-top:10px; padding-top:10px; border-top:2px solid var(--line);">
           <span style="font-weight:800;">Total</span><span class="amount" id="achatPanierTotal">0</span>
         </div>
       </div>
       <div class="card" id="achatPaiementCard" style="display:none;">
-        <label class="field" style="margin-top:0;">Montant payé maintenant</label>
+        <label class="field" style="margin-top:0;" data-i18n="montant_paye">Montant payé maintenant</label>
         <input type="number" id="achatMontantPaye" min="0" step="any" inputmode="decimal" value="0">
         <button class="btn block" id="btnValiderAchat" style="margin-top:12px; background:var(--green);" onclick="validerAchat()">Valider l'achat</button>
       </div>
@@ -503,11 +507,11 @@
     </div>
     <div class="card grid2" id="persoDatesCard" style="display:none;">
       <div>
-        <label class="field" style="margin-top:0;">Du</label>
+        <label class="field" style="margin-top:0;" data-i18n="du">Du</label>
         <input type="date" id="persoDateDebut" onchange="renderBilan()">
       </div>
       <div>
-        <label class="field" style="margin-top:0;">Au</label>
+        <label class="field" style="margin-top:0;" data-i18n="au">Au</label>
         <input type="date" id="persoDateFin" onchange="renderBilan()">
       </div>
     </div>
@@ -517,6 +521,11 @@
       <div class="stat"><div class="v" id="statNbVentes">0</div><div class="l">Nombre de ventes</div></div>
       <div class="stat"><div class="v" id="statCredits">0</div><div class="l">Total crédits clients</div></div>
       <div class="stat"><div class="v" id="statValeurStock">0</div><div class="l">Valeur de stock</div></div>
+    </div>
+
+    <div class="card vendeur-only" style="display:none;">
+      <div style="font-weight:800; font-size:13px; color:var(--navy); margin-bottom:6px;">🏆 Classement des vendeurs</div>
+      <div id="classementVendeursCard"></div>
     </div>
 
     <h2 class="title" style="margin-top:16px;">Caisse</h2>
@@ -558,23 +567,23 @@
 <nav class="tabs">
   <button class="active" data-view="vente" onclick="switchView('vente')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.3" fill="currentColor"/><circle cx="17" cy="20" r="1.3" fill="currentColor"/><path d="M6 6L4 3H2"/></svg>
-    Vente
+    <span data-i18n="nav_vente">Vente</span>
   </button>
   <button data-view="clients" onclick="switchView('clients')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.3"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
-    Clients
+    <span data-i18n="nav_clients">Clients</span>
   </button>
   <button data-view="achats" onclick="switchView('achats')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18l-2 13H5z"/><path d="M8 7V5a4 4 0 018 0v2"/></svg>
-    Achats
+    <span data-i18n="nav_achats">Achats</span>
   </button>
   <button data-view="historique" onclick="switchView('historique')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>
-    Historique
+    <span data-i18n="nav_historique">Historique</span>
   </button>
   <button data-view="bilan" onclick="switchView('bilan')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
-    Bilan
+    <span data-i18n="nav_bilan">Bilan</span>
   </button>
 </nav>
 
@@ -584,15 +593,15 @@
     <button class="modal-close" onclick="closeModal('modalProduit')">×</button>
     <h3 id="produitModalTitle">Nouveau produit</h3>
     <input type="hidden" id="pId">
-    <label class="field">Nom du produit</label>
+    <label class="field" data-i18n="nom_produit">Nom du produit</label>
     <input type="text" id="pNom" placeholder="Ex: Sac de riz 5kg">
     <div class="grid2">
-      <div><label class="field">Prix d'achat</label><input type="number" id="pPrixAchat" min="0" step="any" inputmode="decimal"></div>
-      <div><label class="field">Prix de vente</label><input type="number" id="pPrixVente" min="0" step="any" inputmode="decimal"></div>
+      <div><label class="field" data-i18n="prix_achat">Prix d'achat</label><input type="number" id="pPrixAchat" min="0" step="any" inputmode="decimal"></div>
+      <div><label class="field" data-i18n="prix_vente">Prix de vente</label><input type="number" id="pPrixVente" min="0" step="any" inputmode="decimal"></div>
     </div>
-    <label class="field">Stock initial</label>
+    <label class="field" data-i18n="stock_initial">Stock initial</label>
     <input type="number" id="pStock" value="0" min="0" step="any" inputmode="decimal">
-    <label class="field">Seuil d'alerte stock bas</label>
+    <label class="field" data-i18n="seuil_alerte">Seuil d'alerte stock bas</label>
     <input type="number" id="pSeuilAlerte" value="5" min="0" step="any" inputmode="decimal">
     <button class="btn amber block" id="btnEnregistrerProduit" style="margin-top:14px;" onclick="enregistrerProduit()">Enregistrer</button>
     <button class="btn red block" id="btnSupprimerProduit" style="margin-top:8px; display:none;" onclick="supprimerProduit()">🗑️ Supprimer ce produit</button>
@@ -605,13 +614,13 @@
     <button class="modal-close" onclick="closeModal('modalClient')">×</button>
     <h3 id="clientModalTitle">Nouveau client</h3>
     <input type="hidden" id="clientId">
-    <label class="field">Nom</label>
+    <label class="field" data-i18n="nom">Nom</label>
     <input type="text" id="cNom" placeholder="Nom du client">
-    <label class="field">Téléphone</label>
+    <label class="field" data-i18n="telephone">Téléphone</label>
     <input type="text" id="cTel" placeholder="Numéro (optionnel)" inputmode="tel">
-    <label class="field" id="cSoldeLabel">Solde initial (ancienne dette, si le client en a une)</label>
+    <label class="field" id="cSoldeLabel" data-i18n="solde_initial_label">Solde initial (ancienne dette, si le client en a une)</label>
     <input type="number" id="cSolde" value="0" min="0" step="any" inputmode="decimal">
-    <label class="field">Chiffre d'affaires initial (ventes réalisées avant l'app)</label>
+    <label class="field" data-i18n="ca_initial">Chiffre d'affaires initial (ventes réalisées avant l'app)</label>
     <input type="number" id="cCaInitial" value="0" min="0" step="any" inputmode="decimal">
     <button class="btn amber block" onclick="enregistrerClient()">Enregistrer</button>
   </div>
@@ -623,13 +632,13 @@
     <button class="modal-close" onclick="closeModal('modalFournisseur')">×</button>
     <h3 id="fournisseurModalTitle">Nouveau fournisseur</h3>
     <input type="hidden" id="fournisseurId">
-    <label class="field">Nom</label>
+    <label class="field" data-i18n="nom">Nom</label>
     <input type="text" id="fNom" placeholder="Nom du fournisseur">
-    <label class="field">Téléphone</label>
+    <label class="field" data-i18n="telephone">Téléphone</label>
     <input type="text" id="fTel" placeholder="Numéro (optionnel)" inputmode="tel">
-    <label class="field" id="fSoldeLabel">Solde initial (dette existante envers lui)</label>
+    <label class="field" id="fSoldeLabel" data-i18n="solde_initial_f">Solde initial (dette existante envers lui)</label>
     <input type="number" id="fSolde" value="0" min="0" step="any" inputmode="decimal">
-    <label class="field">Chiffre d'affaires initial (achats réalisés avant l'app)</label>
+    <label class="field" data-i18n="ca_initial_f">Chiffre d'affaires initial (achats réalisés avant l'app)</label>
     <input type="number" id="fCaInitial" value="0" min="0" step="any" inputmode="decimal">
     <button class="btn amber block" onclick="enregistrerFournisseur()">Enregistrer</button>
   </div>
@@ -658,7 +667,7 @@
       <input type="number" id="cdPaiement" placeholder="Montant reçu" min="0" step="any" inputmode="decimal">
       <button class="btn amber" onclick="encaisserPaiementClient()">Encaisser</button>
     </div>
-    <label class="field">Historique des ventes</label>
+    <label class="field" data-i18n="historique_ventes">Historique des ventes</label>
     <div id="cdHistorique"></div>
     <button class="btn red block" style="margin-top:14px;" onclick="supprimerClient()">🗑️ Supprimer ce client</button>
   </div>
@@ -687,7 +696,7 @@
       <input type="number" id="fdPaiement" placeholder="Montant payé" min="0" step="any" inputmode="decimal">
       <button class="btn amber" onclick="payerFournisseur()">Payer</button>
     </div>
-    <label class="field">Historique des achats</label>
+    <label class="field" data-i18n="historique_achats">Historique des achats</label>
     <div id="fdHistorique"></div>
     <button class="btn red block" style="margin-top:14px;" onclick="supprimerFournisseur()">🗑️ Supprimer ce fournisseur</button>
   </div>
@@ -697,8 +706,8 @@
 <div class="modal-bg" id="modalMouvement">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('modalMouvement')">×</button>
-    <h3>Mouvement de caisse</h3>
-    <label class="field" style="margin-top:0;">Catégorie</label>
+    <h3 data-i18n="titre_mouvement">Mouvement de caisse</h3>
+    <label class="field" style="margin-top:0;" data-i18n="categorie">Catégorie</label>
     <select id="mvtCategorie" onchange="onMvtCategorieChange()">
       <option value="investissement">💰 Investissement (j'ajoute de l'argent)</option>
       <option value="retour_investissement">↩️ Retour d'investissement (je retire mon argent)</option>
@@ -709,10 +718,11 @@
       <option value="autre_entree">➕ Autre entrée</option>
       <option value="autre_sortie">➖ Autre dépense / sortie</option>
     </select>
-    <label class="field">Montant</label>
+    <label class="field" data-i18n="montant">Montant</label>
     <input type="number" id="mvtMontant" min="0" step="any" inputmode="decimal">
-    <label class="field">Motif</label>
+    <label class="field" data-i18n="motif">Motif</label>
     <input type="text" id="mvtMotif" placeholder="Ex: Retrait personnel, apport...">
+    <div class="meta" id="mvtSoldeInitialInfo" style="display:none; margin-top:6px;">ℹ️ Ce montant sera ajouté au fonds de roulement uniquement — il n'affectera pas le solde de caisse actuel, puisqu'il représente de l'argent déjà existant avant l'utilisation de l'app.</div>
     <button class="btn amber block" style="margin-top:14px;" onclick="enregistrerMouvement()">Enregistrer</button>
   </div>
 </div>
@@ -721,7 +731,7 @@
 <div class="modal-bg" id="modalRecu">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('modalRecu')">×</button>
-    <h3>Bon de vente</h3>
+    <h3 data-i18n="titre_bon_vente">Bon de vente</h3>
     <div class="receipt" id="recuTexte"></div>
     <div class="grid2" style="margin-top:12px;">
       <button class="btn" onclick="imprimerRawBT()">🖨️ Imprimer (Bluetooth)</button>
@@ -760,9 +770,9 @@
 <div class="modal-bg" id="modalMouvementDetail">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('modalMouvementDetail')">×</button>
-    <h3>Modifier le mouvement</h3>
+    <h3 data-i18n="titre_modifier_mouvement">Modifier le mouvement</h3>
     <div class="meta" id="mvdLienInfo" style="color:var(--red); display:none;"></div>
-    <label class="field" style="margin-top:8px;">Catégorie</label>
+    <label class="field" style="margin-top:8px;" data-i18n="categorie">Catégorie</label>
     <select id="mvdCategorie">
       <option value="investissement">💰 Investissement</option>
       <option value="retour_investissement">↩️ Retour d'investissement</option>
@@ -773,9 +783,9 @@
       <option value="autre_entree">➕ Autre entrée</option>
       <option value="autre_sortie">➖ Autre dépense / sortie</option>
     </select>
-    <label class="field">Montant</label>
+    <label class="field" data-i18n="montant">Montant</label>
     <input type="number" id="mvdMontant" min="0" step="any" inputmode="decimal">
-    <label class="field">Motif</label>
+    <label class="field" data-i18n="motif">Motif</label>
     <input type="text" id="mvdMotif">
     <div class="grid2" style="margin-top:14px;">
       <button class="btn amber" onclick="enregistrerModifMouvement()">Enregistrer</button>
@@ -784,17 +794,32 @@
   </div>
 </div>
 
+<!-- MODAL: Gestion vendeurs -->
+<div class="modal-bg" id="modalVendeurs">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalVendeurs')">×</button>
+    <h3 style="margin-bottom:10px;" data-i18n="titre_vendeurs">Vendeurs</h3>
+    <div class="card" style="margin-top:0;">
+      <div class="row" style="gap:8px;">
+        <input type="text" id="nouveauVendeurNom" placeholder="Nom du vendeur">
+        <button class="btn amber sm" onclick="ajouterVendeur()">+ Ajouter</button>
+      </div>
+    </div>
+    <div class="card" id="vendeursListCard" style="margin-bottom:0;"></div>
+  </div>
+</div>
+
 <!-- MODAL: Paramètres -->
 <div class="modal-bg" id="modalParametres">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('modalParametres')">×</button>
-    <h3 style="margin-bottom:10px;">Paramètres</h3>
+    <h3 style="margin-bottom:10px;" data-i18n="titre_parametres">Paramètres</h3>
 
     <div class="card" style="margin-top:0;">
       <div class="row">
         <div>
-          <div class="name" style="font-size:13.5px;">Vibration</div>
-          <div class="meta">Vibrer lors des confirmations</div>
+          <div class="name" style="font-size:13.5px;" data-i18n="vibration">Vibration</div>
+          <div class="meta" data-i18n="vibration_desc">Vibrer lors des confirmations</div>
         </div>
         <label class="switch">
           <input type="checkbox" id="paramVibration" onchange="majParametre('vibration', this.checked)">
@@ -806,35 +831,47 @@
     <div class="card">
       <div class="row">
         <div>
-          <div class="name" style="font-size:13.5px;">Plusieurs vendeurs</div>
-          <div class="meta">Suivre qui a réalisé chaque vente</div>
+          <div class="name" style="font-size:13.5px;" data-i18n="plusieurs_vendeurs">Plusieurs vendeurs</div>
+          <div class="meta" data-i18n="plusieurs_vendeurs_desc">Suivre qui a réalisé chaque vente</div>
         </div>
         <label class="switch">
           <input type="checkbox" id="paramMultiVendeur" onchange="majParametre('multiVendeur', this.checked)">
           <span class="switch-slider"></span>
         </label>
       </div>
+      <button class="btn outline block vendeur-only" data-i18n="gerer_vendeurs" style="margin-top:10px;" onclick="ouvrirGestionVendeurs()">👤 Gérer les vendeurs</button>
     </div>
 
     <div class="card">
-      <label class="field" style="margin-top:0;">Thème par défaut</label>
-      <select id="paramTheme" onchange="majParametreTheme(this.value)">
-        <option value="clair">Clair</option>
-        <option value="sombre">Sombre</option>
-        <option value="auto">Automatique (système)</option>
+      <label class="field" style="margin-top:0;" data-i18n="langue">Langue</label>
+      <select id="paramLangue" onchange="majParametreLangue(this.value)">
+        <option value="fr">Français</option>
+        <option value="en">English</option>
       </select>
     </div>
 
     <div class="card">
-      <label class="field" style="margin-top:0;">Symbole monétaire</label>
+      <label class="field" style="margin-top:0;" data-i18n="theme_defaut">Thème par défaut</label>
+      <select id="paramTheme" onchange="majParametreTheme(this.value)">
+        <option value="clair" data-i18n="clair">Clair</option>
+        <option value="sombre" data-i18n="sombre">Sombre</option>
+        <option value="auto" data-i18n="auto">Automatique (système)</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <label class="field" style="margin-top:0;" data-i18n="symbole_monetaire">Symbole monétaire</label>
       <input type="text" id="paramDevise" placeholder="Ex: DH, DA, FCFA, €" oninput="majParametre('devise', this.value)">
     </div>
 
     <div class="card" style="margin-bottom:0;">
-      <label class="field" style="margin-top:0;">Seuil d'alerte stock bas par défaut</label>
+      <label class="field" style="margin-top:0;" data-i18n="seuil_defaut">Seuil d'alerte stock bas par défaut</label>
       <input type="number" id="paramSeuilDefaut" min="0" step="any" inputmode="decimal" oninput="majParametre('seuilDefaut', parseFloat(this.value)||0)">
       <div class="meta" style="margin-top:6px;">Utilisé comme valeur pré-remplie pour les nouveaux produits.</div>
     </div>
+
+    <button class="btn amber block" style="margin-top:14px;" onclick="validerFermerParametres()">✓ Valider</button>
+    <button class="btn outline block" style="margin-top:8px;" onclick="closeModal('modalParametres')">Fermer</button>
   </div>
 </div>
 
@@ -879,13 +916,13 @@ function openDB(){
       db = e.target.result;
       db.onversionchange = () => {
         db.close();
-        toast("Mise à jour disponible — recharge l'application");
+        toast(t('err_maj_dispo'));
       };
       resolve(db);
     };
     req.onerror = (e) => reject(e);
     req.onblocked = () => {
-      toast("Ferme les autres onglets/fenêtres de l'app, puis rouvre-la");
+      toast(t('err_fermer_onglets'));
     };
   });
 }
@@ -923,13 +960,246 @@ let panierAchat = [];
 let modePaiementVente = 'comptant';
 let periodeActuelle = 'jour';
 const PARAMETRES_DEFAUT = {
-  id:'parametres', vibration:true, multiVendeur:false, theme:'auto', devise:'', seuilDefaut:5
+  id:'parametres', vibration:true, multiVendeur:false, theme:'auto', devise:'', seuilDefaut:5, langue:'fr'
 };
 let PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT);
 
+/* ===================== TRADUCTIONS (FR/EN) ===================== */
+const I18N = {
+  fr: {
+    nav_vente:'Vente', nav_clients:'Clients', nav_achats:'Achats', nav_historique:'Historique', nav_bilan:'Bilan',
+    header_sub:'Ta caisse, ton stock, tes clients',
+    accueil:'Accueil', caisse:'Caisse', valeur_stock:'Valeur stock',
+    apercu_ventes:'Aperçu des ventes', semaine:'Semaine', mois:'Mois',
+    ventes_recentes:'Ventes récentes', tout_voir:'Tout voir', afficher:'Afficher ▾', masquer:'Masquer ▴',
+    nouvelle_vente:'🛒 Nouvelle vente', rechercher_global:'🔍 Rechercher un produit, client, vente...',
+    date_heure_vente:'Date et heure de la vente', vendeur:'Vendeur',
+    client_label:'Client (optionnel en comptant, obligatoire à crédit)', client_passage:'-- Client de passage (comptant) --',
+    nouveau:'+ Nouveau', ajouter_produit:'Ajouter un produit', nouveau_produit:'+ Nouveau produit',
+    quantite:'Quantité', prix_unitaire:'Prix unitaire', ajouter_panier:'Ajouter au panier',
+    panier:'Panier', total:'Total', mode_paiement:'Mode de paiement', comptant:'Comptant', credit:'Crédit',
+    montant_paye:'Montant payé maintenant', valider_vente:'Valider la vente',
+    clients_title:'Clients', rechercher_client:'Rechercher un client...', par_dette:'Par dette', meilleurs_clients:'Meilleurs clients',
+    achats_title:'Achats & fournisseurs', nouvel_achat:'Nouvel achat', fournisseurs:'Fournisseurs', stock:'Stock',
+    fournisseur:'Fournisseur', ajouter_produit_achete:'Ajouter un produit acheté', prix_achat_unitaire:"Prix d'achat unitaire",
+    ajouter_bon_achat:"Ajouter au bon d'achat", bon_achat_cours:"Bon d'achat en cours", valider_achat:"Valider l'achat",
+    nouveau_fournisseur:'+ Nouveau fournisseur', valeur_totale_stock:'Valeur totale du stock (au prix d\'achat)',
+    rechercher_produit:'Rechercher un produit...',
+    historique_title:'Historique', ventes:'Ventes', achats:'Achats', rechercher_historique:'Rechercher un numéro, client, fournisseur...',
+    bilan_title:'Tableau de bord', jour:'Jour', semaine_p:'Semaine', mois_p:'Mois', annee:'Année', perso:'Perso', du:'Du', au:'Au',
+    total_ventes:'Total ventes', benefice_estime:'Bénéfice estimé', nombre_ventes:'Nombre de ventes',
+    total_credits:'Total crédits clients', valeur_stock2:'Valeur de stock', classement_vendeurs:'🏆 Classement des vendeurs',
+    caisse_title:'Caisse', solde_caisse:'Solde actuel de la caisse', mouvement:'+ Mouvement',
+    capital_investi:'Capital investi (total)', recupere:'Récupéré (total)', fonds_roulement_net:'Fonds de roulement net',
+    historique_mouvements:'Historique des mouvements', sauvegarde:'Sauvegarde',
+    sauvegarde_desc:"Exporte régulièrement tes données pour éviter toute perte (changement de téléphone, désinstallation...).",
+    exporter:'⬇️ Exporter (JSON)', importer:'⬆️ Importer',
+    nom_produit:'Nom du produit', prix_achat:"Prix d'achat", prix_vente:'Prix de vente', stock_initial:'Stock initial',
+    seuil_alerte:"Seuil d'alerte stock bas", enregistrer:'Enregistrer', supprimer_produit:'🗑️ Supprimer ce produit',
+    nom:'Nom', telephone:'Téléphone', solde_initial_label:'Solde initial (ancienne dette, si le client en a une)',
+    ca_initial:"Chiffre d'affaires initial (ventes réalisées avant l'app)", supprimer_client:'🗑️ Supprimer ce client',
+    solde_initial_f:'Solde initial (dette existante envers lui)', ca_initial_f:"Chiffre d'affaires initial (achats réalisés avant l'app)",
+    supprimer_fournisseur:'🗑️ Supprimer ce fournisseur',
+    solde_du:'Solde (crédit dû)', ca_realise:"Chiffre d'affaires réalisé", montant_recu:'Montant reçu', encaisser:'Encaisser',
+    historique_ventes:'Historique des ventes',
+    solde_devons:'Solde (nous devons)', achats_realises:'Achats réalisés (total)', montant_paye_f:'Montant payé', payer:'Payer',
+    historique_achats:'Historique des achats',
+    categorie:'Catégorie', montant:'Montant', motif:'Motif',
+    bon_vente:'Bon de vente', imprimer_bt:'🖨️ Imprimer (Bluetooth)', partager:'Partager', fermer:'Fermer',
+    reimprimer:'🖨️ Réimprimer', valider_retour:'Valider le retour', valider_retour_marchandise:'Valider le retour marchandise',
+    modifier_mouvement:'Modifier le mouvement', supprimer:'Supprimer',
+    parametres:'Paramètres', vibration:'Vibration', vibration_desc:'Vibrer lors des confirmations',
+    plusieurs_vendeurs:'Plusieurs vendeurs', plusieurs_vendeurs_desc:'Suivre qui a réalisé chaque vente',
+    gerer_vendeurs:'👤 Gérer les vendeurs', theme_defaut:'Thème par défaut', clair:'Clair', sombre:'Sombre', auto:'Automatique (système)',
+    symbole_monetaire:'Symbole monétaire', seuil_defaut:"Seuil d'alerte stock bas par défaut",
+    seuil_defaut_desc:'Utilisé comme valeur pré-remplie pour les nouveaux produits.',
+    langue:'Langue', valider:'✓ Valider',
+    vendeurs_title:'Vendeurs', nom_vendeur:'Nom du vendeur', ajouter:'+ Ajouter',
+    modifier:'✏️ Modifier',
+    pill_doit:'Doit', pill_ajour:'A jour', pill_du:'Dû', pill_retour:'Retour', pill_inactif:'Inactif', pill_stockbas:'Stock bas',
+    empty_produits:"Aucun produit pour l'instant.<br>Ajoute ton premier article pour commencer à vendre.",
+    empty_clients:"Aucun client enregistré pour l'instant.", ajouter_client:'+ Ajouter un client',
+    empty_fournisseurs:"Aucun fournisseur pour l'instant.<br>Ajoute-en un pour suivre tes achats.",
+    empty_ventes_client:'Aucune vente avec ce client pour le moment.',
+    empty_achats_fournisseur:'Aucun achat avec ce fournisseur pour le moment.',
+    empty_ventes_hist:"Aucune vente enregistrée pour l'instant.<br>Ta première vente apparaîtra ici.",
+    empty_achats_hist:"Aucun achat enregistré pour l'instant.",
+    empty_mouvements:"Aucun mouvement de caisse pour l'instant.",
+    empty_ventes_recentes:"Aucune vente pour l'instant.",
+    empty_vendeurs:"Aucun vendeur pour l'instant.",
+    empty_classement:'Aucune vente sur cette période.',
+    aucun_resultat:'Aucun résultat pour',
+    toast_produit_enregistre:'Produit enregistré ✓', toast_client_enregistre:'Client enregistré ✓',
+    toast_fournisseur_enregistre:'Fournisseur enregistré ✓', toast_vente_enregistree:'Vente enregistrée ✓',
+    toast_achat_enregistre:'Achat enregistré ✓', toast_paiement_encaisse:'Paiement encaissé ✓',
+    toast_paiement_effectue:'Paiement effectué ✓', toast_mouvement_enregistre:'Mouvement enregistré ✓',
+    toast_mouvement_modifie:'Mouvement modifié ✓', toast_mouvement_supprime:'Mouvement supprimé',
+    toast_client_supprime:'Client supprimé', toast_fournisseur_supprime:'Fournisseur supprimé', toast_produit_supprime:'Produit supprimé',
+    toast_vendeur_ajoute:'Vendeur ajouté ✓', toast_vendeur_supprime:'Vendeur supprimé',
+    toast_parametres_enregistres:'Paramètres enregistrés ✓', toast_donnees_restaurees:'Données restaurées ✓',
+    toast_sauvegarde_exportee:'Sauvegarde exportée ✓',
+    ancien_fonds_info:"ℹ️ Ce montant sera ajouté au fonds de roulement uniquement — il n'affectera pas le solde de caisse actuel, puisqu'il représente de l'argent déjà existant avant l'utilisation de l'app.",
+    err_date_future:'Impossible de choisir une date future', err_nom_vendeur:'Indique le nom du vendeur',
+    err_nom_produit:'Indique le nom du produit', err_produit_utilise:'Impossible : ce produit apparaît dans des ventes ou achats déjà enregistrés.',
+    err_choisir_produit:'Choisis un produit', err_quantite:'Quantité invalide', err_prix:'Prix invalide',
+    err_stock_insuffisant:'Stock insuffisant (dispo: ', err_panier_vide:'Le panier est vide',
+    err_client_credit:'Sélectionne ou crée un client pour une vente à crédit', err_vendeur_requis:'Sélectionne le vendeur pour cette vente',
+    err_qte_retour:'Indique au moins une quantité à retourner',
+    confirm_retour:'Confirmer le retour pour un montant de ', confirm_retour_suite:' ? Cette action est irréversible.',
+    confirm_retour_marchandise:'Confirmer le retour marchandise pour un montant de ',
+    err_rien_imprimer:'Rien à imprimer', info_recherche_imprimante:'Recherche imprimante Bluetooth...',
+    toast_ticket_envoye:'Ticket envoyé à l\'imprimante', err_impression:'Impression impossible : ',
+    err_partage:'Partage non supporté sur ce navigateur', err_nom_client:'Indique le nom du client',
+    err_montant:'Montant invalide', err_client_dette:'Impossible : ce client a encore une dette de ',
+    err_client_dette_suite:'. Encaisse-la d\'abord.', err_fournisseur_solde:'Impossible : il reste ',
+    err_fournisseur_solde_suite:' à payer à ce fournisseur.', err_bon_achat_vide:'Le bon d\'achat est vide',
+    confirm_supprimer_client_histo:'Ce client a un historique de ventes. Le supprimer masquera son nom dans les ventes passées mais conservera les données. Continuer ?',
+    confirm_supprimer_client:'Supprimer définitivement ce client ? Cette action est irréversible.',
+    confirm_supprimer_fournisseur_histo:'Ce fournisseur a un historique d\'achats. Le supprimer masquera son nom dans les achats passés mais conservera les données. Continuer ?',
+    confirm_supprimer_fournisseur:'Supprimer définitivement ce fournisseur ? Cette action est irréversible.',
+    confirm_supprimer_produit:'Supprimer définitivement',
+    confirm_supprimer_mouvement:'Supprimer ce mouvement de caisse ? Cette action est irréversible.',
+    confirm_supprimer_vendeur:'Supprimer ce vendeur ?', confirm_import:'Importer va REMPLACER toutes les données actuelles par celles du fichier. Continuer ?',
+    err_fichier_invalide:'Fichier invalide : ', err_stockage:"Stockage indisponible dans cet aperçu. Installe l'app pour un usage réel.",
+    err_maj_dispo:"Mise à jour disponible — recharge l'application", err_fermer_onglets:"Ferme les autres onglets/fenêtres de l'app, puis rouvre-la",
+    err_bluetooth_non_supporte:'Web Bluetooth non supporté sur ce navigateur', err_rawbt_fallback:"Web Bluetooth indisponible. Si rien ne s'ouvre, installe l'app RawBT",
+    lien_mouvement_info:"⚠️ Ce mouvement est lié à une opération (vente, achat, paiement...). Le modifier ou le supprimer ici n'annulera pas cette opération elle-même.",
+    vente_comptant:'Vente comptant', sans_fournisseur:'Sans fournisseur', merci_confiance:'Merci de votre confiance !',
+    ventes_label:'ventes', err_vendeur_ventes:'Impossible : ce vendeur a des ventes enregistrées. Désactive-le plutôt.',
+    desactiver:'Désactiver', activer:'Activer',
+    err_enregistrement_vente:"Erreur lors de l'enregistrement de la vente. Réessaie.",
+    err_enregistrement_achat:"Erreur lors de l'enregistrement de l'achat. Réessaie.",
+    toast_retour_enregistre:'Retour enregistré : ', toast_retour_marchandise_enregistre:'Retour marchandise enregistré : ',
+    err_nom_fournisseur:'Indique le nom du fournisseur',
+    aucun_client_trouve:'Aucun client trouvé', aucun_client_enregistre:'Aucun client enregistré',
+    recu_bon:'Bon', recu_total:'TOTAL', recu_paye:'Payé', recu_reste:'Reste à payer',
+    titre_nouvelle_vente:'Nouvelle vente', titre_mouvement:'Mouvement de caisse', titre_bon_vente:'Bon de vente',
+    titre_modifier_mouvement:'Modifier le mouvement', titre_vendeurs:'Vendeurs', titre_parametres:'Paramètres',
+    solde_actuel_dette:'Solde actuel (dette)', solde_actuel_devons:'Solde actuel (nous devons)',
+    qte_a_retourner:'Quantité à retourner (si besoin)',
+  },
+  en: {
+    nav_vente:'Sale', nav_clients:'Clients', nav_achats:'Purchases', nav_historique:'History', nav_bilan:'Overview',
+    header_sub:'Your register, stock, and clients',
+    accueil:'Home', caisse:'Cash', valeur_stock:'Stock value',
+    apercu_ventes:'Sales overview', semaine:'Week', mois:'Month',
+    ventes_recentes:'Recent sales', tout_voir:'See all', afficher:'Show ▾', masquer:'Hide ▴',
+    nouvelle_vente:'🛒 New sale', rechercher_global:'🔍 Search a product, client, sale...',
+    date_heure_vente:'Sale date and time', vendeur:'Seller',
+    client_label:'Client (optional for cash, required for credit)', client_passage:'-- Walk-in client (cash) --',
+    nouveau:'+ New', ajouter_produit:'Add a product', nouveau_produit:'+ New product',
+    quantite:'Quantity', prix_unitaire:'Unit price', ajouter_panier:'Add to cart',
+    panier:'Cart', total:'Total', mode_paiement:'Payment method', comptant:'Cash', credit:'Credit',
+    montant_paye:'Amount paid now', valider_vente:'Confirm sale',
+    clients_title:'Clients', rechercher_client:'Search a client...', par_dette:'By debt', meilleurs_clients:'Best clients',
+    achats_title:'Purchases & suppliers', nouvel_achat:'New purchase', fournisseurs:'Suppliers', stock:'Stock',
+    fournisseur:'Supplier', ajouter_produit_achete:'Add a purchased product', prix_achat_unitaire:'Unit purchase price',
+    ajouter_bon_achat:'Add to purchase order', bon_achat_cours:'Current purchase order', valider_achat:'Confirm purchase',
+    nouveau_fournisseur:'+ New supplier', valeur_totale_stock:'Total stock value (at purchase price)',
+    rechercher_produit:'Search a product...',
+    historique_title:'History', ventes:'Sales', achats:'Purchases', rechercher_historique:'Search a number, client, supplier...',
+    bilan_title:'Dashboard', jour:'Day', semaine_p:'Week', mois_p:'Month', annee:'Year', perso:'Custom', du:'From', au:'To',
+    total_ventes:'Total sales', benefice_estime:'Estimated profit', nombre_ventes:'Number of sales',
+    total_credits:'Total client credit', valeur_stock2:'Stock value', classement_vendeurs:'🏆 Seller leaderboard',
+    caisse_title:'Cash register', solde_caisse:'Current cash balance', mouvement:'+ Movement',
+    capital_investi:'Capital invested (total)', recupere:'Recovered (total)', fonds_roulement_net:'Net working capital',
+    historique_mouvements:'Movement history', sauvegarde:'Backup',
+    sauvegarde_desc:'Export your data regularly to avoid any loss (phone change, uninstall...).',
+    exporter:'⬇️ Export (JSON)', importer:'⬆️ Import',
+    nom_produit:'Product name', prix_achat:'Purchase price', prix_vente:'Sale price', stock_initial:'Initial stock',
+    seuil_alerte:'Low stock alert threshold', enregistrer:'Save', supprimer_produit:'🗑️ Delete this product',
+    nom:'Name', telephone:'Phone', solde_initial_label:'Opening balance (existing debt, if the client has one)',
+    ca_initial:'Initial revenue (sales made before the app)', supprimer_client:'🗑️ Delete this client',
+    solde_initial_f:'Opening balance (existing debt owed to them)', ca_initial_f:'Initial purchases (made before the app)',
+    supprimer_fournisseur:'🗑️ Delete this supplier',
+    solde_du:'Balance (credit owed)', ca_realise:'Revenue generated', montant_recu:'Amount received', encaisser:'Collect',
+    historique_ventes:'Sales history',
+    solde_devons:'Balance (we owe)', achats_realises:'Total purchases', montant_paye_f:'Amount paid', payer:'Pay',
+    historique_achats:'Purchase history',
+    categorie:'Category', montant:'Amount', motif:'Reason',
+    bon_vente:'Sale receipt', imprimer_bt:'🖨️ Print (Bluetooth)', partager:'Share', fermer:'Close',
+    reimprimer:'🖨️ Reprint', valider_retour:'Confirm return', valider_retour_marchandise:'Confirm goods return',
+    modifier_mouvement:'Edit movement', supprimer:'Delete',
+    parametres:'Settings', vibration:'Vibration', vibration_desc:'Vibrate on confirmations',
+    plusieurs_vendeurs:'Multiple sellers', plusieurs_vendeurs_desc:'Track who made each sale',
+    gerer_vendeurs:'👤 Manage sellers', theme_defaut:'Default theme', clair:'Light', sombre:'Dark', auto:'Automatic (system)',
+    symbole_monetaire:'Currency symbol', seuil_defaut:'Default low stock threshold',
+    seuil_defaut_desc:'Used as the pre-filled value for new products.',
+    langue:'Language', valider:'✓ Save',
+    vendeurs_title:'Sellers', nom_vendeur:'Seller name', ajouter:'+ Add',
+    modifier:'✏️ Edit',
+    pill_doit:'Owes', pill_ajour:'Up to date', pill_du:'Owed', pill_retour:'Return', pill_inactif:'Inactive', pill_stockbas:'Low stock',
+    empty_produits:"No products yet.<br>Add your first item to start selling.",
+    empty_clients:'No clients registered yet.', ajouter_client:'+ Add a client',
+    empty_fournisseurs:'No suppliers yet.<br>Add one to track your purchases.',
+    empty_ventes_client:'No sales with this client yet.',
+    empty_achats_fournisseur:'No purchases with this supplier yet.',
+    empty_ventes_hist:'No sales recorded yet.<br>Your first sale will appear here.',
+    empty_achats_hist:'No purchases recorded yet.',
+    empty_mouvements:'No cash movements yet.',
+    empty_ventes_recentes:'No sales yet.',
+    empty_vendeurs:'No sellers yet.',
+    empty_classement:'No sales in this period.',
+    aucun_resultat:'No results for',
+    toast_produit_enregistre:'Product saved ✓', toast_client_enregistre:'Client saved ✓',
+    toast_fournisseur_enregistre:'Supplier saved ✓', toast_vente_enregistree:'Sale recorded ✓',
+    toast_achat_enregistre:'Purchase recorded ✓', toast_paiement_encaisse:'Payment collected ✓',
+    toast_paiement_effectue:'Payment made ✓', toast_mouvement_enregistre:'Movement recorded ✓',
+    toast_mouvement_modifie:'Movement updated ✓', toast_mouvement_supprime:'Movement deleted',
+    toast_client_supprime:'Client deleted', toast_fournisseur_supprime:'Supplier deleted', toast_produit_supprime:'Product deleted',
+    toast_vendeur_ajoute:'Seller added ✓', toast_vendeur_supprime:'Seller deleted',
+    toast_parametres_enregistres:'Settings saved ✓', toast_donnees_restaurees:'Data restored ✓',
+    toast_sauvegarde_exportee:'Backup exported ✓',
+    ancien_fonds_info:"ℹ️ This amount will be added to working capital only — it won't affect the current cash balance, since it represents money that already existed before using the app.",
+    err_date_future:'Cannot choose a future date', err_nom_vendeur:'Enter the seller\'s name',
+    err_nom_produit:'Enter the product name', err_produit_utilise:'Cannot delete: this product appears in recorded sales or purchases.',
+    err_choisir_produit:'Choose a product', err_quantite:'Invalid quantity', err_prix:'Invalid price',
+    err_stock_insuffisant:'Insufficient stock (available: ', err_panier_vide:'The cart is empty',
+    err_client_credit:'Select or create a client for a credit sale', err_vendeur_requis:'Select the seller for this sale',
+    err_qte_retour:'Enter at least one quantity to return',
+    confirm_retour:'Confirm the return for an amount of ', confirm_retour_suite:'? This action is irreversible.',
+    confirm_retour_marchandise:'Confirm the merchandise return for an amount of ',
+    err_rien_imprimer:'Nothing to print', info_recherche_imprimante:'Searching for Bluetooth printer...',
+    toast_ticket_envoye:'Ticket sent to printer', err_impression:'Printing failed: ',
+    err_partage:'Sharing not supported on this browser', err_nom_client:'Enter the client\'s name',
+    err_montant:'Invalid amount', err_client_dette:'Cannot delete: this client still owes ',
+    err_client_dette_suite:'. Collect it first.', err_fournisseur_solde:'Cannot delete: ',
+    err_fournisseur_solde_suite:' is still owed to this supplier.', err_bon_achat_vide:'The purchase order is empty',
+    confirm_supprimer_client_histo:'This client has a sales history. Deleting will hide their name in past sales but keep the data. Continue?',
+    confirm_supprimer_client:'Permanently delete this client? This action is irreversible.',
+    confirm_supprimer_fournisseur_histo:'This supplier has a purchase history. Deleting will hide their name in past purchases but keep the data. Continue?',
+    confirm_supprimer_fournisseur:'Permanently delete this supplier? This action is irreversible.',
+    confirm_supprimer_produit:'Permanently delete',
+    confirm_supprimer_mouvement:'Delete this cash movement? This action is irreversible.',
+    confirm_supprimer_vendeur:'Delete this seller?', confirm_import:'Importing will REPLACE all current data with the file\'s data. Continue?',
+    err_fichier_invalide:'Invalid file: ', err_stockage:'Storage unavailable in this preview. Install the app for real use.',
+    err_maj_dispo:'Update available — reload the app', err_fermer_onglets:'Close the app\'s other tabs/windows, then reopen it',
+    err_bluetooth_non_supporte:'Web Bluetooth not supported on this browser', err_rawbt_fallback:'Web Bluetooth unavailable. If nothing opens, install the RawBT app',
+    lien_mouvement_info:'⚠️ This movement is linked to an operation (sale, purchase, payment...). Editing or deleting it here will not cancel that operation itself.',
+    vente_comptant:'Cash sale', sans_fournisseur:'No supplier', merci_confiance:'Thank you for your trust!',
+    ventes_label:'sales', err_vendeur_ventes:'Cannot delete: this seller has recorded sales. Deactivate them instead.',
+    desactiver:'Deactivate', activer:'Activate',
+    err_enregistrement_vente:'Error saving the sale. Please try again.',
+    err_enregistrement_achat:'Error saving the purchase. Please try again.',
+    toast_retour_enregistre:'Return recorded: ', toast_retour_marchandise_enregistre:'Merchandise return recorded: ',
+    err_nom_fournisseur:'Enter the supplier\'s name',
+    aucun_client_trouve:'No client found', aucun_client_enregistre:'No client registered',
+    recu_bon:'Receipt', recu_total:'TOTAL', recu_paye:'Paid', recu_reste:'Balance due',
+    titre_nouvelle_vente:'New sale', titre_mouvement:'Cash movement', titre_bon_vente:'Sale receipt',
+    titre_modifier_mouvement:'Edit movement', titre_vendeurs:'Sellers', titre_parametres:'Settings',
+    solde_actuel_dette:'Current balance (owed)', solde_actuel_devons:'Current balance (we owe)',
+    qte_a_retourner:'Quantity to return (if needed)',
+  }
+};
+function t(key){
+  const lang = PARAMETRES.langue || 'fr';
+  return (I18N[lang] && I18N[lang][key]) || (I18N.fr[key]) || key;
+}
+
 function fmt(n){
   n = Number(n)||0;
-  const base = n.toLocaleString('fr-FR', {maximumFractionDigits:2});
+  const locale = (PARAMETRES.langue==='en') ? 'en-US' : 'fr-FR';
+  const base = n.toLocaleString(locale, {maximumFractionDigits:2});
   return PARAMETRES.devise ? base+' '+PARAMETRES.devise : base;
 }
 function toast(msg){
@@ -956,7 +1226,7 @@ function verifierDateVente(){
   const choisie = new Date(input.value);
   const now = new Date();
   if(choisie > now){
-    toast('Impossible de choisir une date future');
+    toast(t('err_date_future'));
     input.value = auMaintenantLocal();
     warn.style.display='none';
     return;
@@ -966,12 +1236,14 @@ function verifierDateVente(){
 }
 function dateFR(iso){
   const d = new Date(iso);
-  return d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const locale = (PARAMETRES.langue==='en') ? 'en-US' : 'fr-FR';
+  return d.toLocaleDateString(locale)+' '+d.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'});
 }
 /* ===================== THEME (clair/sombre) ===================== */
 function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
-  document.getElementById('themeToggle').textContent = theme==='dark' ? '☀️' : '🌙';
+  const btn = document.getElementById('themeToggle');
+  if(btn) btn.textContent = theme==='dark' ? '☀️' : '🌙';
   const meta = document.querySelector('meta[name="theme-color"]');
   if(meta) meta.setAttribute('content', theme==='dark' ? '#0D131C' : '#131A24');
 }
@@ -1011,6 +1283,7 @@ function openParametres(){
   document.getElementById('paramTheme').value = PARAMETRES.theme || 'auto';
   document.getElementById('paramDevise').value = PARAMETRES.devise || '';
   document.getElementById('paramSeuilDefaut').value = PARAMETRES.seuilDefaut!=null ? PARAMETRES.seuilDefaut : 5;
+  document.getElementById('paramLangue').value = PARAMETRES.langue || 'fr';
   openModal('modalParametres');
 }
 async function sauverParametres(){
@@ -1020,7 +1293,7 @@ async function majParametre(cle, valeur){
   PARAMETRES[cle] = valeur;
   await sauverParametres();
   if(cle==='multiVendeur') appliquerVisibiliteVendeur();
-  if(cle==='devise'){ renderBilan(); renderStock(); renderClients(); renderFournisseurs(); }
+  if(cle==='devise'){ renderBilan(); renderStock(); renderClients(); renderFournisseurs(); renderHomeWidgets(); renderVentesChart(); renderVentesRecentes(); renderHistorique(); }
 }
 async function majParametreTheme(valeur){
   PARAMETRES.theme = valeur;
@@ -1033,16 +1306,127 @@ async function majParametreTheme(valeur){
     applyTheme(prefersDark ? 'dark' : 'light');
   }
 }
+async function majParametreLangue(valeur){
+  PARAMETRES.langue = valeur;
+  await sauverParametres();
+  document.documentElement.lang = valeur;
+  applyTranslations();
+}
 function appliquerVisibiliteVendeur(){
   document.querySelectorAll('.vendeur-only').forEach(el=>{
     el.style.display = PARAMETRES.multiVendeur ? '' : 'none';
   });
+}
+async function validerFermerParametres(){
+  await sauverParametres();
+  closeModal('modalParametres');
+  toast(t('toast_parametres_enregistres'));
+}
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.innerHTML = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    el.placeholder = t(el.getAttribute('data-i18n-ph'));
+  });
+  const themeSel = document.getElementById('paramTheme');
+  if(themeSel){
+    themeSel.querySelector('option[value="clair"]').textContent = t('clair');
+    themeSel.querySelector('option[value="sombre"]').textContent = t('sombre');
+    themeSel.querySelector('option[value="auto"]').textContent = t('auto');
+  }
+  // Re-render all dynamic views/content with the new language
+  remplirSelectProduits();
+  remplirSelectFournisseurs();
+  renderClients();
+  renderFournisseurs();
+  renderStock();
+  renderHistorique();
+  renderBilan();
+  renderVentesChart();
+  renderVentesRecentes();
+  renderHomeWidgets();
+  renderVendeursList();
+  onMvtCategorieChange();
 }
 async function withLock(btn, fn){
   if(!btn || btn.disabled) return;
   btn.disabled = true;
   try{ await fn(); }
   finally{ btn.disabled = false; }
+}
+
+/* ===================== VENDEURS ===================== */
+let dernierVendeurUtilise = null;
+function ouvrirGestionVendeurs(){
+  document.getElementById('nouveauVendeurNom').value='';
+  renderVendeursList();
+  openModal('modalVendeurs');
+}
+async function ajouterVendeur(){
+  const nom = document.getElementById('nouveauVendeurNom').value.trim();
+  if(!nom){ toast(t('err_nom_vendeur')); return; }
+  const v = {id:uid(), nom, actif:true};
+  VENDEURS.push(v);
+  await put('vendeurs', v);
+  document.getElementById('nouveauVendeurNom').value='';
+  renderVendeursList();
+  remplirSelectVendeurs();
+  toast(t('toast_vendeur_ajoute'));
+}
+async function toggleVendeurActif(id){
+  const v = VENDEURS.find(x=>x.id===id);
+  if(!v) return;
+  v.actif = !v.actif;
+  await put('vendeurs', v);
+  renderVendeursList();
+  remplirSelectVendeurs();
+}
+async function supprimerVendeur(id){
+  const v = VENDEURS.find(x=>x.id===id);
+  if(!v) return;
+  const aDesVentes = VENTES.some(vt=>vt.vendeurId===id);
+  if(aDesVentes){
+    toast(t('err_vendeur_ventes'));
+    return;
+  }
+  if(!confirm(t('confirm_supprimer_vendeur')+' "'+v.nom+'"')) return;
+  await del('vendeurs', id);
+  VENDEURS = VENDEURS.filter(x=>x.id!==id);
+  renderVendeursList();
+  remplirSelectVendeurs();
+  toast(t('toast_vendeur_supprime'));
+}
+function renderVendeursList(){
+  const card = document.getElementById('vendeursListCard');
+  if(VENDEURS.length===0){ card.innerHTML = '<div class="empty">'+t('empty_vendeurs')+'</div>'; return; }
+  card.innerHTML = VENDEURS.map(v=>`
+    <div class="list-item">
+      <div class="name">${v.nom} ${!v.actif?'<span class="pill warn">'+t('pill_inactif')+'</span>':''}</div>
+      <div style="display:flex; gap:6px;">
+        <button class="btn outline sm" onclick="toggleVendeurActif('${v.id}')">${v.actif?t('desactiver'):t('activer')}</button>
+        <button class="btn red sm" onclick="supprimerVendeur('${v.id}')">×</button>
+      </div>
+    </div>`).join('');
+}
+function remplirSelectVendeurs(){
+  const sel = document.getElementById('venteVendeurSelect');
+  if(!sel) return;
+  const actifs = VENDEURS.filter(v=>v.actif);
+  sel.innerHTML = '<option value="">-- Choisir --</option>' + actifs.map(v=>`<option value="${v.id}">${v.nom}</option>`).join('');
+  if(dernierVendeurUtilise && actifs.some(v=>v.id===dernierVendeurUtilise)) sel.value = dernierVendeurUtilise;
+}
+function caParVendeur(debut, fin){
+  const totaux = {};
+  VENTES.forEach(v=>{
+    const d = new Date(v.date);
+    if(d < debut || d > fin) return;
+    const key = v.vendeurId || '_sans';
+    if(!totaux[key]) totaux[key] = {total:0, nb:0};
+    totaux[key].total += v.total;
+    totaux[key].nb += 1;
+  });
+  return totaux;
 }
 
 /* ===================== NAVIGATION ===================== */
@@ -1107,7 +1491,7 @@ async function enregistrerProduit(){
     const prixVente = parseFloat(document.getElementById('pPrixVente').value)||0;
     const stock = parseFloat(document.getElementById('pStock').value)||0;
     const seuilAlerte = parseFloat(document.getElementById('pSeuilAlerte').value)||0;
-    if(!nom){ toast('Indique le nom du produit'); return; }
+    if(!nom){ toast(t('err_nom_produit')); return; }
     let p;
     if(id){ p = PRODUITS.find(x=>x.id===id); p.nom=nom; p.prixAchat=prixAchat; p.prixVente=prixVente; p.stock=stock; p.seuilAlerte=seuilAlerte; }
     else { p = {id:uid(), nom, prixAchat, prixVente, stock, seuilAlerte}; PRODUITS.push(p); }
@@ -1115,7 +1499,7 @@ async function enregistrerProduit(){
     remplirSelectProduits();
     renderStock();
     closeModal('modalProduit');
-    toast('Produit enregistré ✓');
+    toast(t('toast_produit_enregistre'));
   });
 }
 async function supprimerProduit(){
@@ -1126,16 +1510,16 @@ async function supprimerProduit(){
   const utiliseDansVente = VENTES.some(v=>v.items.some(l=>l.produitId===id));
   const utiliseDansAchat = ACHATS.some(a=>a.items.some(l=>l.produitId===id));
   if(utiliseDansVente || utiliseDansAchat){
-    toast('Impossible : ce produit apparaît dans des ventes ou achats déjà enregistrés.');
+    toast(t('err_produit_utilise'));
     return;
   }
-  if(!confirm('Supprimer définitivement "'+p.nom+'" ? Cette action est irréversible.')) return;
+  if(!confirm(t('confirm_supprimer_produit')+' "'+p.nom+'"? '+t('confirm_retour_suite'))) return;
   await del('produits', id);
   PRODUITS = PRODUITS.filter(x=>x.id!==id);
   remplirSelectProduits();
   renderStock();
   closeModal('modalProduit');
-  toast('Produit supprimé');
+  toast(t('toast_produit_supprime'));
 }
 function renderStock(){
   const listCard = document.getElementById('stockListCard');
@@ -1143,14 +1527,14 @@ function renderStock(){
   const q = (document.getElementById('stockSearch').value||'').toLowerCase();
   const list = PRODUITS.filter(p=>p.nom.toLowerCase().includes(q)).sort((a,b)=>a.nom.localeCompare(b.nom));
   document.getElementById('stockValeurTotale').textContent = fmt(PRODUITS.reduce((s,p)=>s+(p.stock||0)*(p.prixAchat||0),0));
-  if(list.length===0){ listCard.innerHTML = '<div class="empty">Aucun produit pour l\'instant.<br>Ajoute ton premier article pour commencer à vendre.</div>'; return; }
+  if(list.length===0){ listCard.innerHTML = '<div class="empty">'+t('empty_produits')+'</div>'; return; }
   listCard.innerHTML = list.map(p=>{
     const seuil = p.seuilAlerte!=null ? p.seuilAlerte : 5;
     const stockBas = (p.stock||0) <= seuil;
     return `
     <div class="list-item" onclick="openProduitModal('${p.id}')" style="cursor:pointer;">
       <div>
-        <div class="name">${p.nom} ${stockBas?'<span class="pill warn">Stock bas</span>':''}</div>
+        <div class="name">${p.nom} ${stockBas?'<span class="pill warn">'+t('pill_stockbas')+'</span>':''}</div>
         <div class="meta">Achat ${fmt(p.prixAchat)} · Vente ${fmt(p.prixVente)} · Valeur ${fmt((p.stock||0)*(p.prixAchat||0))}</div>
       </div>
       <div class="amount">${fmt(p.stock)}</div>
@@ -1194,7 +1578,7 @@ function filtrerClientVente(){
   const box = document.getElementById('venteClientResults');
   const matches = (q ? CLIENTS.filter(c=>c.nom.toLowerCase().includes(q)) : CLIENTS).slice(0,8);
   if(matches.length===0){
-    box.innerHTML = q ? '<div class="search-empty">Aucun client trouvé</div>' : '<div class="search-empty">Aucun client enregistré</div>';
+    box.innerHTML = q ? '<div class="search-empty">'+t('aucun_client_trouve')+'</div>' : '<div class="search-empty">'+t('aucun_client_enregistre')+'</div>';
     box.style.display='block';
     return;
   }
@@ -1202,7 +1586,7 @@ function filtrerClientVente(){
     <div class="list-item" style="cursor:pointer; padding:9px 10px;" onmousedown="choisirClientVente('${c.id}')">
       <div>
         <div class="name">${c.nom}</div>
-        <div class="meta">${c.tel||'—'}${(c.solde||0)>0 ? ' · Doit '+fmt(c.solde) : ''}</div>
+        <div class="meta">${c.tel||'—'}${(c.solde||0)>0 ? ' · '+t('pill_doit')+' '+fmt(c.solde) : ''}</div>
       </div>
     </div>`).join('');
   box.style.display='block';
@@ -1219,12 +1603,12 @@ function ajouterLigneVente(){
   const qte = parseFloat(document.getElementById('venteQte').value);
   const pu = parseFloat(document.getElementById('ventePU').value);
   const produit = PRODUITS.find(p=>p.id===pid);
-  if(!produit){ toast('Choisis un produit'); return; }
-  if(!qte || qte<=0){ toast('Quantité invalide'); return; }
-  if(isNaN(pu) || pu<0){ toast('Prix invalide'); return; }
+  if(!produit){ toast(t('err_choisir_produit')); return; }
+  if(!qte || qte<=0){ toast(t('err_quantite')); return; }
+  if(isNaN(pu) || pu<0){ toast(t('err_prix')); return; }
   const dejaDansPanier = panierVente.filter(l=>l.produitId===produit.id).reduce((s,l)=>s+l.qte,0);
   if(qte + dejaDansPanier > (produit.stock||0)){
-    toast('Stock insuffisant (dispo: '+fmt((produit.stock||0)-dejaDansPanier)+')');
+    toast(t('err_stock_insuffisant')+fmt((produit.stock||0)-dejaDansPanier)+')');
     return;
   }
   panierVente.push({produitId:produit.id, nom:produit.nom, qte, prixVente:pu, prixAchat:produit.prixAchat});
@@ -1273,10 +1657,16 @@ function setModePaiement(mode){
 async function validerVente(){
   await withLock(document.getElementById('btnValiderVente'), async ()=>{
     try{
-      if(panierVente.length===0){ toast('Le panier est vide'); return; }
+      if(panierVente.length===0){ toast(t('err_panier_vide')); return; }
       const clientId = document.getElementById('venteClient').value || null;
       if(modePaiementVente==='credit' && !clientId){
-        toast('Sélectionne ou crée un client pour une vente à crédit'); return;
+        toast(t('err_client_credit')); return;
+      }
+      let vendeurId = null;
+      if(PARAMETRES.multiVendeur){
+        vendeurId = document.getElementById('venteVendeurSelect').value || null;
+        if(!vendeurId){ toast(t('err_vendeur_requis')); return; }
+        dernierVendeurUtilise = vendeurId;
       }
       const total = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
       let montantPaye = parseFloat(document.getElementById('venteMontantPaye').value);
@@ -1289,7 +1679,7 @@ async function validerVente(){
       const dateVenteISO = dateVente.toISOString();
 
       const vente = {
-        id: uid(), date: dateVenteISO, clientId,
+        id: uid(), date: dateVenteISO, clientId, vendeurId,
         items: panierVente.slice(), total, montantPaye,
         mode: modePaiementVente, numero: 'V-'+Date.now().toString().slice(-8)
       };
@@ -1321,15 +1711,16 @@ async function validerVente(){
       document.getElementById('venteMontantPaye').value='';
       document.getElementById('venteDateHeure').value = auMaintenantLocal();
       document.getElementById('venteDateAvertissement').style.display='none';
+      remplirSelectVendeurs();
       setModePaiement('comptant');
       confirmerAnimation();
       renderVentesChart();
       renderVentesRecentes();
       renderHomeWidgets();
-      toast('Vente enregistrée ✓');
+      toast(t('toast_vente_enregistree'));
     }catch(err){
       console.error(err);
-      toast("Erreur lors de l'enregistrement de la vente. Réessaie.");
+      toast(t('err_enregistrement_vente'));
     }
   });
 }
@@ -1338,21 +1729,21 @@ function afficherRecuVente(vente){
   let txt = '';
   txt += '         TAJER\n';
   txt += '------------------------\n';
-  txt += 'Bon: '+vente.numero+'\n';
+  txt += t('recu_bon')+': '+vente.numero+'\n';
   txt += dateFR(vente.date)+'\n';
-  if(client) txt += 'Client: '+client.nom+'\n';
+  if(client) txt += t('nom')+': '+client.nom+'\n';
   txt += '------------------------\n';
   for(const l of vente.items){
     txt += l.nom+'\n';
     txt += '  '+fmt(l.qte)+' x '+fmt(l.prixVente)+' = '+fmt(l.qte*l.prixVente)+'\n';
   }
   txt += '------------------------\n';
-  txt += 'TOTAL: '+fmt(vente.total)+'\n';
-  txt += 'Payé:  '+fmt(vente.montantPaye)+'\n';
+  txt += t('recu_total')+': '+fmt(vente.total)+'\n';
+  txt += t('recu_paye')+': '+fmt(vente.montantPaye)+'\n';
   const reste = vente.total - vente.montantPaye;
-  if(reste>0) txt += 'Reste à payer: '+fmt(reste)+'\n';
+  if(reste>0) txt += t('recu_reste')+': '+fmt(reste)+'\n';
   txt += '------------------------\n';
-  txt += 'Merci de votre confiance !\n';
+  txt += t('merci_confiance')+'\n';
   document.getElementById('recuTexte').textContent = txt;
   window._dernierRecu = txt;
   openModal('modalRecu');
@@ -1365,8 +1756,8 @@ function openVenteDetail(id){
   window._currentVenteId = id;
   const c = CLIENTS.find(x=>x.id===v.clientId);
   document.getElementById('vdNumero').textContent = v.numero;
-  document.getElementById('vdInfo').textContent = dateFR(v.date) + (c ? ' · '+c.nom : ' · Vente comptant') + ' · Total '+fmt(v.total);
-  document.getElementById('vdLignesCard').innerHTML = '<label class="field" style="margin-top:0;">Quantité à retourner (si besoin)</label>' +
+  document.getElementById('vdInfo').textContent = dateFR(v.date) + (c ? ' · '+c.nom : ' · '+t('vente_comptant')) + ' · '+t('total')+' '+fmt(v.total);
+  document.getElementById('vdLignesCard').innerHTML = '<label class="field" style="margin-top:0;">'+t('qte_a_retourner')+'</label>' +
     v.items.map((l,i)=>{
       const dejaRetourne = l.qteRetournee||0;
       const restant = l.qte - dejaRetourne;
@@ -1401,8 +1792,8 @@ async function validerRetourVente(){
       }
     }
   });
-  if(retoursTemp.length===0){ toast('Indique au moins une quantité à retourner'); return; }
-  if(!confirm('Confirmer le retour pour un montant de '+fmt(montantRetour)+' ? Cette action est irréversible.')) return;
+  if(retoursTemp.length===0){ toast(t('err_qte_retour')); return; }
+  if(!confirm(t('confirm_retour')+fmt(montantRetour)+t('confirm_retour_suite'))) return;
 
   const lignesRetour = retoursTemp.map(({i,q})=>{
     const l = v.items[i];
@@ -1436,7 +1827,7 @@ async function validerRetourVente(){
 
   closeModal('modalVenteDetail');
   renderClients(); renderHistorique(); renderStock(); renderHomeWidgets(); renderVentesChart();
-  toast('Retour enregistré : '+fmt(montantRetour));
+  toast(t('toast_retour_enregistre')+fmt(montantRetour));
 }
 
 /* ===================== DETAIL ACHAT / RETOUR MARCHANDISE ===================== */
@@ -1446,8 +1837,8 @@ function openAchatDetail(id){
   window._currentAchatId = id;
   const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
   document.getElementById('adNumero').textContent = a.numero;
-  document.getElementById('adInfo').textContent = dateFR(a.date) + (f ? ' · '+f.nom : ' · Sans fournisseur') + ' · Total '+fmt(a.total);
-  document.getElementById('adLignesCard').innerHTML = '<label class="field" style="margin-top:0;">Quantité à retourner (si besoin)</label>' +
+  document.getElementById('adInfo').textContent = dateFR(a.date) + (f ? ' · '+f.nom : ' · '+t('sans_fournisseur')) + ' · '+t('total')+' '+fmt(a.total);
+  document.getElementById('adLignesCard').innerHTML = '<label class="field" style="margin-top:0;">'+t('qte_a_retourner')+'</label>' +
     a.items.map((l,i)=>{
       const dejaRetourne = l.qteRetournee||0;
       const restant = l.qte - dejaRetourne;
@@ -1478,8 +1869,8 @@ async function validerRetourAchat(){
       }
     }
   });
-  if(retoursTemp.length===0){ toast('Indique au moins une quantité à retourner'); return; }
-  if(!confirm('Confirmer le retour marchandise pour un montant de '+fmt(montantRetour)+' ? Cette action est irréversible.')) return;
+  if(retoursTemp.length===0){ toast(t('err_qte_retour')); return; }
+  if(!confirm(t('confirm_retour_marchandise')+fmt(montantRetour)+t('confirm_retour_suite'))) return;
 
   const lignesRetour = retoursTemp.map(({i,q})=>{
     const l = a.items[i];
@@ -1513,7 +1904,7 @@ async function validerRetourAchat(){
 
   closeModal('modalAchatDetail');
   renderFournisseurs(); renderHistorique(); renderStock(); renderHomeWidgets();
-  toast('Retour marchandise enregistré : '+fmt(montantRetour));
+  toast(t('toast_retour_marchandise_enregistre')+fmt(montantRetour));
 }
 
 /* ===================== IMPRESSION TICKET (ESC/POS Bluetooth + fallback RawBT) ===================== */
@@ -1552,11 +1943,11 @@ async function imprimerESCPOSBluetooth(texte){
 }
 async function imprimerRawBT(){
   const texte = window._dernierRecu || document.getElementById('recuTexte').textContent;
-  if(!texte){ toast('Rien à imprimer'); return; }
+  if(!texte){ toast(t('err_rien_imprimer')); return; }
   try{
-    toast('Recherche imprimante Bluetooth...');
+    toast(t('info_recherche_imprimante'));
     await imprimerESCPOSBluetooth(texte);
-    toast('Ticket envoyé à l\'imprimante');
+    toast(t('toast_ticket_envoye'));
     return;
   }catch(e){
     const intentUrl = 'intent:#Intent;action=android.intent.action.SEND;' +
@@ -1564,9 +1955,9 @@ async function imprimerRawBT(){
       'S.android.intent.extra.TEXT=' + encodeURIComponent(texte) + ';end';
     try{
       window.location.href = intentUrl;
-      setTimeout(()=>{ toast("Web Bluetooth indisponible. Si rien ne s'ouvre, installe l'app RawBT"); }, 1200);
+      setTimeout(()=>{ toast(t('err_rawbt_fallback')); }, 1200);
     }catch(e2){
-      toast('Impression impossible : '+e2.message);
+      toast(t('err_impression')+e2.message);
     }
   }
 }
@@ -1576,7 +1967,7 @@ async function partagerRecu(){
     try{ await navigator.share({title:'Bon de vente', text: texte}); }
     catch(e){ /* annulé */ }
   } else {
-    toast('Partage non supporté sur ce navigateur');
+    toast(t('err_partage'));
   }
 }
 
@@ -1588,7 +1979,7 @@ function openClientModal(id, context){
   window._clientModalContext = context || 'clients';
   document.getElementById('clientId').value = id||'';
   document.getElementById('clientModalTitle').textContent = id ? 'Modifier client' : 'Nouveau client';
-  document.getElementById('cSoldeLabel').textContent = id ? 'Solde actuel (dette)' : 'Solde initial (ancienne dette, si le client en a une)';
+  document.getElementById('cSoldeLabel').textContent = id ? t('solde_actuel_dette') : t('solde_initial_label');
   if(id){
     const c = CLIENTS.find(x=>x.id===id);
     document.getElementById('cNom').value = c.nom;
@@ -1613,7 +2004,7 @@ async function enregistrerClient(){
   const tel = document.getElementById('cTel').value.trim();
   const solde = parseFloat(document.getElementById('cSolde').value)||0;
   const caInitial = parseFloat(document.getElementById('cCaInitial').value)||0;
-  if(!nom){ toast('Indique le nom du client'); return; }
+  if(!nom){ toast(t('err_nom_client')); return; }
   let c;
   if(id){ c = CLIENTS.find(x=>x.id===id); c.nom=nom; c.tel=tel; c.solde=solde; c.caInitial=caInitial; }
   else {
@@ -1627,7 +2018,7 @@ async function enregistrerClient(){
     document.getElementById('venteClient').value = c.id;
     document.getElementById('venteClientSearch').value = c.nom;
   }
-  toast('Client enregistré ✓');
+  toast(t('toast_client_enregistre'));
 }
 function caClient(id){
   const c = CLIENTS.find(x=>x.id===id);
@@ -1649,7 +2040,7 @@ function renderClients(){
     list = list.sort((a,b)=> (b.solde||0)-(a.solde||0));
   }
   const card = document.getElementById('clientListCard');
-  if(list.length===0){ card.innerHTML = '<div class="empty">Aucun client enregistré pour l\'instant.</div><button class="btn outline block" onclick="openClientModal()">+ Ajouter un client</button>'; return; }
+  if(list.length===0){ card.innerHTML = '<div class="empty">'+t('empty_clients')+'</div><button class="btn outline block" onclick="openClientModal()">'+t('ajouter_client')+'</button>'; return; }
   card.innerHTML = '<button class="btn outline block" style="margin-bottom:8px;" onclick="openClientModal()">+ Nouveau client</button>' +
     list.map(c=>`
     <div class="list-item" onclick="openClientDetail('${c.id}')" style="cursor:pointer;">
@@ -1658,7 +2049,7 @@ function renderClients(){
         <div class="meta">${c.tel||'—'} · CA: ${fmt(caClient(c.id))}</div>
       </div>
       <div>
-        ${ (c.solde||0)>0 ? `<span class="pill credit">Doit ${fmt(c.solde)}</span>` : `<span class="pill ok">A jour</span>` }
+        ${ (c.solde||0)>0 ? `<span class="pill credit">${t('pill_doit')} ${fmt(c.solde)}</span>` : `<span class="pill ok">${t('pill_ajour')}</span>` }
       </div>
     </div>`).join('');
 }
@@ -1676,14 +2067,14 @@ function openClientDetail(id){
     <div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
       <div><div class="name">${v.numero}</div><div class="meta">${dateFR(v.date)}</div></div>
       <div class="amount">${fmt(v.total)}</div>
-    </div>`).join('') : '<div class="empty">Aucune vente avec ce client pour le moment.</div>';
+    </div>`).join('') : '<div class="empty">'+t('empty_ventes_client')+'</div>';
   openModal('modalClientDetail');
 }
 async function encaisserPaiementClient(){
   const id = window._currentClientId;
   const c = CLIENTS.find(x=>x.id===id);
   const montant = parseFloat(document.getElementById('cdPaiement').value);
-  if(!montant || montant<=0){ toast('Montant invalide'); return; }
+  if(!montant || montant<=0){ toast(t('err_montant')); return; }
   c.solde = Math.max(0, (c.solde||0) - montant);
   await put('clients', c);
   const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif:'Règlement crédit - '+c.nom, lien:{type:'client', id:c.id}};
@@ -1694,7 +2085,7 @@ async function encaisserPaiementClient(){
   renderVentesChart();
   renderVentesRecentes();
   renderHomeWidgets();
-  toast('Paiement encaissé ✓');
+  toast(t('toast_paiement_encaisse'));
 }
 
 async function supprimerClient(){
@@ -1702,20 +2093,20 @@ async function supprimerClient(){
   const c = CLIENTS.find(x=>x.id===id);
   if(!c) return;
   if((c.solde||0) > 0){
-    toast('Impossible : ce client a encore une dette de '+fmt(c.solde)+'. Encaisse-la d\'abord.');
+    toast(t('err_client_dette')+fmt(c.solde)+t('err_client_dette_suite'));
     return;
   }
   const aDesVentes = VENTES.some(v=>v.clientId===id);
   if(aDesVentes){
-    if(!confirm('Ce client a un historique de ventes. Le supprimer masquera son nom dans les ventes passées mais conservera les données. Continuer ?')) return;
+    if(!confirm(t('confirm_supprimer_client_histo'))) return;
   } else {
-    if(!confirm('Supprimer définitivement ce client ? Cette action est irréversible.')) return;
+    if(!confirm(t('confirm_supprimer_client'))) return;
   }
   await del('clients', id);
   CLIENTS = CLIENTS.filter(x=>x.id!==id);
   closeModal('modalClientDetail');
   renderClients();
-  toast('Client supprimé');
+  toast(t('toast_client_supprime'));
 }
 
 /* ===================== FOURNISSEURS / ACHATS ===================== */
@@ -1736,7 +2127,7 @@ function remplirSelectFournisseurs(){
 function openFournisseurModal(id){
   document.getElementById('fournisseurId').value = id||'';
   document.getElementById('fournisseurModalTitle').textContent = id ? 'Modifier fournisseur' : 'Nouveau fournisseur';
-  document.getElementById('fSoldeLabel').textContent = id ? 'Solde actuel (nous devons)' : 'Solde initial (dette existante envers lui)';
+  document.getElementById('fSoldeLabel').textContent = id ? t('solde_actuel_devons') : t('solde_initial_f');
   if(id){
     const f = FOURNISSEURS.find(x=>x.id===id);
     document.getElementById('fNom').value=f.nom; document.getElementById('fTel').value=f.tel||'';
@@ -1760,7 +2151,7 @@ async function enregistrerFournisseur(){
   const tel = document.getElementById('fTel').value.trim();
   const solde = parseFloat(document.getElementById('fSolde').value)||0;
   const caInitial = parseFloat(document.getElementById('fCaInitial').value)||0;
-  if(!nom){ toast('Indique le nom du fournisseur'); return; }
+  if(!nom){ toast(t('err_nom_fournisseur')); return; }
   let f;
   if(id){ f = FOURNISSEURS.find(x=>x.id===id); f.nom=nom; f.tel=tel; f.solde=solde; f.caInitial=caInitial; }
   else {
@@ -1770,27 +2161,27 @@ async function enregistrerFournisseur(){
   await put('fournisseurs', f);
   remplirSelectFournisseurs(); renderFournisseurs();
   closeModal('modalFournisseur');
-  toast('Fournisseur enregistré ✓');
+  toast(t('toast_fournisseur_enregistre'));
 }
 async function supprimerFournisseur(){
   const id = window._currentFournisseurId;
   const f = FOURNISSEURS.find(x=>x.id===id);
   if(!f) return;
   if((f.solde||0) > 0){
-    toast('Impossible : il reste '+fmt(f.solde)+' à payer à ce fournisseur.');
+    toast(t('err_fournisseur_solde')+fmt(f.solde)+t('err_fournisseur_solde_suite'));
     return;
   }
   const aDesAchats = ACHATS.some(a=>a.fournisseurId===id);
   if(aDesAchats){
-    if(!confirm('Ce fournisseur a un historique d\'achats. Le supprimer masquera son nom dans les achats passés mais conservera les données. Continuer ?')) return;
+    if(!confirm(t('confirm_supprimer_fournisseur_histo'))) return;
   } else {
-    if(!confirm('Supprimer définitivement ce fournisseur ? Cette action est irréversible.')) return;
+    if(!confirm(t('confirm_supprimer_fournisseur'))) return;
   }
   await del('fournisseurs', id);
   FOURNISSEURS = FOURNISSEURS.filter(x=>x.id!==id);
   closeModal('modalFournisseurDetail');
   renderFournisseurs();
-  toast('Fournisseur supprimé');
+  toast(t('toast_fournisseur_supprime'));
 }
 function achatsRealisesFournisseur(id){
   const f = FOURNISSEURS.find(x=>x.id===id);
@@ -1798,11 +2189,11 @@ function achatsRealisesFournisseur(id){
 }
 function renderFournisseurs(){
   const card = document.getElementById('fournisseurListCard');
-  if(FOURNISSEURS.length===0){ card.innerHTML='<div class="empty">Aucun fournisseur pour l\'instant.<br>Ajoute-en un pour suivre tes achats.</div>'; return; }
+  if(FOURNISSEURS.length===0){ card.innerHTML='<div class="empty">'+t('empty_fournisseurs')+'</div>'; return; }
   card.innerHTML = FOURNISSEURS.map(f=>`
     <div class="list-item" onclick="openFournisseurDetail('${f.id}')" style="cursor:pointer;">
       <div><div class="name">${f.nom}</div><div class="meta">${f.tel||'—'} · Achats: ${fmt(achatsRealisesFournisseur(f.id))}</div></div>
-      <div>${(f.solde||0)>0 ? `<span class="pill credit">Dû ${fmt(f.solde)}</span>` : `<span class="pill ok">A jour</span>`}</div>
+      <div>${(f.solde||0)>0 ? `<span class="pill credit">${t('pill_du')} ${fmt(f.solde)}</span>` : `<span class="pill ok">${t('pill_ajour')}</span>`}</div>
     </div>`).join('');
 }
 function openFournisseurDetail(id){
@@ -1819,14 +2210,14 @@ function openFournisseurDetail(id){
     <div class="list-item" onclick="openAchatDetail('${a.id}')" style="cursor:pointer;">
       <div><div class="name">${a.numero}</div><div class="meta">${dateFR(a.date)}</div></div>
       <div class="amount">${fmt(a.total)}</div>
-    </div>`).join('') : '<div class="empty">Aucun achat avec ce fournisseur pour le moment.</div>';
+    </div>`).join('') : '<div class="empty">'+t('empty_achats_fournisseur')+'</div>';
   openModal('modalFournisseurDetail');
 }
 async function payerFournisseur(){
   const id = window._currentFournisseurId;
   const f = FOURNISSEURS.find(x=>x.id===id);
   const montant = parseFloat(document.getElementById('fdPaiement').value);
-  if(!montant || montant<=0){ toast('Montant invalide'); return; }
+  if(!montant || montant<=0){ toast(t('err_montant')); return; }
   f.solde = Math.max(0, (f.solde||0) - montant);
   await put('fournisseurs', f);
   const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif:'Paiement fournisseur - '+f.nom, lien:{type:'fournisseur', id:f.id}};
@@ -1834,16 +2225,16 @@ async function payerFournisseur(){
   closeModal('modalFournisseurDetail');
   renderFournisseurs();
   renderHomeWidgets();
-  toast('Paiement effectué ✓');
+  toast(t('toast_paiement_effectue'));
 }
 function ajouterLigneAchat(){
   const pid = document.getElementById('achatProduitSelect').value;
   const qte = parseFloat(document.getElementById('achatQte').value);
   const pu = parseFloat(document.getElementById('achatPU').value);
   const produit = PRODUITS.find(p=>p.id===pid);
-  if(!produit){ toast('Choisis un produit'); return; }
-  if(!qte || qte<=0){ toast('Quantité invalide'); return; }
-  if(isNaN(pu) || pu<0){ toast('Prix invalide'); return; }
+  if(!produit){ toast(t('err_choisir_produit')); return; }
+  if(!qte || qte<=0){ toast(t('err_quantite')); return; }
+  if(isNaN(pu) || pu<0){ toast(t('err_prix')); return; }
   panierAchat.push({produitId:produit.id, nom:produit.nom, qte, prixAchat:pu});
   document.getElementById('achatQte').value='1';
   document.getElementById('achatPU').value='';
@@ -1872,7 +2263,7 @@ function retirerLigneAchat(i){ panierAchat.splice(i,1); renderPanierAchat(); }
 async function validerAchat(){
   await withLock(document.getElementById('btnValiderAchat'), async ()=>{
     try{
-      if(panierAchat.length===0){ toast("Le bon d'achat est vide"); return; }
+      if(panierAchat.length===0){ toast(t('err_bon_achat_vide')); return; }
       const fournisseurId = document.getElementById('achatFournisseur').value || null;
       const total = panierAchat.reduce((s,l)=>s+l.qte*l.prixAchat,0);
       let montantPaye = parseFloat(document.getElementById('achatMontantPaye').value);
@@ -1900,10 +2291,10 @@ async function validerAchat(){
       panierAchat=[]; renderPanierAchat();
       document.getElementById('achatFournisseur').value='';
       renderHomeWidgets();
-      toast('Achat enregistré ✓');
+      toast(t('toast_achat_enregistre'));
     }catch(err){
       console.error(err);
-      toast("Erreur lors de l'enregistrement de l'achat. Réessaie.");
+      toast(t('err_enregistrement_achat'));
     }
   });
 }
@@ -1932,10 +2323,10 @@ function renderHistorique(){
       const retours = RETOURS_VENTE.filter(r=>r.venteId===v.id);
       const montantRetour = retours.reduce((s,r)=>s+r.montant,0);
       return `<div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
-        <div><div class="name">${v.numero} ${c?'· '+c.nom:''} ${montantRetour>0?'<span class="pill warn">Retour</span>':''}</div><div class="meta">${dateFR(v.date)}</div></div>
+        <div><div class="name">${v.numero} ${c?'· '+c.nom:''} ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(v.date)}</div></div>
         <div class="amount">${fmt(v.total)}${montantRetour>0?' <span class="meta neg" style="font-weight:700;">(-'+fmt(montantRetour)+')</span>':''}</div>
       </div>`;
-    }).join('') : (q ? '<div class="empty">Aucun résultat pour "'+q+'"</div>' : '<div class="empty">Aucune vente enregistrée pour l\'instant.<br>Ta première vente apparaîtra ici.</div>');
+    }).join('') : (q ? '<div class="empty">'+t('aucun_resultat')+' "'+q+'"</div>' : '<div class="empty">'+t('empty_ventes_hist')+'</div>');
   } else {
     let list = ACHATS.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
     if(q){
@@ -1949,10 +2340,10 @@ function renderHistorique(){
       const retours = RETOURS_ACHAT.filter(r=>r.achatId===a.id);
       const montantRetour = retours.reduce((s,r)=>s+r.montant,0);
       return `<div class="list-item" onclick="openAchatDetail('${a.id}')" style="cursor:pointer;">
-        <div><div class="name">${a.numero} ${f?'· '+f.nom:''} ${montantRetour>0?'<span class="pill warn">Retour</span>':''}</div><div class="meta">${dateFR(a.date)}</div></div>
+        <div><div class="name">${a.numero} ${f?'· '+f.nom:''} ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(a.date)}</div></div>
         <div class="amount">${fmt(a.total)}${montantRetour>0?' <span class="meta neg" style="font-weight:700;">(-'+fmt(montantRetour)+')</span>':''}</div>
       </div>`;
-    }).join('') : '<div class="empty">Aucun achat enregistré pour l\'instant.</div>';
+    }).join('') : '<div class="empty">'+t('empty_achats_hist')+'</div>';
   }
 }
 
@@ -1977,19 +2368,20 @@ const MVT_LABELS = {
 function onMvtCategorieChange(){
   const cat = document.getElementById('mvtCategorie').value;
   document.getElementById('mvtMotif').placeholder = MVT_LABELS[cat].motifDefaut;
+  document.getElementById('mvtSoldeInitialInfo').style.display = (cat==='solde_initial') ? 'block' : 'none';
 }
 async function enregistrerMouvement(){
   const montant = parseFloat(document.getElementById('mvtMontant').value);
   const categorie = document.getElementById('mvtCategorie').value;
   const conf = MVT_LABELS[categorie];
   const motif = document.getElementById('mvtMotif').value.trim() || conf.motifDefaut;
-  if(!montant || montant<=0){ toast('Montant invalide'); return; }
+  if(!montant || montant<=0){ toast(t('err_montant')); return; }
   const mvt = {id:uid(), date:nowISO(), type:conf.type, categorie, montant, motif, lien:null};
   await put('caisse', mvt); CAISSE.push(mvt);
   closeModal('modalMouvement');
   renderBilan();
   renderHomeWidgets();
-  toast('Mouvement enregistré ✓');
+  toast(t('toast_mouvement_enregistre'));
 }
 function totalInvesti(){
   return CAISSE.filter(m=>m.categorie==='investissement').reduce((s,m)=>s+m.montant,0);
@@ -1998,10 +2390,13 @@ function totalRetourInvestissement(){
   return CAISSE.filter(m=>m.categorie==='retour_investissement').reduce((s,m)=>s+m.montant,0);
 }
 function totalFondsRoulementAjoute(){
-  return CAISSE.filter(m=>m.categorie==='fonds_roulement_ajout').reduce((s,m)=>s+m.montant,0);
+  return CAISSE.filter(m=>m.categorie==='fonds_roulement_ajout' || m.categorie==='solde_initial').reduce((s,m)=>s+m.montant,0);
 }
 function totalFondsRoulementRetire(){
   return CAISSE.filter(m=>m.categorie==='fonds_roulement_retrait').reduce((s,m)=>s+m.montant,0);
+}
+function soldeCaisseActuel(){
+  return CAISSE.filter(m=>m.categorie!=='solde_initial').reduce((s,m)=> s + (m.type==='entree'? m.montant : -m.montant), 0);
 }
 let historiqueCaisseOuvert = false;
 function toggleHistoriqueCaisse(){
@@ -2029,7 +2424,7 @@ async function enregistrerModifMouvement(){
   const m = CAISSE.find(x=>x.id===window._currentMouvementId);
   if(!m) return;
   const montant = parseFloat(document.getElementById('mvdMontant').value);
-  if(!montant || montant<=0){ toast('Montant invalide'); return; }
+  if(!montant || montant<=0){ toast(t('err_montant')); return; }
   const categorie = document.getElementById('mvdCategorie').value;
   m.categorie = categorie;
   m.type = MVT_LABELS[categorie].type;
@@ -2039,21 +2434,18 @@ async function enregistrerModifMouvement(){
   closeModal('modalMouvementDetail');
   renderBilan();
   renderHomeWidgets();
-  toast('Mouvement modifié ✓');
+  toast(t('toast_mouvement_modifie'));
 }
 async function supprimerMouvement(){
   const id = window._currentMouvementId;
   if(!id) return;
-  if(!confirm('Supprimer ce mouvement de caisse ? Cette action est irréversible.')) return;
+  if(!confirm(t('confirm_supprimer_mouvement'))) return;
   await del('caisse', id);
   CAISSE = CAISSE.filter(x=>x.id!==id);
   closeModal('modalMouvementDetail');
   renderBilan();
   renderHomeWidgets();
-  toast('Mouvement supprimé');
-}
-function soldeCaisseActuel(){
-  return CAISSE.reduce((s,m)=> s + (m.type==='entree'? m.montant : -m.montant), 0);
+  toast(t('toast_mouvement_supprime'));
 }
 
 /* ===================== SAUVEGARDE : EXPORT / IMPORT JSON ===================== */
@@ -2073,12 +2465,12 @@ async function exporterDonnees(){
   a.href = url; a.download = 'mesventes-sauvegarde-'+dstamp+'.json';
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
-  toast('Sauvegarde exportée ✓');
+  toast(t('toast_sauvegarde_exportee'));
 }
 async function importerDonnees(evt){
   const file = evt.target.files[0];
   if(!file) return;
-  if(!confirm("Importer va REMPLACER toutes les données actuelles par celles du fichier. Continuer ?")){
+  if(!confirm(t('confirm_import'))){
     evt.target.value=''; return;
   }
   try{
@@ -2101,9 +2493,9 @@ async function importerDonnees(evt){
     remplirSelectProduits(); remplirSelectClients(); remplirSelectFournisseurs();
     renderBilan(); renderClients(); renderFournisseurs(); renderStock(); renderHistorique();
     renderVentesChart(); renderVentesRecentes(); renderHomeWidgets(); appliquerVisibiliteVendeur();
-    toast('Données restaurées ✓');
+    toast(t('toast_donnees_restaurees'));
   }catch(e){
-    toast("Fichier invalide : "+e.message);
+    toast(t('err_fichier_invalide')+e.message);
   }
   evt.target.value='';
 }
@@ -2150,6 +2542,20 @@ function renderBilan(){
   document.getElementById('statCredits').textContent = fmt(totalCredits);
   document.getElementById('statValeurStock').textContent = fmt(PRODUITS.reduce((s,p)=>s+(p.stock||0)*(p.prixAchat||0),0));
 
+  if(PARAMETRES.multiVendeur){
+    const totaux = caParVendeur(debut, fin);
+    const lignes = Object.keys(totaux).map(key=>{
+      const v = VENDEURS.find(x=>x.id===key);
+      return {nom: v ? v.nom : 'Sans vendeur', total: totaux[key].total, nb: totaux[key].nb};
+    }).sort((a,b)=>b.total-a.total);
+    const card = document.getElementById('classementVendeursCard');
+    card.innerHTML = lignes.length ? lignes.map((l,i)=>`
+      <div class="list-item">
+        <div><div class="name">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}${l.nom}</div><div class="meta">${l.nb} vente${l.nb>1?'s':''}</div></div>
+        <div class="amount">${fmt(l.total)}</div>
+      </div>`).join('') : '<div class="empty">'+t('empty_classement')+'</div>';
+  }
+
   document.getElementById('soldeCaisse').textContent = fmt(soldeCaisseActuel());
   document.getElementById('soldeCaisse').className = 'amount ' + (soldeCaisseActuel()>=0?'pos':'neg');
   document.getElementById('statInvesti').textContent = fmt(totalInvesti());
@@ -2168,13 +2574,14 @@ function renderBilan(){
       <div><div class="name">${badge}${m.motif}</div><div class="meta">${dateFR(m.date)}</div></div>
       <div class="amount ${m.type==='entree'?'pos':'neg'}">${m.type==='entree'?'+':'-'}${fmt(m.montant)}</div>
     </div>`;
-  }).join('') : '<div class="empty">Aucun mouvement de caisse pour l\'instant.</div>';
+  }).join('') : '<div class="empty">'+t('empty_mouvements')+'</div>';
 }
 
 /* ===================== HORLOGE ===================== */
 function tickClock(){
   const d = new Date();
-  document.getElementById('clockBox').innerHTML = d.toLocaleDateString('fr-FR')+'<br>'+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const locale = (PARAMETRES.langue==='en') ? 'en-US' : 'fr-FR';
+  document.getElementById('clockBox').innerHTML = d.toLocaleDateString(locale)+'<br>'+d.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'});
 }
 setInterval(tickClock, 1000*30);
 
@@ -2187,7 +2594,7 @@ function calculerDonneesGraph(mode){
       const jour = new Date(); jour.setHours(0,0,0,0); jour.setDate(jour.getDate()-i);
       const finJour = new Date(jour); finJour.setHours(23,59,59,999);
       const ventesJour = VENTES.filter(v=>{ const d=new Date(v.date); return d>=jour && d<=finJour; });
-      labels.push(jour.toLocaleDateString('fr-FR',{weekday:'short'}));
+      labels.push(jour.toLocaleDateString((PARAMETRES.langue==='en')?'en-US':'fr-FR',{weekday:'short'}));
       values.push(ventesJour.reduce((s,v)=>s+v.total,0));
       counts.push(ventesJour.length);
     }
@@ -2282,7 +2689,7 @@ function renderVentesRecentes(){
       <div><div class="name">${v.numero} ${c?'· '+c.nom:''}</div><div class="meta">${dateFR(v.date)}</div></div>
       <div class="amount">${fmt(v.total)}</div>
     </div>`;
-  }).join('') : '<div class="empty">Aucune vente pour l\'instant.</div>';
+  }).join('') : '<div class="empty">'+t('empty_ventes_recentes')+'</div>';
 }
 let ventesRecentesOuvert = false;
 function toggleVentesRecentes(){
@@ -2334,7 +2741,7 @@ function rechercheGlobaleInput(){
   clients.forEach(c=>{
     html += `<div class="search-result-item" onclick="rechercheOuvrirClient('${c.id}')">
       <span class="search-result-tag">Client</span>
-      <div style="flex:1;"><div class="name">${c.nom}</div><div class="meta">${(c.solde||0)>0 ? 'Doit '+fmt(c.solde) : 'À jour'}</div></div>
+      <div style="flex:1;"><div class="name">${c.nom}</div><div class="meta">${(c.solde||0)>0 ? t('pill_doit')+' '+fmt(c.solde) : t('pill_ajour')}</div></div>
     </div>`;
   });
   ventes.forEach(v=>{
@@ -2345,7 +2752,7 @@ function rechercheGlobaleInput(){
     </div>`;
   });
 
-  box.innerHTML = html || '<div class="search-empty">Aucun résultat pour "'+q+'"</div>';
+  box.innerHTML = html || '<div class="search-empty">'+t('aucun_resultat')+' "'+q+'"</div>';
   box.style.display = 'block';
 }
 function fermerRechercheGlobale(){
@@ -2384,11 +2791,14 @@ async function init(){
     ]);
     await chargerParametres();
   }catch(e){
-    toast("Stockage indisponible dans cet aperçu. Installe l'app pour un usage réel.");
+    toast(t('err_stockage'));
   }
+  document.documentElement.lang = PARAMETRES.langue || 'fr';
+  applyTranslations();
   remplirSelectProduits();
   remplirSelectClients();
   remplirSelectFournisseurs();
+  remplirSelectVendeurs();
   setModePaiement('comptant');
   tickClock();
   renderBilan();
