@@ -592,6 +592,19 @@
     <input type="number" id="pStock" value="0" min="0" step="any" inputmode="decimal">
     <label class="field" data-i18n="seuil_alerte">Seuil d'alerte stock bas</label>
     <input type="number" id="pSeuilAlerte" value="5" min="0" step="any" inputmode="decimal">
+    <label class="field" data-i18n="unite_produit">Unité</label>
+    <select id="pUnite" onchange="onUniteChange()">
+      <option value="Pièce">Pièce</option>
+      <option value="Kg">Kg</option>
+      <option value="g">g</option>
+      <option value="Litre">Litre</option>
+      <option value="ml">ml</option>
+      <option value="Carton">Carton</option>
+      <option value="Sac">Sac</option>
+      <option value="Boîte">Boîte</option>
+      <option value="autre" data-i18n="unite_autre">Autre...</option>
+    </select>
+    <input type="text" id="pUniteAutre" data-i18n-ph="unite_autre_placeholder" placeholder="Précise l'unité" style="display:none; margin-top:8px;">
     <button class="btn amber block" id="btnEnregistrerProduit" style="margin-top:14px;" onclick="enregistrerProduit()">Enregistrer</button>
     <button class="btn red block" id="btnSupprimerProduit" style="margin-top:8px; display:none;" onclick="supprimerProduit()">🗑️ Supprimer ce produit</button>
   </div>
@@ -685,7 +698,7 @@
       <input type="number" id="fdPaiement" placeholder="Montant payé" min="0" step="any" inputmode="decimal">
       <button class="btn amber" onclick="payerFournisseur()">Payer</button>
     </div>
-    <label class="field" data-i18n="historique_achats">Historique des achats</label>
+    <label class="field" data-i18n="historique_operations">Historique des opérations</label>
     <div id="fdHistorique"></div>
     <button class="btn red block" style="margin-top:14px;" onclick="supprimerFournisseur()">🗑️ Supprimer ce fournisseur</button>
   </div>
@@ -948,6 +961,8 @@ let panierVente = [];
 let panierAchat = [];
 let modePaiementVente = 'comptant';
 let periodeActuelle = 'jour';
+let venteModalEnCours = false;
+let venteHistoryPushed = false;
 const PARAMETRES_DEFAUT = {
   id:'parametres', vibration:true, multiVendeur:false, theme:'auto', devise:'', seuilDefaut:5, langue:'fr'
 };
@@ -1074,6 +1089,11 @@ const I18N = {
     derniers_jours_7:'7 derniers jours', ce_mois_ci:'Ce mois-ci',
     historique_operations:'Historique des opérations', empty_operations_client:"Aucune opération avec ce client pour le moment.",
     operation_paiement:'Paiement reçu', plus_produit:'+ Produit',
+    unite_produit:'Unité', unite_autre:'Autre...', unite_autre_placeholder:"Précise l'unité",
+    pill_paye:'Payé', pill_partiel:'Partiel', pill_impaye:'Impayé',
+    operation_paiement_effectue:'Paiement effectué', empty_operations:'Aucune opération pour le moment.',
+    confirm_nom_existe:'Un nom identique existe déjà :', continuer_quand_meme:'Continuer quand même ?',
+    confirm_annuler_vente:'Annuler cette vente ? Le panier sera vidé.',
   },
   en: {
     nav_vente:'Sale', nav_clients:'Clients', nav_achats:'Purchases', nav_historique:'History', nav_bilan:'Overview',
@@ -1194,6 +1214,11 @@ const I18N = {
     derniers_jours_7:'Last 7 days', ce_mois_ci:'This month',
     historique_operations:'Operations history', empty_operations_client:'No operations with this client yet.',
     operation_paiement:'Payment received', plus_produit:'+ Product',
+    unite_produit:'Unit', unite_autre:'Other...', unite_autre_placeholder:'Specify the unit',
+    pill_paye:'Paid', pill_partiel:'Partial', pill_impaye:'Unpaid',
+    operation_paiement_effectue:'Payment made', empty_operations:'No operations yet.',
+    confirm_nom_existe:'A matching name already exists:', continuer_quand_meme:'Continue anyway?',
+    confirm_annuler_vente:'Cancel this sale? The cart will be cleared.',
   }
 };
 function t(key){
@@ -1206,6 +1231,19 @@ function fmt(n){
   const locale = (PARAMETRES.langue==='en') ? 'en-US' : 'fr-FR';
   const base = n.toLocaleString(locale, {maximumFractionDigits:2});
   return PARAMETRES.devise ? base+' '+PARAMETRES.devise : base;
+}
+function fmtQty(n, unite){
+  n = Number(n)||0;
+  const locale = (PARAMETRES.langue==='en') ? 'en-US' : 'fr-FR';
+  const base = n.toLocaleString(locale, {maximumFractionDigits:2});
+  return unite ? base+' '+unite : base;
+}
+function statutPaiement(obj){
+  const total = obj.total||0;
+  const paye = obj.montantPaye||0;
+  if(total>0 && paye >= total) return {cls:'ok', label:t('pill_paye')};
+  if(paye > 0) return {cls:'warn', label:t('pill_partiel')};
+  return {cls:'credit', label:t('pill_impaye')};
 }
 function toast(msg){
   const t = document.getElementById('toast');
@@ -1437,6 +1475,9 @@ function caParVendeur(debut, fin){
 
 /* ===================== NAVIGATION ===================== */
 function switchView(name){
+  if(name !== 'vente'){
+    masquerModalVenteTemporairement();
+  }
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
@@ -1444,6 +1485,8 @@ function switchView(name){
   if(name==='achats') renderFournisseurs();
   if(name==='historique') renderHistorique();
   if(name==='bilan') renderBilan();
+  if(name==='vente') reafficherModalVenteSiEnCours();
+  updateMiniCartBar();
 }
 let currentModalId = null;
 function openModal(id){
@@ -1461,6 +1504,26 @@ function closeModal(id){
   }
 }
 window.addEventListener('popstate', function(){
+  if(currentModalId === 'modalNouvelleVente' && panierVente.length>0){
+    history.pushState({modal:'modalNouvelleVente'}, '');
+    if(confirm(t('confirm_annuler_vente'))){
+      panierVente = []; renderPanierVente();
+      document.getElementById('venteClient').value='';
+      document.getElementById('venteClientSearch').value='';
+      document.getElementById('venteMontantPaye').value='';
+      setModePaiement('comptant');
+      _fermerModalVenteInterne();
+      updateMiniCartBar();
+    }
+    return;
+  }
+  if(currentModalId === 'modalNouvelleVente'){
+    venteModalEnCours = false;
+    venteHistoryPushed = false;
+    document.getElementById(currentModalId).classList.remove('open');
+    currentModalId = null;
+    return;
+  }
   if(currentModalId){
     document.getElementById(currentModalId).classList.remove('open');
     currentModalId = null;
@@ -1468,6 +1531,29 @@ window.addEventListener('popstate', function(){
 });
 
 /* ===================== PRODUITS ===================== */
+const UNITES_PRESETS = ['Pièce','Kg','g','Litre','ml','Carton','Sac','Boîte'];
+function onUniteChange(){
+  const v = document.getElementById('pUnite').value;
+  document.getElementById('pUniteAutre').style.display = v==='autre' ? 'block' : 'none';
+}
+function getUniteSelectionnee(){
+  const v = document.getElementById('pUnite').value;
+  if(v==='autre'){ return document.getElementById('pUniteAutre').value.trim(); }
+  return v;
+}
+function setUniteChamp(unite){
+  if(unite && UNITES_PRESETS.includes(unite)){
+    document.getElementById('pUnite').value = unite;
+    document.getElementById('pUniteAutre').value = '';
+  } else if(unite){
+    document.getElementById('pUnite').value = 'autre';
+    document.getElementById('pUniteAutre').value = unite;
+  } else {
+    document.getElementById('pUnite').value = 'Pièce';
+    document.getElementById('pUniteAutre').value = '';
+  }
+  onUniteChange();
+}
 function openProduitModal(id){
   document.getElementById('pId').value = id||'';
   document.getElementById('produitModalTitle').textContent = id ? t('titre_modifier_produit') : t('titre_nouveau_produit');
@@ -1478,6 +1564,7 @@ function openProduitModal(id){
     document.getElementById('pPrixVente').value = p.prixVente;
     document.getElementById('pStock').value = p.stock;
     document.getElementById('pSeuilAlerte').value = (p.seuilAlerte!=null) ? p.seuilAlerte : 5;
+    setUniteChamp(p.unite);
     document.getElementById('btnSupprimerProduit').style.display='block';
   } else {
     document.getElementById('pNom').value='';
@@ -1485,6 +1572,7 @@ function openProduitModal(id){
     document.getElementById('pPrixVente').value='';
     document.getElementById('pStock').value='0';
     document.getElementById('pSeuilAlerte').value= (PARAMETRES.seuilDefaut!=null ? PARAMETRES.seuilDefaut : 5);
+    setUniteChamp(null);
     document.getElementById('btnSupprimerProduit').style.display='none';
   }
   openModal('modalProduit');
@@ -1497,10 +1585,13 @@ async function enregistrerProduit(){
     const prixVente = parseFloat(document.getElementById('pPrixVente').value)||0;
     const stock = parseFloat(document.getElementById('pStock').value)||0;
     const seuilAlerte = parseFloat(document.getElementById('pSeuilAlerte').value)||0;
+    const unite = getUniteSelectionnee() || 'Pièce';
     if(!nom){ toast(t('err_nom_produit')); return; }
+    const doublon = PRODUITS.find(x=>x.id!==id && x.nom.trim().toLowerCase()===nom.toLowerCase());
+    if(doublon && !confirm(t('confirm_nom_existe')+' "'+nom+'". '+t('continuer_quand_meme'))) return;
     let p;
-    if(id){ p = PRODUITS.find(x=>x.id===id); p.nom=nom; p.prixAchat=prixAchat; p.prixVente=prixVente; p.stock=stock; p.seuilAlerte=seuilAlerte; }
-    else { p = {id:uid(), nom, prixAchat, prixVente, stock, seuilAlerte}; PRODUITS.push(p); }
+    if(id){ p = PRODUITS.find(x=>x.id===id); p.nom=nom; p.prixAchat=prixAchat; p.prixVente=prixVente; p.stock=stock; p.seuilAlerte=seuilAlerte; p.unite=unite; }
+    else { p = {id:uid(), nom, prixAchat, prixVente, stock, seuilAlerte, unite}; PRODUITS.push(p); }
     await put('produits', p);
     remplirSelectProduits();
     renderStock();
@@ -1545,13 +1636,13 @@ function renderStock(){
         <div class="name">${p.nom} ${stockBas?'<span class="pill warn">'+t('pill_stockbas')+'</span>':''}</div>
         <div class="meta">Achat ${fmt(p.prixAchat)} · Vente ${fmt(p.prixVente)} · Valeur ${fmt((p.stock||0)*(p.prixAchat||0))}</div>
       </div>
-      <div class="amount">${fmt(p.stock)}</div>
+      <div class="amount">${fmtQty(p.stock, p.unite)}</div>
     </div>`;
   }).join('');
 }
 function remplirSelectProduits(){
   const opts = '<option value="">-- Choisir un produit --</option>' + PRODUITS.map(p=>
-    `<option value="${p.id}">${p.nom} (stock: ${fmt(p.stock)})</option>`).join('');
+    `<option value="${p.id}">${p.nom} (stock: ${fmtQty(p.stock, p.unite)})</option>`).join('');
   document.getElementById('venteProduitSelect').innerHTML = opts;
   document.getElementById('achatProduitSelect').innerHTML = opts;
 }
@@ -1561,7 +1652,7 @@ document.getElementById('venteProduitSelect').addEventListener('change', functio
   const info = document.getElementById('venteStockInfo');
   if(p){
     const seuil = p.seuilAlerte!=null ? p.seuilAlerte : 5;
-    info.textContent = 'Stock disponible : '+fmt(p.stock);
+    info.textContent = 'Stock disponible : '+fmtQty(p.stock, p.unite);
     info.style.color = (p.stock||0) <= seuil ? 'var(--red)' : 'var(--muted)';
   } else {
     info.textContent = '';
@@ -1619,7 +1710,7 @@ function ajouterLigneVente(){
     toast(t('err_stock_insuffisant')+fmt((produit.stock||0)-dejaDansPanier)+')');
     return;
   }
-  panierVente.push({produitId:produit.id, nom:produit.nom, qte, prixVente:pu, prixAchat:produit.prixAchat});
+  panierVente.push({produitId:produit.id, nom:produit.nom, qte, prixVente:pu, prixAchat:produit.prixAchat, unite:produit.unite});
   document.getElementById('venteQte').value='1';
   document.getElementById('ventePU').value='';
   document.getElementById('venteProduitSelect').value='';
@@ -1637,7 +1728,7 @@ function renderPanierVente(){
     return `<div class="cart-line">
       <div style="flex:1;">
         <div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
-        <div class="meta">${fmt(l.qte)} × ${fmt(l.prixVente)}</div>
+        <div class="meta">${fmtQty(l.qte, l.unite)} × ${fmt(l.prixVente)}</div>
       </div>
       <div class="amount">${fmt(st)}</div>
       <button class="btn sm red" onclick="retirerLigneVente(${i})">×</button>
@@ -1711,7 +1802,7 @@ async function validerVente(){
         await put('caisse', mvt); CAISSE.push(mvt);
       }
 
-      fermerModalVente();
+      fermerModalVenteApresValidation();
       setTimeout(()=> afficherRecuVente(vente), 80);
       panierVente = []; renderPanierVente();
       document.getElementById('venteClient').value='';
@@ -1742,7 +1833,7 @@ function afficherRecuVente(vente){
   txt += '------------------------\n';
   for(const l of vente.items){
     txt += l.nom+'\n';
-    txt += '  '+fmt(l.qte)+' x '+fmt(l.prixVente)+' = '+fmt(l.qte*l.prixVente)+'\n';
+    txt += '  '+fmtQty(l.qte, l.unite)+' x '+fmt(l.prixVente)+' = '+fmt(l.qte*l.prixVente)+'\n';
   }
   txt += '------------------------\n';
   txt += t('recu_total')+': '+fmt(vente.total)+'\n';
@@ -1771,7 +1862,7 @@ function openVenteDetail(id){
       return `<div class="cart-line">
         <div style="flex:1;">
           <div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
-          <div class="meta">${t('vendu')}: ${fmt(l.qte)} × ${fmt(l.prixVente)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmt(dejaRetourne):''}</div>
+          <div class="meta">${t('vendu')}: ${fmtQty(l.qte, l.unite)} × ${fmt(l.prixVente)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmtQty(dejaRetourne, l.unite):''}</div>
         </div>
         <input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="vdQte_${i}" ${restant<=0?'disabled':''}>
       </div>`;
@@ -1852,7 +1943,7 @@ function openAchatDetail(id){
       return `<div class="cart-line">
         <div style="flex:1;">
           <div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
-          <div class="meta">${t('achete')}: ${fmt(l.qte)} × ${fmt(l.prixAchat)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmt(dejaRetourne):''}</div>
+          <div class="meta">${t('achete')}: ${fmtQty(l.qte, l.unite)} × ${fmt(l.prixAchat)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmtQty(dejaRetourne, l.unite):''}</div>
         </div>
         <input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="adQte_${i}" ${restant<=0?'disabled':''}>
       </div>`;
@@ -2012,6 +2103,8 @@ async function enregistrerClient(){
   const solde = parseFloat(document.getElementById('cSolde').value)||0;
   const caInitial = parseFloat(document.getElementById('cCaInitial').value)||0;
   if(!nom){ toast(t('err_nom_client')); return; }
+  const doublon = CLIENTS.find(x=>x.id!==id && x.nom.trim().toLowerCase()===nom.toLowerCase());
+  if(doublon && !confirm(t('confirm_nom_existe')+' "'+nom+'". '+t('continuer_quand_meme'))) return;
   let c;
   if(id){ c = CLIENTS.find(x=>x.id===id); c.nom=nom; c.tel=tel; c.solde=solde; c.caInitial=caInitial; }
   else {
@@ -2079,8 +2172,9 @@ function openClientDetail(id){
   document.getElementById('cdHistorique').innerHTML = operations.length ? operations.map(op=>{
     if(op.type==='vente'){
       const v = op.ref;
+      const st = statutPaiement(v);
       return `<div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
-        <div><div class="name">${v.numero}</div><div class="meta">${dateFR(v.date)}</div></div>
+        <div><div class="name">${v.numero} <span class="pill ${st.cls}">${st.label}</span></div><div class="meta">${dateFR(v.date)}</div></div>
         <div class="amount">${fmt(v.total)}</div>
       </div>`;
     }
@@ -2097,7 +2191,7 @@ function openClientDetail(id){
       <div><div class="name">${t('pill_retour')}${v?' '+v.numero:''}</div><div class="meta">${dateFR(r.date)}</div></div>
       <div class="amount neg">-${fmt(r.montant)}</div>
     </div>`;
-  }).join('') : '<div class="empty">'+t('empty_operations_client')+'</div>';
+  }).join('') : '<div class="empty">'+t('empty_operations')+'</div>';
   openModal('modalClientDetail');
 }
 async function encaisserPaiementClient(){
@@ -2183,6 +2277,8 @@ async function enregistrerFournisseur(){
   const solde = parseFloat(document.getElementById('fSolde').value)||0;
   const caInitial = parseFloat(document.getElementById('fCaInitial').value)||0;
   if(!nom){ toast(t('err_nom_fournisseur')); return; }
+  const doublon = FOURNISSEURS.find(x=>x.id!==id && x.nom.trim().toLowerCase()===nom.toLowerCase());
+  if(doublon && !confirm(t('confirm_nom_existe')+' "'+nom+'". '+t('continuer_quand_meme'))) return;
   let f;
   if(id){ f = FOURNISSEURS.find(x=>x.id===id); f.nom=nom; f.tel=tel; f.solde=solde; f.caInitial=caInitial; }
   else {
@@ -2236,12 +2332,36 @@ function openFournisseurDetail(id){
   document.getElementById('fdSolde').className = 'amount ' + ((f.solde||0)>0?'neg':'pos');
   document.getElementById('fdCA').textContent = fmt(achatsRealisesFournisseur(id));
   document.getElementById('fdPaiement').value='';
-  const histo = ACHATS.filter(a=>a.fournisseurId===id).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  document.getElementById('fdHistorique').innerHTML = histo.length ? histo.map(a=>`
-    <div class="list-item" onclick="openAchatDetail('${a.id}')" style="cursor:pointer;">
-      <div><div class="name">${a.numero}</div><div class="meta">${dateFR(a.date)}</div></div>
-      <div class="amount">${fmt(a.total)}</div>
-    </div>`).join('') : '<div class="empty">'+t('empty_achats_fournisseur')+'</div>';
+
+  const operations = [];
+  ACHATS.filter(a=>a.fournisseurId===id).forEach(a=> operations.push({date:a.date, type:'achat', ref:a}));
+  CAISSE.filter(m=>m.lien && m.lien.type==='fournisseur' && m.lien.id===id).forEach(m=> operations.push({date:m.date, type:'paiement', ref:m}));
+  RETOURS_ACHAT.filter(r=>r.fournisseurId===id).forEach(r=> operations.push({date:r.date, type:'retour', ref:r}));
+  operations.sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+  document.getElementById('fdHistorique').innerHTML = operations.length ? operations.map(op=>{
+    if(op.type==='achat'){
+      const a = op.ref;
+      const st = statutPaiement(a);
+      return `<div class="list-item" onclick="openAchatDetail('${a.id}')" style="cursor:pointer;">
+        <div><div class="name">${a.numero} <span class="pill ${st.cls}">${st.label}</span></div><div class="meta">${dateFR(a.date)}</div></div>
+        <div class="amount">${fmt(a.total)}</div>
+      </div>`;
+    }
+    if(op.type==='paiement'){
+      const m = op.ref;
+      return `<div class="list-item">
+        <div><div class="name">${t('operation_paiement_effectue')}</div><div class="meta">${dateFR(m.date)}</div></div>
+        <div class="amount pos">+${fmt(m.montant)}</div>
+      </div>`;
+    }
+    const r = op.ref;
+    const a = ACHATS.find(x=>x.id===r.achatId);
+    return `<div class="list-item" onclick="openAchatDetail('${r.achatId}')" style="cursor:pointer;">
+      <div><div class="name">${t('pill_retour')}${a?' '+a.numero:''}</div><div class="meta">${dateFR(r.date)}</div></div>
+      <div class="amount neg">-${fmt(r.montant)}</div>
+    </div>`;
+  }).join('') : '<div class="empty">'+t('empty_operations')+'</div>';
   openModal('modalFournisseurDetail');
 }
 async function payerFournisseur(){
@@ -2268,7 +2388,7 @@ function ajouterLigneAchat(){
   if(!produit){ toast(t('err_choisir_produit')); return; }
   if(!qte || qte<=0){ toast(t('err_quantite')); return; }
   if(isNaN(pu) || pu<0){ toast(t('err_prix')); return; }
-  panierAchat.push({produitId:produit.id, nom:produit.nom, qte, prixAchat:pu});
+  panierAchat.push({produitId:produit.id, nom:produit.nom, qte, prixAchat:pu, unite:produit.unite});
   document.getElementById('achatQte').value='1';
   document.getElementById('achatPU').value='';
   document.getElementById('achatProduitSelect').value='';
@@ -2284,7 +2404,7 @@ function renderPanierAchat(){
     const st=l.qte*l.prixAchat; total+=st;
     return `<div class="cart-line">
       <div style="flex:1;"><div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
-      <div class="meta">${fmt(l.qte)} × ${fmt(l.prixAchat)}</div></div>
+      <div class="meta">${fmtQty(l.qte, l.unite)} × ${fmt(l.prixAchat)}</div></div>
       <div class="amount">${fmt(st)}</div>
       <button class="btn sm red" onclick="retirerLigneAchat(${i})">×</button>
     </div>`;
@@ -2355,8 +2475,9 @@ function renderHistorique(){
       const c = CLIENTS.find(x=>x.id===v.clientId);
       const retours = RETOURS_VENTE.filter(r=>r.venteId===v.id);
       const montantRetour = retours.reduce((s,r)=>s+r.montant,0);
+      const st = statutPaiement(v);
       return `<div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
-        <div><div class="name">${v.numero} ${c?'· '+c.nom:''} ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(v.date)}</div></div>
+        <div><div class="name">${v.numero} ${c?'· '+c.nom:''} <span class="pill ${st.cls}">${st.label}</span> ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(v.date)}</div></div>
         <div class="amount">${fmt(v.total)}${montantRetour>0?' <span class="meta neg" style="font-weight:700;">(-'+fmt(montantRetour)+')</span>':''}</div>
       </div>`;
     }).join('') : (q ? '<div class="empty">'+t('aucun_resultat')+' "'+q+'"</div>' : '<div class="empty">'+t('empty_ventes_hist')+'</div>');
@@ -2372,8 +2493,9 @@ function renderHistorique(){
       const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
       const retours = RETOURS_ACHAT.filter(r=>r.achatId===a.id);
       const montantRetour = retours.reduce((s,r)=>s+r.montant,0);
+      const st = statutPaiement(a);
       return `<div class="list-item" onclick="openAchatDetail('${a.id}')" style="cursor:pointer;">
-        <div><div class="name">${a.numero} ${f?'· '+f.nom:''} ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(a.date)}</div></div>
+        <div><div class="name">${a.numero} ${f?'· '+f.nom:''} <span class="pill ${st.cls}">${st.label}</span> ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(a.date)}</div></div>
         <div class="amount">${fmt(a.total)}${montantRetour>0?' <span class="meta neg" style="font-weight:700;">(-'+fmt(montantRetour)+')</span>':''}</div>
       </div>`;
     }).join('') : '<div class="empty">'+t('empty_achats_hist')+'</div>';
@@ -2700,7 +2822,9 @@ function afficherJourDetail(evt, label, valeur, nb){
   pop.innerHTML = label+'<br><span style="font-weight:900; font-size:14px;">'+fmt(valeur)+'</span><br><span style="font-weight:500; opacity:.8;">'+nb+' vente'+(nb>1?'s':'')+'</span>';
   const rect = evt.currentTarget.closest('svg').getBoundingClientRect();
   pop.style.left = Math.min(window.innerWidth-140, Math.max(8, evt.clientX-60))+'px';
-  pop.style.top = (rect.top - 66)+'px';
+  let topPos = rect.top - 66;
+  if(topPos < 8){ topPos = rect.bottom + 10; }
+  pop.style.top = topPos+'px';
   pop.classList.add('show');
   clearTimeout(dayPopoverTimeout);
   dayPopoverTimeout = setTimeout(()=> pop.classList.remove('show'), 2200);
@@ -2721,15 +2845,55 @@ function renderHomeWidgets(){
 
 /* ===================== MODALE NOUVELLE VENTE ===================== */
 function ouvrirModalVente(){
+  venteModalEnCours = true;
   if(panierVente.length===0){
     document.getElementById('venteDateHeure').value = auMaintenantLocal();
     document.getElementById('venteDateAvertissement').style.display='none';
   }
-  openModal('modalNouvelleVente');
+  document.getElementById('modalNouvelleVente').classList.add('open');
+  currentModalId = 'modalNouvelleVente';
+  if(!venteHistoryPushed){
+    history.pushState({modal:'modalNouvelleVente'}, '');
+    venteHistoryPushed = true;
+  }
   updateMiniCartBar();
 }
+function masquerModalVenteTemporairement(){
+  const modalEl = document.getElementById('modalNouvelleVente');
+  if(modalEl.classList.contains('open')) modalEl.classList.remove('open');
+  if(currentModalId === 'modalNouvelleVente') currentModalId = null;
+}
+function reafficherModalVenteSiEnCours(){
+  if(venteModalEnCours){
+    document.getElementById('modalNouvelleVente').classList.add('open');
+    currentModalId = 'modalNouvelleVente';
+  }
+}
+function _fermerModalVenteInterne(){
+  venteModalEnCours = false;
+  document.getElementById('modalNouvelleVente').classList.remove('open');
+  if(currentModalId === 'modalNouvelleVente') currentModalId = null;
+  if(venteHistoryPushed){
+    venteHistoryPushed = false;
+    if(history.state && history.state.modal === 'modalNouvelleVente'){
+      history.back();
+    }
+  }
+}
 function fermerModalVente(){
-  closeModal('modalNouvelleVente');
+  if(panierVente.length>0){
+    if(!confirm(t('confirm_annuler_vente'))) return;
+    panierVente = []; renderPanierVente();
+    document.getElementById('venteClient').value='';
+    document.getElementById('venteClientSearch').value='';
+    document.getElementById('venteMontantPaye').value='';
+    setModePaiement('comptant');
+  }
+  _fermerModalVenteInterne();
+  updateMiniCartBar();
+}
+function fermerModalVenteApresValidation(){
+  _fermerModalVenteInterne();
   updateMiniCartBar();
 }
 function updateMiniCartBar(){
@@ -2759,7 +2923,7 @@ function rechercheGlobaleInput(){
   produits.forEach(p=>{
     html += `<div class="search-result-item" onclick="rechercheChoisirProduit('${p.id}')">
       <span class="search-result-tag">Produit</span>
-      <div style="flex:1;"><div class="name">${p.nom}</div><div class="meta">Stock: ${fmt(p.stock)} · Vente: ${fmt(p.prixVente)}</div></div>
+      <div style="flex:1;"><div class="name">${p.nom}</div><div class="meta">Stock: ${fmtQty(p.stock, p.unite)} · Vente: ${fmt(p.prixVente)}</div></div>
     </div>`;
   });
   clients.forEach(c=>{
