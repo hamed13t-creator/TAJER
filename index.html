@@ -323,17 +323,6 @@
       <div id="ventesChartBox" style="margin-top:6px;"></div>
       <div class="meta" id="graphTotalInfo" style="margin-top:4px;"></div>
     </div>
-
-    <div class="card">
-      <div class="row" style="cursor:pointer;" onclick="toggleVentesRecentes()">
-        <span style="font-weight:800; font-size:13px; color:var(--navy);" data-i18n="ventes_recentes">Ventes récentes</span>
-        <span class="linklike" id="toggleVentesRecentesLabel" data-i18n="afficher">Afficher ▾</span>
-      </div>
-      <div id="ventesRecentesWrap" style="display:none;">
-        <div id="ventesRecentesCard" style="margin-top:8px;"></div>
-        <a class="linklike" data-i18n="tout_voir" onclick="switchView('historique')" style="cursor:pointer; display:block; margin-top:8px; text-align:center;">Tout voir</a>
-      </div>
-    </div>
   </section>
 
   <!-- MODAL: Nouvelle vente -->
@@ -357,20 +346,20 @@
         <label class="field" style="margin-top:0;" data-i18n="client_label">Client (optionnel en comptant, obligatoire à crédit)</label>
         <div class="row" style="gap:8px;">
           <div style="flex:1; position:relative;">
-            <input type="text" id="venteClientSearch" placeholder="-- Client de passage (comptant) --" autocomplete="off"
+            <input type="text" id="venteClientSearch" data-i18n-ph="client_passage" placeholder="-- Client de passage (comptant) --" autocomplete="off"
               oninput="filtrerClientVente()" onfocus="filtrerClientVente()"
               onblur="setTimeout(()=>{document.getElementById('venteClientResults').style.display='none';},150)">
             <input type="hidden" id="venteClient" value="">
             <div id="venteClientResults" style="display:none; position:absolute; left:0; right:0; top:100%; margin-top:4px; background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:0 8px 18px rgba(0,0,0,.15); z-index:40; max-height:240px; overflow-y:auto;"></div>
           </div>
-          <button class="btn outline sm" onclick="ouvrirNouveauClientDepuisVente()">+ Nouveau</button>
+          <button class="btn outline sm" data-i18n="nouveau" onclick="ouvrirNouveauClientDepuisVente()">+ Nouveau</button>
         </div>
       </div>
 
       <div class="card">
         <div class="row" style="margin-bottom:8px;">
           <label class="field" style="margin:0;" data-i18n="ajouter_produit">Ajouter un produit</label>
-          <button class="btn outline sm" onclick="openProduitModal()">+ Nouveau produit</button>
+          <button class="btn outline sm" data-i18n="nouveau_produit" onclick="openProduitModal()">+ Nouveau produit</button>
         </div>
         <select id="venteProduitSelect"></select>
         <div class="meta" id="venteStockInfo" style="margin-top:6px;"></div>
@@ -403,8 +392,8 @@
       <div class="card" id="paiementCard" style="display:none; margin-bottom:0;">
         <label class="field" style="margin-top:0;" data-i18n="mode_paiement">Mode de paiement</label>
         <div class="segmented">
-          <button id="modeComptant" class="active" onclick="setModePaiement('comptant')">Comptant</button>
-          <button id="modeCredit" onclick="setModePaiement('credit')">Crédit</button>
+          <button id="modeComptant" class="active" data-i18n="comptant" onclick="setModePaiement('comptant')">Comptant</button>
+          <button id="modeCredit" data-i18n="credit" onclick="setModePaiement('credit')">Crédit</button>
         </div>
         <div id="montantPayeBox">
           <label class="field" data-i18n="montant_paye">Montant payé maintenant</label>
@@ -417,22 +406,22 @@
 
   <!-- CLIENTS -->
   <section class="view" id="view-clients">
-    <h2 class="title">Clients</h2>
-    <div class="card search-box"><input type="text" id="clientSearch" placeholder="Rechercher un client..." oninput="renderClients()"></div>
+    <h2 class="title" data-i18n="clients_title">Clients</h2>
+    <div class="card search-box"><input type="text" id="clientSearch" data-i18n-ph="rechercher_client" placeholder="Rechercher un client..." oninput="renderClients()"></div>
     <div class="segmented">
-      <button id="clientSortDette" class="active" onclick="setClientSort('dette')">Par dette</button>
-      <button id="clientSortCA" onclick="setClientSort('ca')">Meilleurs clients</button>
+      <button id="clientSortDette" class="active" data-i18n="par_dette" onclick="setClientSort('dette')">Par dette</button>
+      <button id="clientSortCA" data-i18n="meilleurs_clients" onclick="setClientSort('ca')">Meilleurs clients</button>
     </div>
     <div class="card" id="clientListCard"></div>
   </section>
 
   <!-- ACHATS -->
   <section class="view" id="view-achats">
-    <h2 class="title">Achats & fournisseurs</h2>
+    <h2 class="title" data-i18n="achats_title">Achats & fournisseurs</h2>
     <div class="segmented">
-      <button id="achatsTabNouvel" class="active" onclick="switchAchatsTab('nouvel')">Nouvel achat</button>
-      <button id="achatsTabFournisseurs" onclick="switchAchatsTab('fournisseurs')">Fournisseurs</button>
-      <button id="achatsTabStock" onclick="switchAchatsTab('stock')">Stock</button>
+      <button id="achatsTabNouvel" class="active" data-i18n="nouvel_achat" onclick="switchAchatsTab('nouvel')">Nouvel achat</button>
+      <button id="achatsTabFournisseurs" data-i18n="fournisseurs" onclick="switchAchatsTab('fournisseurs')">Fournisseurs</button>
+      <button id="achatsTabStock" data-i18n="stock" onclick="switchAchatsTab('stock')">Stock</button>
     </div>
 
     <div id="achatsNouvel">
@@ -443,7 +432,7 @@
       <div class="card">
         <div class="row" style="margin-bottom:8px;">
           <label class="field" style="margin:0;" data-i18n="ajouter_produit_achete">Ajouter un produit acheté</label>
-          <button class="btn outline sm" onclick="openProduitModal()">+ Nouveau produit</button>
+          <button class="btn outline sm" data-i18n="nouveau_produit" onclick="openProduitModal()">+ Nouveau produit</button>
         </div>
         <select id="achatProduitSelect"></select>
         <div class="grid2" style="margin-top:8px;">
@@ -467,43 +456,43 @@
     </div>
 
     <div id="achatsFournisseurs" style="display:none;">
-      <div class="card"><button class="btn outline block" onclick="openFournisseurModal()">+ Nouveau fournisseur</button></div>
+      <div class="card"><button class="btn outline block" data-i18n="nouveau_fournisseur" onclick="openFournisseurModal()">+ Nouveau fournisseur</button></div>
       <div class="card" id="fournisseurListCard"></div>
     </div>
 
     <div id="achatsStock" style="display:none;">
       <div class="card row">
         <div>
-          <div class="meta">Valeur totale du stock (au prix d'achat)</div>
+          <div class="meta" data-i18n="valeur_totale_stock">Valeur totale du stock (au prix d'achat)</div>
           <div class="amount" id="stockValeurTotale" style="font-size:19px;">0</div>
         </div>
         <button class="btn outline sm" onclick="openProduitModal()">+ Produit</button>
       </div>
-      <div class="card search-box"><input type="text" id="stockSearch" placeholder="Rechercher un produit..." oninput="renderStock()"></div>
+      <div class="card search-box"><input type="text" id="stockSearch" data-i18n-ph="rechercher_produit" placeholder="Rechercher un produit..." oninput="renderStock()"></div>
       <div class="card" id="stockListCard"></div>
     </div>
   </section>
 
   <!-- HISTORIQUE -->
   <section class="view" id="view-historique">
-    <h2 class="title">Historique</h2>
+    <h2 class="title" data-i18n="historique_title">Historique</h2>
     <div class="segmented">
-      <button id="histTabVentes" class="active" onclick="switchHistTab('ventes')">Ventes</button>
-      <button id="histTabAchats" onclick="switchHistTab('achats')">Achats</button>
+      <button id="histTabVentes" class="active" data-i18n="ventes" onclick="switchHistTab('ventes')">Ventes</button>
+      <button id="histTabAchats" data-i18n="achats" onclick="switchHistTab('achats')">Achats</button>
     </div>
-    <div class="card search-box"><input type="text" id="historiqueSearch" placeholder="Rechercher un numéro, client, fournisseur..." oninput="renderHistorique()"></div>
+    <div class="card search-box"><input type="text" id="historiqueSearch" data-i18n-ph="rechercher_historique" placeholder="Rechercher un numéro, client, fournisseur..." oninput="renderHistorique()"></div>
     <div class="card" id="historiqueListCard"></div>
   </section>
 
   <!-- BILAN / DASHBOARD + CAISSE -->
   <section class="view" id="view-bilan">
-    <h2 class="title">Tableau de bord</h2>
+    <h2 class="title" data-i18n="bilan_title">Tableau de bord</h2>
     <div class="segmented">
-      <button id="periodeJour" class="active" onclick="setPeriode('jour')">Jour</button>
-      <button id="periodeSemaine" onclick="setPeriode('semaine')">Semaine</button>
-      <button id="periodeMois" onclick="setPeriode('mois')">Mois</button>
-      <button id="periodeAnnee" onclick="setPeriode('annee')">Année</button>
-      <button id="periodePerso" onclick="setPeriode('perso')">Perso</button>
+      <button id="periodeJour" class="active" data-i18n="jour" onclick="setPeriode('jour')">Jour</button>
+      <button id="periodeSemaine" data-i18n="semaine_p" onclick="setPeriode('semaine')">Semaine</button>
+      <button id="periodeMois" data-i18n="mois_p" onclick="setPeriode('mois')">Mois</button>
+      <button id="periodeAnnee" data-i18n="annee" onclick="setPeriode('annee')">Année</button>
+      <button id="periodePerso" data-i18n="perso" onclick="setPeriode('perso')">Perso</button>
     </div>
     <div class="card grid2" id="persoDatesCard" style="display:none;">
       <div>
@@ -516,47 +505,47 @@
       </div>
     </div>
     <div class="stat-grid">
-      <div class="stat"><div class="v" id="statVentes">0</div><div class="l">Total ventes</div></div>
-      <div class="stat amber"><div class="v" id="statBenefice">0</div><div class="l">Bénéfice estimé</div></div>
-      <div class="stat"><div class="v" id="statNbVentes">0</div><div class="l">Nombre de ventes</div></div>
-      <div class="stat"><div class="v" id="statCredits">0</div><div class="l">Total crédits clients</div></div>
-      <div class="stat"><div class="v" id="statValeurStock">0</div><div class="l">Valeur de stock</div></div>
+      <div class="stat"><div class="v" id="statVentes">0</div><div class="l" data-i18n="total_ventes">Total ventes</div></div>
+      <div class="stat amber"><div class="v" id="statBenefice">0</div><div class="l" data-i18n="benefice_estime">Bénéfice estimé</div></div>
+      <div class="stat"><div class="v" id="statNbVentes">0</div><div class="l" data-i18n="nombre_ventes">Nombre de ventes</div></div>
+      <div class="stat"><div class="v" id="statCredits">0</div><div class="l" data-i18n="total_credits">Total crédits clients</div></div>
+      <div class="stat"><div class="v" id="statValeurStock">0</div><div class="l" data-i18n="valeur_stock2">Valeur de stock</div></div>
     </div>
 
     <div class="card vendeur-only" style="display:none;">
-      <div style="font-weight:800; font-size:13px; color:var(--navy); margin-bottom:6px;">🏆 Classement des vendeurs</div>
+      <div style="font-weight:800; font-size:13px; color:var(--navy); margin-bottom:6px;" data-i18n="classement_vendeurs">🏆 Classement des vendeurs</div>
       <div id="classementVendeursCard"></div>
     </div>
 
-    <h2 class="title" style="margin-top:16px;">Caisse</h2>
+    <h2 class="title" style="margin-top:16px;" data-i18n="caisse_title">Caisse</h2>
     <div class="card row">
       <div>
-        <div class="meta">Solde actuel de la caisse</div>
+        <div class="meta" data-i18n="solde_caisse">Solde actuel de la caisse</div>
         <div class="amount" id="soldeCaisse" style="font-size:20px;">0</div>
       </div>
-      <button class="btn amber sm" onclick="openMouvementModal()">+ Mouvement</button>
+      <button class="btn amber sm" data-i18n="mouvement" onclick="openMouvementModal()">+ Mouvement</button>
     </div>
     <div class="stat-grid">
-      <div class="stat"><div class="v" id="statInvesti">0</div><div class="l">Capital investi (total)</div></div>
-      <div class="stat"><div class="v" id="statRetourInvesti">0</div><div class="l">Récupéré (total)</div></div>
-      <div class="stat"><div class="v" id="statFondsRoulement">0</div><div class="l">Fonds de roulement net</div></div>
+      <div class="stat"><div class="v" id="statInvesti">0</div><div class="l" data-i18n="capital_investi">Capital investi (total)</div></div>
+      <div class="stat"><div class="v" id="statRetourInvesti">0</div><div class="l" data-i18n="recupere">Récupéré (total)</div></div>
+      <div class="stat"><div class="v" id="statFondsRoulement">0</div><div class="l" data-i18n="fonds_roulement_net">Fonds de roulement net</div></div>
     </div>
     <div class="card">
       <div class="row" style="cursor:pointer;" onclick="toggleHistoriqueCaisse()">
-        <span style="font-weight:800; font-size:13px; color:var(--navy);">Historique des mouvements</span>
-        <span class="linklike" id="toggleHistoriqueCaisseLabel">Afficher ▾</span>
+        <span style="font-weight:800; font-size:13px; color:var(--navy);" data-i18n="historique_mouvements">Historique des mouvements</span>
+        <span class="linklike" id="toggleHistoriqueCaisseLabel" data-i18n="afficher">Afficher ▾</span>
       </div>
       <div id="caisseListWrap" style="display:none;">
         <div id="caisseListCard" style="margin-top:8px;"></div>
       </div>
     </div>
 
-    <h2 class="title" style="margin-top:16px;">Sauvegarde</h2>
+    <h2 class="title" style="margin-top:16px;" data-i18n="sauvegarde">Sauvegarde</h2>
     <div class="card">
-      <div class="meta" style="margin-bottom:10px;">Exporte régulièrement tes données pour éviter toute perte (changement de téléphone, désinstallation...).</div>
+      <div class="meta" style="margin-bottom:10px;" data-i18n="sauvegarde_desc">Exporte régulièrement tes données pour éviter toute perte (changement de téléphone, désinstallation...).</div>
       <div class="grid2">
-        <button class="btn outline" onclick="exporterDonnees()">⬇️ Exporter (JSON)</button>
-        <button class="btn outline" onclick="document.getElementById('importFile').click()">⬆️ Importer</button>
+        <button class="btn outline" data-i18n="exporter" onclick="exporterDonnees()">⬇️ Exporter (JSON)</button>
+        <button class="btn outline" data-i18n="importer" onclick="document.getElementById('importFile').click()">⬆️ Importer</button>
       </div>
       <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importerDonnees(event)">
     </div>
@@ -723,7 +712,7 @@
     <label class="field" data-i18n="motif">Motif</label>
     <input type="text" id="mvtMotif" placeholder="Ex: Retrait personnel, apport...">
     <div class="meta" id="mvtSoldeInitialInfo" style="display:none; margin-top:6px;">ℹ️ Ce montant sera ajouté au fonds de roulement uniquement — il n'affectera pas le solde de caisse actuel, puisqu'il représente de l'argent déjà existant avant l'utilisation de l'app.</div>
-    <button class="btn amber block" style="margin-top:14px;" onclick="enregistrerMouvement()">Enregistrer</button>
+    <button class="btn amber block" id="btnEnregistrerMouvement" style="margin-top:14px;" onclick="enregistrerMouvement()">Enregistrer</button>
   </div>
 </div>
 
@@ -788,8 +777,8 @@
     <label class="field" data-i18n="motif">Motif</label>
     <input type="text" id="mvdMotif">
     <div class="grid2" style="margin-top:14px;">
-      <button class="btn amber" onclick="enregistrerModifMouvement()">Enregistrer</button>
-      <button class="btn red" onclick="supprimerMouvement()">Supprimer</button>
+      <button class="btn amber" id="btnEnregistrerModifMouvement" onclick="enregistrerModifMouvement()">Enregistrer</button>
+      <button class="btn red" id="btnSupprimerMouvement" onclick="supprimerMouvement()">Supprimer</button>
     </div>
   </div>
 </div>
@@ -802,7 +791,7 @@
     <div class="card" style="margin-top:0;">
       <div class="row" style="gap:8px;">
         <input type="text" id="nouveauVendeurNom" placeholder="Nom du vendeur">
-        <button class="btn amber sm" onclick="ajouterVendeur()">+ Ajouter</button>
+        <button class="btn amber sm" id="btnAjouterVendeur" onclick="ajouterVendeur()">+ Ajouter</button>
       </div>
     </div>
     <div class="card" id="vendeursListCard" style="margin-bottom:0;"></div>
@@ -1077,6 +1066,14 @@ const I18N = {
     titre_modifier_mouvement:'Modifier le mouvement', titre_vendeurs:'Vendeurs', titre_parametres:'Paramètres',
     solde_actuel_dette:'Solde actuel (dette)', solde_actuel_devons:'Solde actuel (nous devons)',
     qte_a_retourner:'Quantité à retourner (si besoin)',
+    nouveau_client:'+ Nouveau client',
+    titre_nouveau_produit:'Nouveau produit', titre_modifier_produit:'Modifier produit',
+    titre_nouveau_client:'Nouveau client', titre_modifier_client:'Modifier client',
+    titre_nouveau_fournisseur:'Nouveau fournisseur', titre_modifier_fournisseur:'Modifier fournisseur',
+    vendu:'Vendu', achete:'Acheté', deja_retourne:'Déjà retourné',
+    derniers_jours_7:'7 derniers jours', ce_mois_ci:'Ce mois-ci',
+    historique_operations:'Historique des opérations', empty_operations_client:"Aucune opération avec ce client pour le moment.",
+    operation_paiement:'Paiement reçu', plus_produit:'+ Produit',
   },
   en: {
     nav_vente:'Sale', nav_clients:'Clients', nav_achats:'Purchases', nav_historique:'History', nav_bilan:'Overview',
@@ -1189,6 +1186,14 @@ const I18N = {
     titre_modifier_mouvement:'Edit movement', titre_vendeurs:'Sellers', titre_parametres:'Settings',
     solde_actuel_dette:'Current balance (owed)', solde_actuel_devons:'Current balance (we owe)',
     qte_a_retourner:'Quantity to return (if needed)',
+    nouveau_client:'+ New client',
+    titre_nouveau_produit:'New product', titre_modifier_produit:'Edit product',
+    titre_nouveau_client:'New client', titre_modifier_client:'Edit client',
+    titre_nouveau_fournisseur:'New supplier', titre_modifier_fournisseur:'Edit supplier',
+    vendu:'Sold', achete:'Purchased', deja_retourne:'Already returned',
+    derniers_jours_7:'Last 7 days', ce_mois_ci:'This month',
+    historique_operations:'Operations history', empty_operations_client:'No operations with this client yet.',
+    operation_paiement:'Payment received', plus_produit:'+ Product',
   }
 };
 function t(key){
@@ -1293,7 +1298,7 @@ async function majParametre(cle, valeur){
   PARAMETRES[cle] = valeur;
   await sauverParametres();
   if(cle==='multiVendeur') appliquerVisibiliteVendeur();
-  if(cle==='devise'){ renderBilan(); renderStock(); renderClients(); renderFournisseurs(); renderHomeWidgets(); renderVentesChart(); renderVentesRecentes(); renderHistorique(); }
+  if(cle==='devise'){ renderBilan(); renderStock(); renderClients(); renderFournisseurs(); renderHomeWidgets(); renderVentesChart(); renderHistorique(); }
 }
 async function majParametreTheme(valeur){
   PARAMETRES.theme = valeur;
@@ -1344,7 +1349,6 @@ function applyTranslations(){
   renderHistorique();
   renderBilan();
   renderVentesChart();
-  renderVentesRecentes();
   renderHomeWidgets();
   renderVendeursList();
   onMvtCategorieChange();
@@ -1364,15 +1368,17 @@ function ouvrirGestionVendeurs(){
   openModal('modalVendeurs');
 }
 async function ajouterVendeur(){
-  const nom = document.getElementById('nouveauVendeurNom').value.trim();
-  if(!nom){ toast(t('err_nom_vendeur')); return; }
-  const v = {id:uid(), nom, actif:true};
-  VENDEURS.push(v);
-  await put('vendeurs', v);
-  document.getElementById('nouveauVendeurNom').value='';
-  renderVendeursList();
-  remplirSelectVendeurs();
-  toast(t('toast_vendeur_ajoute'));
+  await withLock(document.getElementById('btnAjouterVendeur'), async ()=>{
+    const nom = document.getElementById('nouveauVendeurNom').value.trim();
+    if(!nom){ toast(t('err_nom_vendeur')); return; }
+    const v = {id:uid(), nom, actif:true};
+    VENDEURS.push(v);
+    await put('vendeurs', v);
+    document.getElementById('nouveauVendeurNom').value='';
+    renderVendeursList();
+    remplirSelectVendeurs();
+    toast(t('toast_vendeur_ajoute'));
+  });
 }
 async function toggleVendeurActif(id){
   const v = VENDEURS.find(x=>x.id===id);
@@ -1464,7 +1470,7 @@ window.addEventListener('popstate', function(){
 /* ===================== PRODUITS ===================== */
 function openProduitModal(id){
   document.getElementById('pId').value = id||'';
-  document.getElementById('produitModalTitle').textContent = id ? 'Modifier produit' : 'Nouveau produit';
+  document.getElementById('produitModalTitle').textContent = id ? t('titre_modifier_produit') : t('titre_nouveau_produit');
   if(id){
     const p = PRODUITS.find(x=>x.id===id);
     document.getElementById('pNom').value = p.nom;
@@ -1498,6 +1504,7 @@ async function enregistrerProduit(){
     await put('produits', p);
     remplirSelectProduits();
     renderStock();
+    renderHomeWidgets();
     closeModal('modalProduit');
     toast(t('toast_produit_enregistre'));
   });
@@ -1518,6 +1525,7 @@ async function supprimerProduit(){
   PRODUITS = PRODUITS.filter(x=>x.id!==id);
   remplirSelectProduits();
   renderStock();
+  renderHomeWidgets();
   closeModal('modalProduit');
   toast(t('toast_produit_supprime'));
 }
@@ -1715,7 +1723,6 @@ async function validerVente(){
       setModePaiement('comptant');
       confirmerAnimation();
       renderVentesChart();
-      renderVentesRecentes();
       renderHomeWidgets();
       toast(t('toast_vente_enregistree'));
     }catch(err){
@@ -1764,7 +1771,7 @@ function openVenteDetail(id){
       return `<div class="cart-line">
         <div style="flex:1;">
           <div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
-          <div class="meta">Vendu: ${fmt(l.qte)} × ${fmt(l.prixVente)}${dejaRetourne>0?' · Déjà retourné: '+fmt(dejaRetourne):''}</div>
+          <div class="meta">${t('vendu')}: ${fmt(l.qte)} × ${fmt(l.prixVente)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmt(dejaRetourne):''}</div>
         </div>
         <input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="vdQte_${i}" ${restant<=0?'disabled':''}>
       </div>`;
@@ -1845,7 +1852,7 @@ function openAchatDetail(id){
       return `<div class="cart-line">
         <div style="flex:1;">
           <div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
-          <div class="meta">Acheté: ${fmt(l.qte)} × ${fmt(l.prixAchat)}${dejaRetourne>0?' · Déjà retourné: '+fmt(dejaRetourne):''}</div>
+          <div class="meta">${t('achete')}: ${fmt(l.qte)} × ${fmt(l.prixAchat)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmt(dejaRetourne):''}</div>
         </div>
         <input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="adQte_${i}" ${restant<=0?'disabled':''}>
       </div>`;
@@ -1978,7 +1985,7 @@ function ouvrirNouveauClientDepuisVente(){
 function openClientModal(id, context){
   window._clientModalContext = context || 'clients';
   document.getElementById('clientId').value = id||'';
-  document.getElementById('clientModalTitle').textContent = id ? 'Modifier client' : 'Nouveau client';
+  document.getElementById('clientModalTitle').textContent = id ? t('titre_modifier_client') : t('titre_nouveau_client');
   document.getElementById('cSoldeLabel').textContent = id ? t('solde_actuel_dette') : t('solde_initial_label');
   if(id){
     const c = CLIENTS.find(x=>x.id===id);
@@ -2040,8 +2047,8 @@ function renderClients(){
     list = list.sort((a,b)=> (b.solde||0)-(a.solde||0));
   }
   const card = document.getElementById('clientListCard');
-  if(list.length===0){ card.innerHTML = '<div class="empty">'+t('empty_clients')+'</div><button class="btn outline block" onclick="openClientModal()">'+t('ajouter_client')+'</button>'; return; }
-  card.innerHTML = '<button class="btn outline block" style="margin-bottom:8px;" onclick="openClientModal()">+ Nouveau client</button>' +
+  if(list.length===0){ card.innerHTML = '<div class="empty">'+t('empty_clients')+'</div><button class="btn outline block" onclick="openClientModal()">'+t('nouveau_client')+'</button>'; return; }
+  card.innerHTML = '<button class="btn outline block" style="margin-bottom:8px;" onclick="openClientModal()">'+t('nouveau_client')+'</button>' +
     list.map(c=>`
     <div class="list-item" onclick="openClientDetail('${c.id}')" style="cursor:pointer;">
       <div>
@@ -2062,30 +2069,54 @@ function openClientDetail(id){
   document.getElementById('cdSolde').className = 'amount ' + ((c.solde||0)>0?'neg':'pos');
   document.getElementById('cdCA').textContent = fmt(caClient(id));
   document.getElementById('cdPaiement').value='';
-  const histo = VENTES.filter(v=>v.clientId===id).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  document.getElementById('cdHistorique').innerHTML = histo.length ? histo.map(v=>`
-    <div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
-      <div><div class="name">${v.numero}</div><div class="meta">${dateFR(v.date)}</div></div>
-      <div class="amount">${fmt(v.total)}</div>
-    </div>`).join('') : '<div class="empty">'+t('empty_ventes_client')+'</div>';
+
+  const operations = [];
+  VENTES.filter(v=>v.clientId===id).forEach(v=> operations.push({date:v.date, type:'vente', ref:v}));
+  CAISSE.filter(m=>m.lien && m.lien.type==='client' && m.lien.id===id).forEach(m=> operations.push({date:m.date, type:'paiement', ref:m}));
+  RETOURS_VENTE.filter(r=>r.clientId===id).forEach(r=> operations.push({date:r.date, type:'retour', ref:r}));
+  operations.sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+  document.getElementById('cdHistorique').innerHTML = operations.length ? operations.map(op=>{
+    if(op.type==='vente'){
+      const v = op.ref;
+      return `<div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
+        <div><div class="name">${v.numero}</div><div class="meta">${dateFR(v.date)}</div></div>
+        <div class="amount">${fmt(v.total)}</div>
+      </div>`;
+    }
+    if(op.type==='paiement'){
+      const m = op.ref;
+      return `<div class="list-item">
+        <div><div class="name">${t('operation_paiement')}</div><div class="meta">${dateFR(m.date)}</div></div>
+        <div class="amount pos">+${fmt(m.montant)}</div>
+      </div>`;
+    }
+    const r = op.ref;
+    const v = VENTES.find(x=>x.id===r.venteId);
+    return `<div class="list-item" onclick="openVenteDetail('${r.venteId}')" style="cursor:pointer;">
+      <div><div class="name">${t('pill_retour')}${v?' '+v.numero:''}</div><div class="meta">${dateFR(r.date)}</div></div>
+      <div class="amount neg">-${fmt(r.montant)}</div>
+    </div>`;
+  }).join('') : '<div class="empty">'+t('empty_operations_client')+'</div>';
   openModal('modalClientDetail');
 }
 async function encaisserPaiementClient(){
-  const id = window._currentClientId;
-  const c = CLIENTS.find(x=>x.id===id);
-  const montant = parseFloat(document.getElementById('cdPaiement').value);
-  if(!montant || montant<=0){ toast(t('err_montant')); return; }
-  c.solde = Math.max(0, (c.solde||0) - montant);
-  await put('clients', c);
-  const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif:'Règlement crédit - '+c.nom, lien:{type:'client', id:c.id}};
-  await put('caisse', mvt); CAISSE.push(mvt);
-  closeModal('modalClientDetail');
-  renderClients();
-  confirmerAnimation();
-  renderVentesChart();
-  renderVentesRecentes();
-  renderHomeWidgets();
-  toast(t('toast_paiement_encaisse'));
+  await withLock(document.getElementById('btnEncaisserPaiement'), async ()=>{
+    const id = window._currentClientId;
+    const c = CLIENTS.find(x=>x.id===id);
+    const montant = parseFloat(document.getElementById('cdPaiement').value);
+    if(!montant || montant<=0){ toast(t('err_montant')); return; }
+    c.solde = Math.max(0, (c.solde||0) - montant);
+    await put('clients', c);
+    const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif:'Règlement crédit - '+c.nom, lien:{type:'client', id:c.id}};
+    await put('caisse', mvt); CAISSE.push(mvt);
+    closeModal('modalClientDetail');
+    renderClients();
+    confirmerAnimation();
+    renderVentesChart();
+    renderHomeWidgets();
+    toast(t('toast_paiement_encaisse'));
+  });
 }
 
 async function supprimerClient(){
@@ -2126,7 +2157,7 @@ function remplirSelectFournisseurs(){
 }
 function openFournisseurModal(id){
   document.getElementById('fournisseurId').value = id||'';
-  document.getElementById('fournisseurModalTitle').textContent = id ? 'Modifier fournisseur' : 'Nouveau fournisseur';
+  document.getElementById('fournisseurModalTitle').textContent = id ? t('titre_modifier_fournisseur') : t('titre_nouveau_fournisseur');
   document.getElementById('fSoldeLabel').textContent = id ? t('solde_actuel_devons') : t('solde_initial_f');
   if(id){
     const f = FOURNISSEURS.find(x=>x.id===id);
@@ -2214,18 +2245,20 @@ function openFournisseurDetail(id){
   openModal('modalFournisseurDetail');
 }
 async function payerFournisseur(){
-  const id = window._currentFournisseurId;
-  const f = FOURNISSEURS.find(x=>x.id===id);
-  const montant = parseFloat(document.getElementById('fdPaiement').value);
-  if(!montant || montant<=0){ toast(t('err_montant')); return; }
-  f.solde = Math.max(0, (f.solde||0) - montant);
-  await put('fournisseurs', f);
-  const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif:'Paiement fournisseur - '+f.nom, lien:{type:'fournisseur', id:f.id}};
-  await put('caisse', mvt); CAISSE.push(mvt);
-  closeModal('modalFournisseurDetail');
-  renderFournisseurs();
-  renderHomeWidgets();
-  toast(t('toast_paiement_effectue'));
+  await withLock(document.getElementById('btnPayerFournisseur'), async ()=>{
+    const id = window._currentFournisseurId;
+    const f = FOURNISSEURS.find(x=>x.id===id);
+    const montant = parseFloat(document.getElementById('fdPaiement').value);
+    if(!montant || montant<=0){ toast(t('err_montant')); return; }
+    f.solde = Math.max(0, (f.solde||0) - montant);
+    await put('fournisseurs', f);
+    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif:'Paiement fournisseur - '+f.nom, lien:{type:'fournisseur', id:f.id}};
+    await put('caisse', mvt); CAISSE.push(mvt);
+    closeModal('modalFournisseurDetail');
+    renderFournisseurs();
+    renderHomeWidgets();
+    toast(t('toast_paiement_effectue'));
+  });
 }
 function ajouterLigneAchat(){
   const pid = document.getElementById('achatProduitSelect').value;
@@ -2371,17 +2404,19 @@ function onMvtCategorieChange(){
   document.getElementById('mvtSoldeInitialInfo').style.display = (cat==='solde_initial') ? 'block' : 'none';
 }
 async function enregistrerMouvement(){
-  const montant = parseFloat(document.getElementById('mvtMontant').value);
-  const categorie = document.getElementById('mvtCategorie').value;
-  const conf = MVT_LABELS[categorie];
-  const motif = document.getElementById('mvtMotif').value.trim() || conf.motifDefaut;
-  if(!montant || montant<=0){ toast(t('err_montant')); return; }
-  const mvt = {id:uid(), date:nowISO(), type:conf.type, categorie, montant, motif, lien:null};
-  await put('caisse', mvt); CAISSE.push(mvt);
-  closeModal('modalMouvement');
-  renderBilan();
-  renderHomeWidgets();
-  toast(t('toast_mouvement_enregistre'));
+  await withLock(document.getElementById('btnEnregistrerMouvement'), async ()=>{
+    const montant = parseFloat(document.getElementById('mvtMontant').value);
+    const categorie = document.getElementById('mvtCategorie').value;
+    const conf = MVT_LABELS[categorie];
+    const motif = document.getElementById('mvtMotif').value.trim() || conf.motifDefaut;
+    if(!montant || montant<=0){ toast(t('err_montant')); return; }
+    const mvt = {id:uid(), date:nowISO(), type:conf.type, categorie, montant, motif, lien:null};
+    await put('caisse', mvt); CAISSE.push(mvt);
+    closeModal('modalMouvement');
+    renderBilan();
+    renderHomeWidgets();
+    toast(t('toast_mouvement_enregistre'));
+  });
 }
 function totalInvesti(){
   return CAISSE.filter(m=>m.categorie==='investissement').reduce((s,m)=>s+m.montant,0);
@@ -2402,7 +2437,7 @@ let historiqueCaisseOuvert = false;
 function toggleHistoriqueCaisse(){
   historiqueCaisseOuvert = !historiqueCaisseOuvert;
   document.getElementById('caisseListWrap').style.display = historiqueCaisseOuvert ? 'block' : 'none';
-  document.getElementById('toggleHistoriqueCaisseLabel').textContent = historiqueCaisseOuvert ? 'Masquer ▴' : 'Afficher ▾';
+  document.getElementById('toggleHistoriqueCaisseLabel').textContent = historiqueCaisseOuvert ? t('masquer') : t('afficher');
 }
 function openMouvementDetail(id){
   const m = CAISSE.find(x=>x.id===id);
@@ -2411,7 +2446,7 @@ function openMouvementDetail(id){
   const info = document.getElementById('mvdLienInfo');
   if(m.lien){
     info.style.display='block';
-    info.textContent = "⚠️ Ce mouvement est lié à une opération (vente, achat, paiement...). Le modifier ou le supprimer ici n'annulera pas cette opération elle-même.";
+    info.textContent = t('lien_mouvement_info');
   } else {
     info.style.display='none';
   }
@@ -2421,31 +2456,35 @@ function openMouvementDetail(id){
   openModal('modalMouvementDetail');
 }
 async function enregistrerModifMouvement(){
-  const m = CAISSE.find(x=>x.id===window._currentMouvementId);
-  if(!m) return;
-  const montant = parseFloat(document.getElementById('mvdMontant').value);
-  if(!montant || montant<=0){ toast(t('err_montant')); return; }
-  const categorie = document.getElementById('mvdCategorie').value;
-  m.categorie = categorie;
-  m.type = MVT_LABELS[categorie].type;
-  m.montant = montant;
-  m.motif = document.getElementById('mvdMotif').value.trim() || MVT_LABELS[categorie].motifDefaut;
-  await put('caisse', m);
-  closeModal('modalMouvementDetail');
-  renderBilan();
-  renderHomeWidgets();
-  toast(t('toast_mouvement_modifie'));
+  await withLock(document.getElementById('btnEnregistrerModifMouvement'), async ()=>{
+    const m = CAISSE.find(x=>x.id===window._currentMouvementId);
+    if(!m) return;
+    const montant = parseFloat(document.getElementById('mvdMontant').value);
+    if(!montant || montant<=0){ toast(t('err_montant')); return; }
+    const categorie = document.getElementById('mvdCategorie').value;
+    m.categorie = categorie;
+    m.type = MVT_LABELS[categorie].type;
+    m.montant = montant;
+    m.motif = document.getElementById('mvdMotif').value.trim() || MVT_LABELS[categorie].motifDefaut;
+    await put('caisse', m);
+    closeModal('modalMouvementDetail');
+    renderBilan();
+    renderHomeWidgets();
+    toast(t('toast_mouvement_modifie'));
+  });
 }
 async function supprimerMouvement(){
   const id = window._currentMouvementId;
   if(!id) return;
   if(!confirm(t('confirm_supprimer_mouvement'))) return;
-  await del('caisse', id);
-  CAISSE = CAISSE.filter(x=>x.id!==id);
-  closeModal('modalMouvementDetail');
-  renderBilan();
-  renderHomeWidgets();
-  toast(t('toast_mouvement_supprime'));
+  await withLock(document.getElementById('btnSupprimerMouvement'), async ()=>{
+    await del('caisse', id);
+    CAISSE = CAISSE.filter(x=>x.id!==id);
+    closeModal('modalMouvementDetail');
+    renderBilan();
+    renderHomeWidgets();
+    toast(t('toast_mouvement_supprime'));
+  });
 }
 
 /* ===================== SAUVEGARDE : EXPORT / IMPORT JSON ===================== */
@@ -2492,7 +2531,7 @@ async function importerDonnees(evt){
     if(data.parametres){ PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT, data.parametres); await sauverParametres(); }
     remplirSelectProduits(); remplirSelectClients(); remplirSelectFournisseurs();
     renderBilan(); renderClients(); renderFournisseurs(); renderStock(); renderHistorique();
-    renderVentesChart(); renderVentesRecentes(); renderHomeWidgets(); appliquerVisibiliteVendeur();
+    renderVentesChart(); renderHomeWidgets(); appliquerVisibiliteVendeur();
     toast(t('toast_donnees_restaurees'));
   }catch(e){
     toast(t('err_fichier_invalide')+e.message);
@@ -2653,7 +2692,7 @@ function renderVentesChart(){
   const total = values.reduce((s,v)=>s+v,0);
   const nb = counts.reduce((s,c)=>s+c,0);
   document.getElementById('graphTotalInfo').textContent =
-    (graphMode==='semaine' ? '7 derniers jours' : 'Ce mois-ci') + ' — ' + fmt(total) + ' · ' + nb + ' vente'+(nb>1?'s':'');
+    (graphMode==='semaine' ? t('derniers_jours_7') : t('ce_mois_ci')) + ' — ' + fmt(total) + ' · ' + nb + ' ' + t('ventes_label');
 }
 let dayPopoverTimeout = null;
 function afficherJourDetail(evt, label, valeur, nb){
@@ -2679,28 +2718,13 @@ function renderHomeWidgets(){
   c.textContent = fmt(soldeCaisseActuel());
   s.textContent = fmt(PRODUITS.reduce((sum,p)=>sum+(p.stock||0)*(p.prixAchat||0),0));
 }
-function renderVentesRecentes(){
-  const card = document.getElementById('ventesRecentesCard');
-  if(!card) return;
-  const list = VENTES.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,4);
-  card.innerHTML = list.length ? list.map(v=>{
-    const c = CLIENTS.find(x=>x.id===v.clientId);
-    return `<div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
-      <div><div class="name">${v.numero} ${c?'· '+c.nom:''}</div><div class="meta">${dateFR(v.date)}</div></div>
-      <div class="amount">${fmt(v.total)}</div>
-    </div>`;
-  }).join('') : '<div class="empty">'+t('empty_ventes_recentes')+'</div>';
-}
-let ventesRecentesOuvert = false;
-function toggleVentesRecentes(){
-  ventesRecentesOuvert = !ventesRecentesOuvert;
-  document.getElementById('ventesRecentesWrap').style.display = ventesRecentesOuvert ? 'block' : 'none';
-  document.getElementById('toggleVentesRecentesLabel').textContent = ventesRecentesOuvert ? 'Masquer ▴' : 'Afficher ▾';
-  if(ventesRecentesOuvert) renderVentesRecentes();
-}
 
 /* ===================== MODALE NOUVELLE VENTE ===================== */
 function ouvrirModalVente(){
+  if(panierVente.length===0){
+    document.getElementById('venteDateHeure').value = auMaintenantLocal();
+    document.getElementById('venteDateAvertissement').style.display='none';
+  }
   openModal('modalNouvelleVente');
   updateMiniCartBar();
 }
@@ -2760,10 +2784,13 @@ function fermerRechercheGlobale(){
   document.getElementById('rechercheGlobaleResults').style.display='none';
 }
 function rechercheChoisirProduit(id){
+  fermerRechercheGlobale();
+  ouvrirModalVente();
   document.getElementById('venteProduitSelect').value = id;
   document.getElementById('venteProduitSelect').dispatchEvent(new Event('change'));
-  fermerRechercheGlobale();
-  document.getElementById('venteProduitSelect').scrollIntoView({behavior:'smooth', block:'center'});
+  setTimeout(()=>{
+    document.getElementById('venteProduitSelect').scrollIntoView({behavior:'smooth', block:'center'});
+  }, 150);
 }
 function rechercheOuvrirClient(id){
   fermerRechercheGlobale();
@@ -2803,7 +2830,6 @@ async function init(){
   tickClock();
   renderBilan();
   renderVentesChart();
-  renderVentesRecentes();
   renderHomeWidgets();
   appliquerVisibiliteVendeur();
   document.getElementById('venteDateHeure').value = auMaintenantLocal();
