@@ -377,7 +377,7 @@
             <input type="number" id="ventePU" min="0" step="any" inputmode="decimal">
           </div>
         </div>
-        <button class="btn amber block" style="margin-top:10px;" onclick="ajouterLigneVente()">Ajouter au panier</button>
+        <button class="btn amber block" style="margin-top:10px;" data-i18n="ajouter_panier" onclick="ajouterLigneVente()">Ajouter au panier</button>
       </div>
 
       <div class="card" id="panierCard" style="display:none;">
@@ -399,7 +399,7 @@
           <label class="field" data-i18n="montant_paye">Montant payé maintenant</label>
           <input type="number" id="venteMontantPaye" min="0" step="any" inputmode="decimal">
         </div>
-        <button class="btn block" id="btnValiderVente" style="margin-top:12px; margin-bottom:6px; background:var(--green);" onclick="validerVente()">Valider la vente</button>
+        <button class="btn block" id="btnValiderVente" style="margin-top:12px; margin-bottom:6px; background:var(--green);" data-i18n="valider_vente" onclick="validerVente()">Valider la vente</button>
       </div>
     </div>
   </div>
@@ -439,7 +439,7 @@
           <div><label class="field" data-i18n="quantite">Quantité</label><input type="number" id="achatQte" value="1" min="0.01" step="any" inputmode="decimal"></div>
           <div><label class="field" data-i18n="prix_achat_unitaire">Prix d'achat unitaire</label><input type="number" id="achatPU" min="0" step="any" inputmode="decimal"></div>
         </div>
-        <button class="btn amber block" style="margin-top:10px;" onclick="ajouterLigneAchat()">Ajouter au bon d'achat</button>
+        <button class="btn amber block" style="margin-top:10px;" data-i18n="ajouter_bon_achat" onclick="ajouterLigneAchat()">Ajouter au bon d'achat</button>
       </div>
       <div class="card" id="achatPanierCard" style="display:none;">
         <label class="field" style="margin-top:0;" data-i18n="bon_achat_cours">Bon d'achat en cours</label>
@@ -451,7 +451,7 @@
       <div class="card" id="achatPaiementCard" style="display:none;">
         <label class="field" style="margin-top:0;" data-i18n="montant_paye">Montant payé maintenant</label>
         <input type="number" id="achatMontantPaye" min="0" step="any" inputmode="decimal" value="0">
-        <button class="btn block" id="btnValiderAchat" style="margin-top:12px; background:var(--green);" onclick="validerAchat()">Valider l'achat</button>
+        <button class="btn block" id="btnValiderAchat" style="margin-top:12px; background:var(--green);" data-i18n="valider_achat" onclick="validerAchat()">Valider l'achat</button>
       </div>
     </div>
 
@@ -466,7 +466,7 @@
           <div class="meta" data-i18n="valeur_totale_stock">Valeur totale du stock (au prix d'achat)</div>
           <div class="amount" id="stockValeurTotale" style="font-size:19px;">0</div>
         </div>
-        <button class="btn outline sm" onclick="openProduitModal()">+ Produit</button>
+        <button class="btn outline sm" data-i18n="plus_produit" onclick="openProduitModal()">+ Produit</button>
       </div>
       <div class="card search-box"><input type="text" id="stockSearch" data-i18n-ph="rechercher_produit" placeholder="Rechercher un produit..." oninput="renderStock()"></div>
       <div class="card" id="stockListCard"></div>
@@ -605,8 +605,8 @@
       <option value="autre" data-i18n="unite_autre">Autre...</option>
     </select>
     <input type="text" id="pUniteAutre" data-i18n-ph="unite_autre_placeholder" placeholder="Précise l'unité" style="display:none; margin-top:8px;">
-    <button class="btn amber block" id="btnEnregistrerProduit" style="margin-top:14px;" onclick="enregistrerProduit()">Enregistrer</button>
-    <button class="btn red block" id="btnSupprimerProduit" style="margin-top:8px; display:none;" onclick="supprimerProduit()">🗑️ Supprimer ce produit</button>
+    <button class="btn amber block" id="btnEnregistrerProduit" style="margin-top:14px;" data-i18n="enregistrer" onclick="enregistrerProduit()">Enregistrer</button>
+    <button class="btn red block" id="btnSupprimerProduit" style="margin-top:8px; display:none;" data-i18n="supprimer_produit" onclick="supprimerProduit()">🗑️ Supprimer ce produit</button>
   </div>
 </div>
 
@@ -624,7 +624,7 @@
     <input type="number" id="cSolde" value="0" min="0" step="any" inputmode="decimal">
     <label class="field" data-i18n="ca_initial">Chiffre d'affaires initial (ventes réalisées avant l'app)</label>
     <input type="number" id="cCaInitial" value="0" min="0" step="any" inputmode="decimal">
-    <button class="btn amber block" onclick="enregistrerClient()">Enregistrer</button>
+    <button class="btn amber block" data-i18n="enregistrer" onclick="enregistrerClient()">Enregistrer</button>
   </div>
 </div>
 
@@ -642,7 +642,7 @@
     <input type="number" id="fSolde" value="0" min="0" step="any" inputmode="decimal">
     <label class="field" data-i18n="ca_initial_f">Chiffre d'affaires initial (achats réalisés avant l'app)</label>
     <input type="number" id="fCaInitial" value="0" min="0" step="any" inputmode="decimal">
-    <button class="btn amber block" onclick="enregistrerFournisseur()">Enregistrer</button>
+    <button class="btn amber block" data-i18n="enregistrer" onclick="enregistrerFournisseur()">Enregistrer</button>
   </div>
 </div>
 
@@ -652,26 +652,26 @@
     <button class="modal-close" onclick="closeModal('modalClientDetail')">×</button>
     <div class="row">
       <h3 id="cdNom" style="margin:0;">Client</h3>
-      <button class="btn outline sm" onclick="modifierClientDepuisDetail()">✏️ Modifier</button>
+      <button class="btn outline sm" data-i18n="modifier" onclick="modifierClientDepuisDetail()">✏️ Modifier</button>
     </div>
     <div class="meta" id="cdTel"></div>
     <div class="card" style="margin-top:12px;">
       <div class="row">
-        <span>Solde (crédit dû)</span>
+        <span data-i18n="solde_du">Solde (crédit dû)</span>
         <span class="amount" id="cdSolde">0</span>
       </div>
       <div class="row" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--line);">
-        <span>Chiffre d'affaires réalisé</span>
+        <span data-i18n="ca_realise">Chiffre d'affaires réalisé</span>
         <span class="amount pos" id="cdCA">0</span>
       </div>
     </div>
     <div class="grid2">
-      <input type="number" id="cdPaiement" placeholder="Montant reçu" min="0" step="any" inputmode="decimal">
-      <button class="btn amber" onclick="encaisserPaiementClient()">Encaisser</button>
+      <input type="number" id="cdPaiement" data-i18n-ph="montant_recu" placeholder="Montant reçu" min="0" step="any" inputmode="decimal">
+      <button class="btn amber" id="btnEncaisserPaiement" data-i18n="encaisser" onclick="encaisserPaiementClient()">Encaisser</button>
     </div>
     <label class="field" data-i18n="historique_ventes">Historique des ventes</label>
     <div id="cdHistorique"></div>
-    <button class="btn red block" style="margin-top:14px;" onclick="supprimerClient()">🗑️ Supprimer ce client</button>
+    <button class="btn red block" style="margin-top:14px;" data-i18n="supprimer_client" onclick="supprimerClient()">🗑️ Supprimer ce client</button>
   </div>
 </div>
 
@@ -681,26 +681,26 @@
     <button class="modal-close" onclick="closeModal('modalFournisseurDetail')">×</button>
     <div class="row">
       <h3 id="fdNom" style="margin:0;">Fournisseur</h3>
-      <button class="btn outline sm" onclick="modifierFournisseurDepuisDetail()">✏️ Modifier</button>
+      <button class="btn outline sm" data-i18n="modifier" onclick="modifierFournisseurDepuisDetail()">✏️ Modifier</button>
     </div>
     <div class="meta" id="fdTel"></div>
     <div class="card" style="margin-top:12px;">
       <div class="row">
-        <span>Solde (nous devons)</span>
+        <span data-i18n="solde_devons">Solde (nous devons)</span>
         <span class="amount" id="fdSolde">0</span>
       </div>
       <div class="row" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--line);">
-        <span>Achats réalisés (total)</span>
+        <span data-i18n="achats_realises">Achats réalisés (total)</span>
         <span class="amount pos" id="fdCA">0</span>
       </div>
     </div>
     <div class="grid2">
-      <input type="number" id="fdPaiement" placeholder="Montant payé" min="0" step="any" inputmode="decimal">
-      <button class="btn amber" onclick="payerFournisseur()">Payer</button>
+      <input type="number" id="fdPaiement" data-i18n-ph="montant_paye_f" placeholder="Montant payé" min="0" step="any" inputmode="decimal">
+      <button class="btn amber" id="btnPayerFournisseur" data-i18n="payer" onclick="payerFournisseur()">Payer</button>
     </div>
     <label class="field" data-i18n="historique_operations">Historique des opérations</label>
     <div id="fdHistorique"></div>
-    <button class="btn red block" style="margin-top:14px;" onclick="supprimerFournisseur()">🗑️ Supprimer ce fournisseur</button>
+    <button class="btn red block" style="margin-top:14px;" data-i18n="supprimer_fournisseur" onclick="supprimerFournisseur()">🗑️ Supprimer ce fournisseur</button>
   </div>
 </div>
 
@@ -711,21 +711,21 @@
     <h3 data-i18n="titre_mouvement">Mouvement de caisse</h3>
     <label class="field" style="margin-top:0;" data-i18n="categorie">Catégorie</label>
     <select id="mvtCategorie" onchange="onMvtCategorieChange()">
-      <option value="investissement">💰 Investissement (j'ajoute de l'argent)</option>
-      <option value="retour_investissement">↩️ Retour d'investissement (je retire mon argent)</option>
-      <option value="fonds_roulement_ajout">🔄 Ajout fonds de roulement</option>
-      <option value="fonds_roulement_retrait">🔄 Retrait fonds de roulement</option>
-      <option value="charges">⛽ Charges (carburant, factures...)</option>
-      <option value="solde_initial">📂 Ancien fonds / solde de départ</option>
-      <option value="autre_entree">➕ Autre entrée</option>
-      <option value="autre_sortie">➖ Autre dépense / sortie</option>
+      <option value="investissement" data-i18n="cat_opt_investissement">💰 Investissement (j'ajoute de l'argent)</option>
+      <option value="retour_investissement" data-i18n="cat_opt_retour_investissement">↩️ Retour d'investissement (je retire mon argent)</option>
+      <option value="fonds_roulement_ajout" data-i18n="cat_opt_fonds_ajout">🔄 Ajout fonds de roulement</option>
+      <option value="fonds_roulement_retrait" data-i18n="cat_opt_fonds_retrait">🔄 Retrait fonds de roulement</option>
+      <option value="charges" data-i18n="cat_opt_charges">⛽ Charges (carburant, factures...)</option>
+      <option value="solde_initial" data-i18n="cat_opt_solde_initial">📂 Ancien fonds / solde de départ</option>
+      <option value="autre_entree" data-i18n="cat_opt_autre_entree">➕ Autre entrée</option>
+      <option value="autre_sortie" data-i18n="cat_opt_autre_sortie">➖ Autre dépense / sortie</option>
     </select>
     <label class="field" data-i18n="montant">Montant</label>
     <input type="number" id="mvtMontant" min="0" step="any" inputmode="decimal">
     <label class="field" data-i18n="motif">Motif</label>
     <input type="text" id="mvtMotif" placeholder="Ex: Retrait personnel, apport...">
-    <div class="meta" id="mvtSoldeInitialInfo" style="display:none; margin-top:6px;">ℹ️ Ce montant sera ajouté au fonds de roulement uniquement — il n'affectera pas le solde de caisse actuel, puisqu'il représente de l'argent déjà existant avant l'utilisation de l'app.</div>
-    <button class="btn amber block" id="btnEnregistrerMouvement" style="margin-top:14px;" onclick="enregistrerMouvement()">Enregistrer</button>
+    <div class="meta" id="mvtSoldeInitialInfo" data-i18n="ancien_fonds_info" style="display:none; margin-top:6px;">ℹ️ Ce montant sera ajouté au fonds de roulement uniquement — il n'affectera pas le solde de caisse actuel, puisqu'il représente de l'argent déjà existant avant l'utilisation de l'app.</div>
+    <button class="btn amber block" id="btnEnregistrerMouvement" style="margin-top:14px;" data-i18n="enregistrer" onclick="enregistrerMouvement()">Enregistrer</button>
   </div>
 </div>
 
@@ -736,10 +736,10 @@
     <h3 data-i18n="titre_bon_vente">Bon de vente</h3>
     <div class="receipt" id="recuTexte"></div>
     <div class="grid2" style="margin-top:12px;">
-      <button class="btn" onclick="imprimerRawBT()">🖨️ Imprimer (Bluetooth)</button>
-      <button class="btn outline" onclick="partagerRecu()">Partager</button>
+      <button class="btn" data-i18n="imprimer_bt" onclick="imprimerRawBT()">🖨️ Imprimer (Bluetooth)</button>
+      <button class="btn outline" data-i18n="partager" onclick="partagerRecu()">Partager</button>
     </div>
-    <button class="btn outline block" style="margin-top:8px;" onclick="closeModal('modalRecu')">Fermer</button>
+    <button class="btn outline block" style="margin-top:8px;" data-i18n="fermer" onclick="closeModal('modalRecu')">Fermer</button>
   </div>
 </div>
 
@@ -749,10 +749,21 @@
     <button class="modal-close" onclick="closeModal('modalVenteDetail')">×</button>
     <h3 id="vdNumero">Vente</h3>
     <div class="meta" id="vdInfo"></div>
+    <div id="vdStatutBox" style="margin:8px 0;"></div>
+    <div class="card" id="vdPaiementCard" style="display:none;">
+      <div class="row">
+        <span class="meta" id="vdResteLabel"></span>
+        <span class="amount neg" id="vdResteMontant">0</span>
+      </div>
+      <div class="grid2" style="margin-top:8px;">
+        <input type="number" id="vdMontantPaiement" data-i18n-ph="montant_recu" placeholder="Montant reçu" min="0" step="any" inputmode="decimal">
+        <button class="btn amber" id="btnPayerVente" data-i18n="encaisser" onclick="payerVenteDepuisHistorique()">Encaisser</button>
+      </div>
+    </div>
     <div class="card" style="margin-top:10px;" id="vdLignesCard"></div>
     <div class="grid2" style="margin-top:10px;">
-      <button class="btn" onclick="reimprimerVente()">🖨️ Réimprimer</button>
-      <button class="btn red" onclick="validerRetourVente()">Valider le retour</button>
+      <button class="btn" data-i18n="reimprimer" onclick="reimprimerVente()">🖨️ Réimprimer</button>
+      <button class="btn red" data-i18n="valider_retour" onclick="validerRetourVente()">Valider le retour</button>
     </div>
   </div>
 </div>
@@ -763,8 +774,19 @@
     <button class="modal-close" onclick="closeModal('modalAchatDetail')">×</button>
     <h3 id="adNumero">Achat</h3>
     <div class="meta" id="adInfo"></div>
+    <div id="adStatutBox" style="margin:8px 0;"></div>
+    <div class="card" id="adPaiementCard" style="display:none;">
+      <div class="row">
+        <span class="meta" id="adResteLabel"></span>
+        <span class="amount neg" id="adResteMontant">0</span>
+      </div>
+      <div class="grid2" style="margin-top:8px;">
+        <input type="number" id="adMontantPaiement" data-i18n-ph="montant_paye_f" placeholder="Montant payé" min="0" step="any" inputmode="decimal">
+        <button class="btn amber" id="btnPayerAchat" data-i18n="payer" onclick="payerAchatDepuisHistorique()">Payer</button>
+      </div>
+    </div>
     <div class="card" style="margin-top:10px;" id="adLignesCard"></div>
-    <button class="btn red block" style="margin-top:10px;" onclick="validerRetourAchat()">Valider le retour marchandise</button>
+    <button class="btn red block" style="margin-top:10px;" data-i18n="valider_retour_marchandise" onclick="validerRetourAchat()">Valider le retour marchandise</button>
   </div>
 </div>
 
@@ -776,22 +798,22 @@
     <div class="meta" id="mvdLienInfo" style="color:var(--red); display:none;"></div>
     <label class="field" style="margin-top:8px;" data-i18n="categorie">Catégorie</label>
     <select id="mvdCategorie">
-      <option value="investissement">💰 Investissement</option>
-      <option value="retour_investissement">↩️ Retour d'investissement</option>
-      <option value="fonds_roulement_ajout">🔄 Ajout fonds de roulement</option>
-      <option value="fonds_roulement_retrait">🔄 Retrait fonds de roulement</option>
-      <option value="charges">⛽ Charges (carburant, factures...)</option>
-      <option value="solde_initial">📂 Ancien fonds / solde de départ</option>
-      <option value="autre_entree">➕ Autre entrée</option>
-      <option value="autre_sortie">➖ Autre dépense / sortie</option>
+      <option value="investissement" data-i18n="cat_opt_investissement">💰 Investissement (j'ajoute de l'argent)</option>
+      <option value="retour_investissement" data-i18n="cat_opt_retour_investissement">↩️ Retour d'investissement (je retire mon argent)</option>
+      <option value="fonds_roulement_ajout" data-i18n="cat_opt_fonds_ajout">🔄 Ajout fonds de roulement</option>
+      <option value="fonds_roulement_retrait" data-i18n="cat_opt_fonds_retrait">🔄 Retrait fonds de roulement</option>
+      <option value="charges" data-i18n="cat_opt_charges">⛽ Charges (carburant, factures...)</option>
+      <option value="solde_initial" data-i18n="cat_opt_solde_initial">📂 Ancien fonds / solde de départ</option>
+      <option value="autre_entree" data-i18n="cat_opt_autre_entree">➕ Autre entrée</option>
+      <option value="autre_sortie" data-i18n="cat_opt_autre_sortie">➖ Autre dépense / sortie</option>
     </select>
     <label class="field" data-i18n="montant">Montant</label>
     <input type="number" id="mvdMontant" min="0" step="any" inputmode="decimal">
     <label class="field" data-i18n="motif">Motif</label>
     <input type="text" id="mvdMotif">
     <div class="grid2" style="margin-top:14px;">
-      <button class="btn amber" id="btnEnregistrerModifMouvement" onclick="enregistrerModifMouvement()">Enregistrer</button>
-      <button class="btn red" id="btnSupprimerMouvement" onclick="supprimerMouvement()">Supprimer</button>
+      <button class="btn amber" id="btnEnregistrerModifMouvement" data-i18n="enregistrer" onclick="enregistrerModifMouvement()">Enregistrer</button>
+      <button class="btn red" id="btnSupprimerMouvement" data-i18n="supprimer" onclick="supprimerMouvement()">Supprimer</button>
     </div>
   </div>
 </div>
@@ -803,8 +825,8 @@
     <h3 style="margin-bottom:10px;" data-i18n="titre_vendeurs">Vendeurs</h3>
     <div class="card" style="margin-top:0;">
       <div class="row" style="gap:8px;">
-        <input type="text" id="nouveauVendeurNom" placeholder="Nom du vendeur">
-        <button class="btn amber sm" id="btnAjouterVendeur" onclick="ajouterVendeur()">+ Ajouter</button>
+        <input type="text" id="nouveauVendeurNom" data-i18n-ph="nom_vendeur" placeholder="Nom du vendeur">
+        <button class="btn amber sm" id="btnAjouterVendeur" data-i18n="ajouter" onclick="ajouterVendeur()">+ Ajouter</button>
       </div>
     </div>
     <div class="card" id="vendeursListCard" style="margin-bottom:0;"></div>
@@ -869,11 +891,11 @@
     <div class="card" style="margin-bottom:0;">
       <label class="field" style="margin-top:0;" data-i18n="seuil_defaut">Seuil d'alerte stock bas par défaut</label>
       <input type="number" id="paramSeuilDefaut" min="0" step="any" inputmode="decimal" oninput="majParametre('seuilDefaut', parseFloat(this.value)||0)">
-      <div class="meta" style="margin-top:6px;">Utilisé comme valeur pré-remplie pour les nouveaux produits.</div>
+      <div class="meta" style="margin-top:6px;" data-i18n="seuil_defaut_desc">Utilisé comme valeur pré-remplie pour les nouveaux produits.</div>
     </div>
 
-    <button class="btn amber block" style="margin-top:14px;" onclick="validerFermerParametres()">✓ Valider</button>
-    <button class="btn outline block" style="margin-top:8px;" onclick="closeModal('modalParametres')">Fermer</button>
+    <button class="btn amber block" style="margin-top:14px;" data-i18n="valider" onclick="validerFermerParametres()">✓ Valider</button>
+    <button class="btn outline block" style="margin-top:8px;" data-i18n="fermer" onclick="closeModal('modalParametres')">Fermer</button>
   </div>
 </div>
 
@@ -975,7 +997,7 @@ const I18N = {
     header_sub:'Ta caisse, ton stock, tes clients',
     accueil:'Accueil', caisse:'Caisse', valeur_stock:'Valeur stock',
     apercu_ventes:'Aperçu des ventes', semaine:'Semaine', mois:'Mois',
-    ventes_recentes:'Ventes récentes', tout_voir:'Tout voir', afficher:'Afficher ▾', masquer:'Masquer ▴',
+    afficher:'Afficher ▾', masquer:'Masquer ▴',
     nouvelle_vente:'🛒 Nouvelle vente', rechercher_global:'🔍 Rechercher un produit, client, vente...',
     date_heure_vente:'Date et heure de la vente', vendeur:'Vendeur',
     client_label:'Client (optionnel en comptant, obligatoire à crédit)', client_passage:'-- Client de passage (comptant) --',
@@ -1007,29 +1029,25 @@ const I18N = {
     solde_du:'Solde (crédit dû)', ca_realise:"Chiffre d'affaires réalisé", montant_recu:'Montant reçu', encaisser:'Encaisser',
     historique_ventes:'Historique des ventes',
     solde_devons:'Solde (nous devons)', achats_realises:'Achats réalisés (total)', montant_paye_f:'Montant payé', payer:'Payer',
-    historique_achats:'Historique des achats',
     categorie:'Catégorie', montant:'Montant', motif:'Motif',
     bon_vente:'Bon de vente', imprimer_bt:'🖨️ Imprimer (Bluetooth)', partager:'Partager', fermer:'Fermer',
     reimprimer:'🖨️ Réimprimer', valider_retour:'Valider le retour', valider_retour_marchandise:'Valider le retour marchandise',
-    modifier_mouvement:'Modifier le mouvement', supprimer:'Supprimer',
+    supprimer:'Supprimer',
     parametres:'Paramètres', vibration:'Vibration', vibration_desc:'Vibrer lors des confirmations',
     plusieurs_vendeurs:'Plusieurs vendeurs', plusieurs_vendeurs_desc:'Suivre qui a réalisé chaque vente',
     gerer_vendeurs:'👤 Gérer les vendeurs', theme_defaut:'Thème par défaut', clair:'Clair', sombre:'Sombre', auto:'Automatique (système)',
     symbole_monetaire:'Symbole monétaire', seuil_defaut:"Seuil d'alerte stock bas par défaut",
     seuil_defaut_desc:'Utilisé comme valeur pré-remplie pour les nouveaux produits.',
     langue:'Langue', valider:'✓ Valider',
-    vendeurs_title:'Vendeurs', nom_vendeur:'Nom du vendeur', ajouter:'+ Ajouter',
+    nom_vendeur:'Nom du vendeur', ajouter:'+ Ajouter',
     modifier:'✏️ Modifier',
     pill_doit:'Doit', pill_ajour:'A jour', pill_du:'Dû', pill_retour:'Retour', pill_inactif:'Inactif', pill_stockbas:'Stock bas',
     empty_produits:"Aucun produit pour l'instant.<br>Ajoute ton premier article pour commencer à vendre.",
-    empty_clients:"Aucun client enregistré pour l'instant.", ajouter_client:'+ Ajouter un client',
+    empty_clients:"Aucun client enregistré pour l'instant.",
     empty_fournisseurs:"Aucun fournisseur pour l'instant.<br>Ajoute-en un pour suivre tes achats.",
-    empty_ventes_client:'Aucune vente avec ce client pour le moment.',
-    empty_achats_fournisseur:'Aucun achat avec ce fournisseur pour le moment.',
     empty_ventes_hist:"Aucune vente enregistrée pour l'instant.<br>Ta première vente apparaîtra ici.",
     empty_achats_hist:"Aucun achat enregistré pour l'instant.",
     empty_mouvements:"Aucun mouvement de caisse pour l'instant.",
-    empty_ventes_recentes:"Aucune vente pour l'instant.",
     empty_vendeurs:"Aucun vendeur pour l'instant.",
     empty_classement:'Aucune vente sur cette période.',
     aucun_resultat:'Aucun résultat pour',
@@ -1066,7 +1084,7 @@ const I18N = {
     confirm_supprimer_vendeur:'Supprimer ce vendeur ?', confirm_import:'Importer va REMPLACER toutes les données actuelles par celles du fichier. Continuer ?',
     err_fichier_invalide:'Fichier invalide : ', err_stockage:"Stockage indisponible dans cet aperçu. Installe l'app pour un usage réel.",
     err_maj_dispo:"Mise à jour disponible — recharge l'application", err_fermer_onglets:"Ferme les autres onglets/fenêtres de l'app, puis rouvre-la",
-    err_bluetooth_non_supporte:'Web Bluetooth non supporté sur ce navigateur', err_rawbt_fallback:"Web Bluetooth indisponible. Si rien ne s'ouvre, installe l'app RawBT",
+    err_rawbt_fallback:"Web Bluetooth indisponible. Si rien ne s'ouvre, installe l'app RawBT",
     lien_mouvement_info:"⚠️ Ce mouvement est lié à une opération (vente, achat, paiement...). Le modifier ou le supprimer ici n'annulera pas cette opération elle-même.",
     vente_comptant:'Vente comptant', sans_fournisseur:'Sans fournisseur', merci_confiance:'Merci de votre confiance !',
     ventes_label:'ventes', err_vendeur_ventes:'Impossible : ce vendeur a des ventes enregistrées. Désactive-le plutôt.',
@@ -1087,20 +1105,28 @@ const I18N = {
     titre_nouveau_fournisseur:'Nouveau fournisseur', titre_modifier_fournisseur:'Modifier fournisseur',
     vendu:'Vendu', achete:'Acheté', deja_retourne:'Déjà retourné',
     derniers_jours_7:'7 derniers jours', ce_mois_ci:'Ce mois-ci',
-    historique_operations:'Historique des opérations', empty_operations_client:"Aucune opération avec ce client pour le moment.",
+    historique_operations:'Historique des opérations',
     operation_paiement:'Paiement reçu', plus_produit:'+ Produit',
     unite_produit:'Unité', unite_autre:'Autre...', unite_autre_placeholder:"Précise l'unité",
     pill_paye:'Payé', pill_partiel:'Partiel', pill_impaye:'Impayé',
     operation_paiement_effectue:'Paiement effectué', empty_operations:'Aucune opération pour le moment.',
     confirm_nom_existe:'Un nom identique existe déjà :', continuer_quand_meme:'Continuer quand même ?',
     confirm_annuler_vente:'Annuler cette vente ? Le panier sera vidé.',
+    cat_opt_investissement:"💰 Investissement (j'ajoute de l'argent)", cat_opt_retour_investissement:"↩️ Retour d'investissement (je retire mon argent)",
+    cat_opt_fonds_ajout:'🔄 Ajout fonds de roulement', cat_opt_fonds_retrait:'🔄 Retrait fonds de roulement',
+    cat_opt_charges:'⛽ Charges (carburant, factures...)', cat_opt_solde_initial:'📂 Ancien fonds / solde de départ',
+    cat_opt_autre_entree:'➕ Autre entrée', cat_opt_autre_sortie:'➖ Autre dépense / sortie',
+    cat_investissement:'Investissement', cat_retour_investissement:'Retour invest.', cat_fonds_roulement:'Fonds roulement',
+    cat_charges:'Charges', cat_solde_initial:'Solde initial',
+    motif_vente:'Vente', motif_achat:'Achat', motif_retour_vente:'Retour vente', motif_retour_achat:'Retour marchandise - achat',
+    motif_reglement_credit:'Règlement crédit', motif_paiement_fournisseur:'Paiement fournisseur',
   },
   en: {
     nav_vente:'Sale', nav_clients:'Clients', nav_achats:'Purchases', nav_historique:'History', nav_bilan:'Overview',
     header_sub:'Your register, stock, and clients',
     accueil:'Home', caisse:'Cash', valeur_stock:'Stock value',
     apercu_ventes:'Sales overview', semaine:'Week', mois:'Month',
-    ventes_recentes:'Recent sales', tout_voir:'See all', afficher:'Show ▾', masquer:'Hide ▴',
+    afficher:'Show ▾', masquer:'Hide ▴',
     nouvelle_vente:'🛒 New sale', rechercher_global:'🔍 Search a product, client, sale...',
     date_heure_vente:'Sale date and time', vendeur:'Seller',
     client_label:'Client (optional for cash, required for credit)', client_passage:'-- Walk-in client (cash) --',
@@ -1132,29 +1158,25 @@ const I18N = {
     solde_du:'Balance (credit owed)', ca_realise:'Revenue generated', montant_recu:'Amount received', encaisser:'Collect',
     historique_ventes:'Sales history',
     solde_devons:'Balance (we owe)', achats_realises:'Total purchases', montant_paye_f:'Amount paid', payer:'Pay',
-    historique_achats:'Purchase history',
     categorie:'Category', montant:'Amount', motif:'Reason',
     bon_vente:'Sale receipt', imprimer_bt:'🖨️ Print (Bluetooth)', partager:'Share', fermer:'Close',
     reimprimer:'🖨️ Reprint', valider_retour:'Confirm return', valider_retour_marchandise:'Confirm goods return',
-    modifier_mouvement:'Edit movement', supprimer:'Delete',
+    supprimer:'Delete',
     parametres:'Settings', vibration:'Vibration', vibration_desc:'Vibrate on confirmations',
     plusieurs_vendeurs:'Multiple sellers', plusieurs_vendeurs_desc:'Track who made each sale',
     gerer_vendeurs:'👤 Manage sellers', theme_defaut:'Default theme', clair:'Light', sombre:'Dark', auto:'Automatic (system)',
     symbole_monetaire:'Currency symbol', seuil_defaut:'Default low stock threshold',
     seuil_defaut_desc:'Used as the pre-filled value for new products.',
     langue:'Language', valider:'✓ Save',
-    vendeurs_title:'Sellers', nom_vendeur:'Seller name', ajouter:'+ Add',
+    nom_vendeur:'Seller name', ajouter:'+ Add',
     modifier:'✏️ Edit',
     pill_doit:'Owes', pill_ajour:'Up to date', pill_du:'Owed', pill_retour:'Return', pill_inactif:'Inactive', pill_stockbas:'Low stock',
     empty_produits:"No products yet.<br>Add your first item to start selling.",
-    empty_clients:'No clients registered yet.', ajouter_client:'+ Add a client',
+    empty_clients:'No clients registered yet.',
     empty_fournisseurs:'No suppliers yet.<br>Add one to track your purchases.',
-    empty_ventes_client:'No sales with this client yet.',
-    empty_achats_fournisseur:'No purchases with this supplier yet.',
     empty_ventes_hist:'No sales recorded yet.<br>Your first sale will appear here.',
     empty_achats_hist:'No purchases recorded yet.',
     empty_mouvements:'No cash movements yet.',
-    empty_ventes_recentes:'No sales yet.',
     empty_vendeurs:'No sellers yet.',
     empty_classement:'No sales in this period.',
     aucun_resultat:'No results for',
@@ -1191,7 +1213,7 @@ const I18N = {
     confirm_supprimer_vendeur:'Delete this seller?', confirm_import:'Importing will REPLACE all current data with the file\'s data. Continue?',
     err_fichier_invalide:'Invalid file: ', err_stockage:'Storage unavailable in this preview. Install the app for real use.',
     err_maj_dispo:'Update available — reload the app', err_fermer_onglets:'Close the app\'s other tabs/windows, then reopen it',
-    err_bluetooth_non_supporte:'Web Bluetooth not supported on this browser', err_rawbt_fallback:'Web Bluetooth unavailable. If nothing opens, install the RawBT app',
+    err_rawbt_fallback:'Web Bluetooth unavailable. If nothing opens, install the RawBT app',
     lien_mouvement_info:'⚠️ This movement is linked to an operation (sale, purchase, payment...). Editing or deleting it here will not cancel that operation itself.',
     vente_comptant:'Cash sale', sans_fournisseur:'No supplier', merci_confiance:'Thank you for your trust!',
     ventes_label:'sales', err_vendeur_ventes:'Cannot delete: this seller has recorded sales. Deactivate them instead.',
@@ -1212,13 +1234,21 @@ const I18N = {
     titre_nouveau_fournisseur:'New supplier', titre_modifier_fournisseur:'Edit supplier',
     vendu:'Sold', achete:'Purchased', deja_retourne:'Already returned',
     derniers_jours_7:'Last 7 days', ce_mois_ci:'This month',
-    historique_operations:'Operations history', empty_operations_client:'No operations with this client yet.',
+    historique_operations:'Operations history',
     operation_paiement:'Payment received', plus_produit:'+ Product',
     unite_produit:'Unit', unite_autre:'Other...', unite_autre_placeholder:'Specify the unit',
     pill_paye:'Paid', pill_partiel:'Partial', pill_impaye:'Unpaid',
     operation_paiement_effectue:'Payment made', empty_operations:'No operations yet.',
     confirm_nom_existe:'A matching name already exists:', continuer_quand_meme:'Continue anyway?',
     confirm_annuler_vente:'Cancel this sale? The cart will be cleared.',
+    cat_opt_investissement:"💰 Investment (I'm adding money)", cat_opt_retour_investissement:"↩️ Investment return (I'm withdrawing money)",
+    cat_opt_fonds_ajout:'🔄 Add working capital', cat_opt_fonds_retrait:'🔄 Withdraw working capital',
+    cat_opt_charges:'⛽ Expenses (fuel, bills...)', cat_opt_solde_initial:'📂 Prior funds / opening balance',
+    cat_opt_autre_entree:'➕ Other income', cat_opt_autre_sortie:'➖ Other expense',
+    cat_investissement:'Investment', cat_retour_investissement:'Investment return', cat_fonds_roulement:'Working capital',
+    cat_charges:'Expenses', cat_solde_initial:'Opening balance',
+    motif_vente:'Sale', motif_achat:'Purchase', motif_retour_vente:'Sale return', motif_retour_achat:'Goods return - purchase',
+    motif_reglement_credit:'Credit settlement', motif_paiement_fournisseur:'Supplier payment',
   }
 };
 function t(key){
@@ -1238,12 +1268,24 @@ function fmtQty(n, unite){
   const base = n.toLocaleString(locale, {maximumFractionDigits:2});
   return unite ? base+' '+unite : base;
 }
-function statutPaiement(obj){
-  const total = obj.total||0;
+function statutPaiement(obj, montantRetourne){
+  const total = (obj.total||0) - (montantRetourne||0);
   const paye = obj.montantPaye||0;
-  if(total>0 && paye >= total) return {cls:'ok', label:t('pill_paye')};
+  if(total<=0 || paye >= total) return {cls:'ok', label:t('pill_paye')};
   if(paye > 0) return {cls:'warn', label:t('pill_partiel')};
   return {cls:'credit', label:t('pill_impaye')};
+}
+function montantRetourneVente(venteId){
+  return RETOURS_VENTE.filter(r=>r.venteId===venteId).reduce((s,r)=>s+r.montant,0);
+}
+function montantRetourneAchat(achatId){
+  return RETOURS_ACHAT.filter(r=>r.achatId===achatId).reduce((s,r)=>s+r.montant,0);
+}
+function soldeRestantVente(v){
+  return Math.max(0, (v.total||0) - montantRetourneVente(v.id) - (v.montantPaye||0));
+}
+function soldeRestantAchat(a){
+  return Math.max(0, (a.total||0) - montantRetourneAchat(a.id) - (a.montantPaye||0));
 }
 function toast(msg){
   const t = document.getElementById('toast');
@@ -1285,8 +1327,6 @@ function dateFR(iso){
 /* ===================== THEME (clair/sombre) ===================== */
 function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
-  const btn = document.getElementById('themeToggle');
-  if(btn) btn.textContent = theme==='dark' ? '☀️' : '🌙';
   const meta = document.querySelector('meta[name="theme-color"]');
   if(meta) meta.setAttribute('content', theme==='dark' ? '#0D131C' : '#131A24');
 }
@@ -1751,6 +1791,7 @@ function setModePaiement(mode){
   document.getElementById('modeCredit').classList.toggle('active', mode==='credit');
   const total = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
   document.getElementById('venteMontantPaye').value = mode==='comptant' ? total : 0;
+  document.getElementById('venteMontantPaye').readOnly = (mode==='comptant');
   document.getElementById('montantPayeBox').style.display = 'block';
 }
 async function validerVente(){
@@ -1760,6 +1801,11 @@ async function validerVente(){
       const clientId = document.getElementById('venteClient').value || null;
       if(modePaiementVente==='credit' && !clientId){
         toast(t('err_client_credit')); return;
+      }
+      const totalPanier = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
+      const montantPayeCheck = parseFloat(document.getElementById('venteMontantPaye').value) || 0;
+      if(totalPanier > 0 && montantPayeCheck <= 0){
+        toast(t('err_montant')); return;   // or a dedicated new key, e.g. err_paiement_requis
       }
       let vendeurId = null;
       if(PARAMETRES.multiVendeur){
@@ -1798,7 +1844,7 @@ async function validerVente(){
       }
 
       if(montantPaye>0){
-        const mvt = {id:uid(), date:dateVenteISO, type:'entree', montant:montantPaye, motif:'Vente '+vente.numero, lien:{type:'vente', id:vente.id}};
+        const mvt = {id:uid(), date:dateVenteISO, type:'entree', montant:montantPaye, motif:t('motif_vente')+' '+vente.numero, lien:{type:'vente', id:vente.id}};
         await put('caisse', mvt); CAISSE.push(mvt);
       }
 
@@ -1848,13 +1894,27 @@ function afficherRecuVente(vente){
 }
 
 /* ===================== DETAIL VENTE / REIMPRESSION / RETOUR ===================== */
-function openVenteDetail(id){
-  const v = VENTES.find(x=>x.id===id);
-  if(!v) return;
-  window._currentVenteId = id;
+function renderVenteDetailContent(v){
   const c = CLIENTS.find(x=>x.id===v.clientId);
   document.getElementById('vdNumero').textContent = v.numero;
   document.getElementById('vdInfo').textContent = dateFR(v.date) + (c ? ' · '+c.nom : ' · '+t('vente_comptant')) + ' · '+t('total')+' '+fmt(v.total);
+
+  const retourne = montantRetourneVente(v.id);
+  const st = statutPaiement(v, retourne);
+  document.getElementById('vdStatutBox').innerHTML = `<span class="pill ${st.cls}">${st.label}</span>`;
+
+  const reste = soldeRestantVente(v);
+  const paieCard = document.getElementById('vdPaiementCard');
+  if(reste > 0){
+    document.getElementById('vdResteLabel').textContent = t('recu_reste');
+    document.getElementById('vdResteMontant').textContent = fmt(reste);
+    document.getElementById('vdMontantPaiement').value = reste;
+    document.getElementById('vdMontantPaiement').max = reste;
+    paieCard.style.display = 'block';
+  } else {
+    paieCard.style.display = 'none';
+  }
+
   document.getElementById('vdLignesCard').innerHTML = '<label class="field" style="margin-top:0;">'+t('qte_a_retourner')+'</label>' +
     v.items.map((l,i)=>{
       const dejaRetourne = l.qteRetournee||0;
@@ -1867,7 +1927,39 @@ function openVenteDetail(id){
         <input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="vdQte_${i}" ${restant<=0?'disabled':''}>
       </div>`;
     }).join('');
+}
+function openVenteDetail(id){
+  const v = VENTES.find(x=>x.id===id);
+  if(!v) return;
+  window._currentVenteId = id;
+  renderVenteDetailContent(v);
   openModal('modalVenteDetail');
+}
+async function payerVenteDepuisHistorique(){
+  await withLock(document.getElementById('btnPayerVente'), async ()=>{
+    const v = VENTES.find(x=>x.id===window._currentVenteId);
+    if(!v) return;
+    let montant = parseFloat(document.getElementById('vdMontantPaiement').value);
+    if(!montant || montant<=0){ toast(t('err_montant')); return; }
+    montant = Math.min(montant, soldeRestantVente(v));
+    if(montant<=0){ toast(t('err_montant')); return; }
+
+    v.montantPaye = (v.montantPaye||0) + montant;
+    await put('ventes', v);
+
+    if(v.clientId){
+      const c = CLIENTS.find(x=>x.id===v.clientId);
+      if(c){ c.solde = Math.max(0, (c.solde||0) - montant); await put('clients', c); }
+    }
+
+    const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif:t('motif_vente')+' '+v.numero, lien:{type:'vente', id:v.id}};
+    await put('caisse', mvt); CAISSE.push(mvt);
+
+    renderVenteDetailContent(v);
+    renderHistorique(); renderClients(); renderHomeWidgets();
+    confirmerAnimation();
+    toast(t('toast_paiement_encaisse'));
+  });
 }
 function reimprimerVente(){
   const v = VENTES.find(x=>x.id===window._currentVenteId);
@@ -1907,16 +1999,16 @@ async function validerRetourVente(){
   }
   remplirSelectProduits();
 
+  const soldeAvant = soldeRestantVente(v);
   const client = CLIENTS.find(c=>c.id===v.clientId);
-  let detteAnnulee = 0, remboursementCaisse = 0;
-  if(client){
-    detteAnnulee = Math.min(montantRetour, client.solde||0);
+  const detteAnnulee = Math.min(montantRetour, soldeAvant);
+  const remboursementCaisse = montantRetour - detteAnnulee;
+  if(client && detteAnnulee>0){
     client.solde = Math.max(0, (client.solde||0) - detteAnnulee);
     await put('clients', client);
   }
-  remboursementCaisse = montantRetour - detteAnnulee;
   if(remboursementCaisse>0){
-    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant:remboursementCaisse, motif:'Retour vente '+v.numero, lien:{type:'retourVente', id:v.id}};
+    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant:remboursementCaisse, motif:t('motif_retour_vente')+' '+v.numero, lien:{type:'retourVente', id:v.id}};
     await put('caisse', mvt); CAISSE.push(mvt);
   }
 
@@ -1929,13 +2021,27 @@ async function validerRetourVente(){
 }
 
 /* ===================== DETAIL ACHAT / RETOUR MARCHANDISE ===================== */
-function openAchatDetail(id){
-  const a = ACHATS.find(x=>x.id===id);
-  if(!a) return;
-  window._currentAchatId = id;
+function renderAchatDetailContent(a){
   const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
   document.getElementById('adNumero').textContent = a.numero;
   document.getElementById('adInfo').textContent = dateFR(a.date) + (f ? ' · '+f.nom : ' · '+t('sans_fournisseur')) + ' · '+t('total')+' '+fmt(a.total);
+
+  const retourne = montantRetourneAchat(a.id);
+  const st = statutPaiement(a, retourne);
+  document.getElementById('adStatutBox').innerHTML = `<span class="pill ${st.cls}">${st.label}</span>`;
+
+  const reste = soldeRestantAchat(a);
+  const paieCard = document.getElementById('adPaiementCard');
+  if(reste > 0){
+    document.getElementById('adResteLabel').textContent = t('recu_reste');
+    document.getElementById('adResteMontant').textContent = fmt(reste);
+    document.getElementById('adMontantPaiement').value = reste;
+    document.getElementById('adMontantPaiement').max = reste;
+    paieCard.style.display = 'block';
+  } else {
+    paieCard.style.display = 'none';
+  }
+
   document.getElementById('adLignesCard').innerHTML = '<label class="field" style="margin-top:0;">'+t('qte_a_retourner')+'</label>' +
     a.items.map((l,i)=>{
       const dejaRetourne = l.qteRetournee||0;
@@ -1948,7 +2054,38 @@ function openAchatDetail(id){
         <input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="adQte_${i}" ${restant<=0?'disabled':''}>
       </div>`;
     }).join('');
+}
+function openAchatDetail(id){
+  const a = ACHATS.find(x=>x.id===id);
+  if(!a) return;
+  window._currentAchatId = id;
+  renderAchatDetailContent(a);
   openModal('modalAchatDetail');
+}
+async function payerAchatDepuisHistorique(){
+  await withLock(document.getElementById('btnPayerAchat'), async ()=>{
+    const a = ACHATS.find(x=>x.id===window._currentAchatId);
+    if(!a) return;
+    let montant = parseFloat(document.getElementById('adMontantPaiement').value);
+    if(!montant || montant<=0){ toast(t('err_montant')); return; }
+    montant = Math.min(montant, soldeRestantAchat(a));
+    if(montant<=0){ toast(t('err_montant')); return; }
+
+    a.montantPaye = (a.montantPaye||0) + montant;
+    await put('achats', a);
+
+    if(a.fournisseurId){
+      const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
+      if(f){ f.solde = Math.max(0, (f.solde||0) - montant); await put('fournisseurs', f); }
+    }
+
+    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif:t('motif_achat')+' '+a.numero, lien:{type:'achat', id:a.id}};
+    await put('caisse', mvt); CAISSE.push(mvt);
+
+    renderAchatDetailContent(a);
+    renderHistorique(); renderFournisseurs(); renderHomeWidgets();
+    toast(t('toast_paiement_effectue'));
+  });
 }
 async function validerRetourAchat(){
   const a = ACHATS.find(x=>x.id===window._currentAchatId);
@@ -1984,16 +2121,16 @@ async function validerRetourAchat(){
   }
   remplirSelectProduits();
 
+  const soldeAvant = soldeRestantAchat(a);
   const fournisseur = FOURNISSEURS.find(f=>f.id===a.fournisseurId);
-  let detteAnnulee = 0, remboursementCaisse = 0;
-  if(fournisseur){
-    detteAnnulee = Math.min(montantRetour, fournisseur.solde||0);
+  const detteAnnulee = Math.min(montantRetour, soldeAvant);
+  const remboursementCaisse = montantRetour - detteAnnulee;
+  if(fournisseur && detteAnnulee>0){
     fournisseur.solde = Math.max(0, (fournisseur.solde||0) - detteAnnulee);
     await put('fournisseurs', fournisseur);
   }
-  remboursementCaisse = montantRetour - detteAnnulee;
   if(remboursementCaisse>0){
-    const mvt = {id:uid(), date:nowISO(), type:'entree', montant:remboursementCaisse, motif:'Retour marchandise - achat '+a.numero, lien:{type:'retourAchat', id:a.id}};
+    const mvt = {id:uid(), date:nowISO(), type:'entree', montant:remboursementCaisse, motif:t('motif_retour_achat')+' '+a.numero, lien:{type:'retourAchat', id:a.id}};
     await put('caisse', mvt); CAISSE.push(mvt);
   }
 
@@ -2062,7 +2199,7 @@ async function imprimerRawBT(){
 async function partagerRecu(){
   const texte = window._dernierRecu || document.getElementById('recuTexte').textContent;
   if(navigator.share){
-    try{ await navigator.share({title:'Bon de vente', text: texte}); }
+    try{ await navigator.share({title:t('bon_vente'), text: texte}); }
     catch(e){ /* annulé */ }
   } else {
     toast(t('err_partage'));
@@ -2172,7 +2309,7 @@ function openClientDetail(id){
   document.getElementById('cdHistorique').innerHTML = operations.length ? operations.map(op=>{
     if(op.type==='vente'){
       const v = op.ref;
-      const st = statutPaiement(v);
+      const st = statutPaiement(v, montantRetourneVente(v.id));
       return `<div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
         <div><div class="name">${v.numero} <span class="pill ${st.cls}">${st.label}</span></div><div class="meta">${dateFR(v.date)}</div></div>
         <div class="amount">${fmt(v.total)}</div>
@@ -2198,11 +2335,13 @@ async function encaisserPaiementClient(){
   await withLock(document.getElementById('btnEncaisserPaiement'), async ()=>{
     const id = window._currentClientId;
     const c = CLIENTS.find(x=>x.id===id);
-    const montant = parseFloat(document.getElementById('cdPaiement').value);
+    let montant = parseFloat(document.getElementById('cdPaiement').value);
     if(!montant || montant<=0){ toast(t('err_montant')); return; }
+    montant = Math.min(montant, c.solde||0);
+    if(montant<=0){ toast(t('err_montant')); return; }
     c.solde = Math.max(0, (c.solde||0) - montant);
     await put('clients', c);
-    const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif:'Règlement crédit - '+c.nom, lien:{type:'client', id:c.id}};
+    const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif:t('motif_reglement_credit')+' - '+c.nom, lien:{type:'client', id:c.id}};
     await put('caisse', mvt); CAISSE.push(mvt);
     closeModal('modalClientDetail');
     renderClients();
@@ -2342,7 +2481,7 @@ function openFournisseurDetail(id){
   document.getElementById('fdHistorique').innerHTML = operations.length ? operations.map(op=>{
     if(op.type==='achat'){
       const a = op.ref;
-      const st = statutPaiement(a);
+      const st = statutPaiement(a, montantRetourneAchat(a.id));
       return `<div class="list-item" onclick="openAchatDetail('${a.id}')" style="cursor:pointer;">
         <div><div class="name">${a.numero} <span class="pill ${st.cls}">${st.label}</span></div><div class="meta">${dateFR(a.date)}</div></div>
         <div class="amount">${fmt(a.total)}</div>
@@ -2368,11 +2507,13 @@ async function payerFournisseur(){
   await withLock(document.getElementById('btnPayerFournisseur'), async ()=>{
     const id = window._currentFournisseurId;
     const f = FOURNISSEURS.find(x=>x.id===id);
-    const montant = parseFloat(document.getElementById('fdPaiement').value);
+    let montant = parseFloat(document.getElementById('fdPaiement').value);
     if(!montant || montant<=0){ toast(t('err_montant')); return; }
+    montant = Math.min(montant, f.solde||0);
+    if(montant<=0){ toast(t('err_montant')); return; }
     f.solde = Math.max(0, (f.solde||0) - montant);
     await put('fournisseurs', f);
-    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif:'Paiement fournisseur - '+f.nom, lien:{type:'fournisseur', id:f.id}};
+    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif:t('motif_paiement_fournisseur')+' - '+f.nom, lien:{type:'fournisseur', id:f.id}};
     await put('caisse', mvt); CAISSE.push(mvt);
     closeModal('modalFournisseurDetail');
     renderFournisseurs();
@@ -2438,7 +2579,7 @@ async function validerAchat(){
         if(f){ f.solde=(f.solde||0)+reste; await put('fournisseurs', f); }
       }
       if(montantPaye>0){
-        const mvt = {id:uid(), date:nowISO(), type:'sortie', montant:montantPaye, motif:'Achat '+achat.numero, lien:{type:'achat', id:achat.id}};
+        const mvt = {id:uid(), date:nowISO(), type:'sortie', montant:montantPaye, motif:t('motif_achat')+' '+achat.numero, lien:{type:'achat', id:achat.id}};
         await put('caisse', mvt); CAISSE.push(mvt);
       }
       panierAchat=[]; renderPanierAchat();
@@ -2475,7 +2616,7 @@ function renderHistorique(){
       const c = CLIENTS.find(x=>x.id===v.clientId);
       const retours = RETOURS_VENTE.filter(r=>r.venteId===v.id);
       const montantRetour = retours.reduce((s,r)=>s+r.montant,0);
-      const st = statutPaiement(v);
+      const st = statutPaiement(v, montantRetour);
       return `<div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
         <div><div class="name">${v.numero} ${c?'· '+c.nom:''} <span class="pill ${st.cls}">${st.label}</span> ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(v.date)}</div></div>
         <div class="amount">${fmt(v.total)}${montantRetour>0?' <span class="meta neg" style="font-weight:700;">(-'+fmt(montantRetour)+')</span>':''}</div>
@@ -2493,7 +2634,7 @@ function renderHistorique(){
       const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
       const retours = RETOURS_ACHAT.filter(r=>r.achatId===a.id);
       const montantRetour = retours.reduce((s,r)=>s+r.montant,0);
-      const st = statutPaiement(a);
+      const st = statutPaiement(a, montantRetour);
       return `<div class="list-item" onclick="openAchatDetail('${a.id}')" style="cursor:pointer;">
         <div><div class="name">${a.numero} ${f?'· '+f.nom:''} <span class="pill ${st.cls}">${st.label}</span> ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(a.date)}</div></div>
         <div class="amount">${fmt(a.total)}${montantRetour>0?' <span class="meta neg" style="font-weight:700;">(-'+fmt(montantRetour)+')</span>':''}</div>
@@ -2725,12 +2866,12 @@ function renderBilan(){
 
   const list = CAISSE.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,60);
   document.getElementById('caisseListCard').innerHTML = list.length ? list.map(m=>{
-    const badge = m.categorie==='investissement' ? '<span class="pill ok" style="margin-right:6px;">Investissement</span>'
-      : m.categorie==='retour_investissement' ? '<span class="pill credit" style="margin-right:6px;">Retour invest.</span>'
-      : m.categorie==='fonds_roulement_ajout' ? '<span class="pill ok" style="margin-right:6px;">Fonds roulement</span>'
-      : m.categorie==='fonds_roulement_retrait' ? '<span class="pill credit" style="margin-right:6px;">Fonds roulement</span>'
-      : m.categorie==='charges' ? '<span class="pill warn" style="margin-right:6px;">Charges</span>'
-      : m.categorie==='solde_initial' ? '<span class="pill ok" style="margin-right:6px;">Solde initial</span>' : '';
+    const badge = m.categorie==='investissement' ? '<span class="pill ok" style="margin-right:6px;">'+t('cat_investissement')+'</span>'
+      : m.categorie==='retour_investissement' ? '<span class="pill credit" style="margin-right:6px;">'+t('cat_retour_investissement')+'</span>'
+      : m.categorie==='fonds_roulement_ajout' ? '<span class="pill ok" style="margin-right:6px;">'+t('cat_fonds_roulement')+'</span>'
+      : m.categorie==='fonds_roulement_retrait' ? '<span class="pill credit" style="margin-right:6px;">'+t('cat_fonds_roulement')+'</span>'
+      : m.categorie==='charges' ? '<span class="pill warn" style="margin-right:6px;">'+t('cat_charges')+'</span>'
+      : m.categorie==='solde_initial' ? '<span class="pill ok" style="margin-right:6px;">'+t('cat_solde_initial')+'</span>' : '';
     return `<div class="list-item" onclick="openMouvementDetail('${m.id}')" style="cursor:pointer;">
       <div><div class="name">${badge}${m.motif}</div><div class="meta">${dateFR(m.date)}</div></div>
       <div class="amount ${m.type==='entree'?'pos':'neg'}">${m.type==='entree'?'+':'-'}${fmt(m.montant)}</div>
