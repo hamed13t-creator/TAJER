@@ -343,10 +343,10 @@
       </div>
 
       <div class="card">
-        <label class="field" style="margin-top:0;" data-i18n="client_label">Client (optionnel en comptant, obligatoire à crédit)</label>
+        <label class="field" style="margin-top:0;" data-i18n="client_label">Client (obligatoire)</label>
         <div class="row" style="gap:8px;">
           <div style="flex:1; position:relative;">
-            <input type="text" id="venteClientSearch" data-i18n-ph="client_passage" placeholder="-- Client de passage (comptant) --" autocomplete="off"
+            <input type="text" id="venteClientSearch" data-i18n-ph="client_passage" placeholder="Rechercher ou créer un client..." autocomplete="off"
               oninput="filtrerClientVente()" onfocus="filtrerClientVente()"
               onblur="setTimeout(()=>{document.getElementById('venteClientResults').style.display='none';},150)">
             <input type="hidden" id="venteClient" value="">
@@ -361,7 +361,12 @@
           <label class="field" style="margin:0;" data-i18n="ajouter_produit">Ajouter un produit</label>
           <button class="btn outline sm" data-i18n="nouveau_produit" onclick="openProduitModal()">+ Nouveau produit</button>
         </div>
+        <div class="chip-toggle" style="margin-bottom:8px;">
+          <button type="button" id="venteTypeStock" class="active" data-i18n="produit_stock" onclick="setVenteTypeProduit('stock')">Produit du stock</button>
+          <button type="button" id="venteTypeHorsStock" data-i18n="produit_hors_stock" onclick="setVenteTypeProduit('horsstock')">Autre produit</button>
+        </div>
         <select id="venteProduitSelect"></select>
+        <input type="text" id="venteProduitNomLibre" data-i18n-ph="nom_produit_libre" placeholder="Nom du produit" style="display:none;">
         <div class="meta" id="venteStockInfo" style="margin-top:6px;"></div>
         <div class="grid2" style="margin-top:8px;">
           <div>
@@ -392,12 +397,13 @@
       <div class="card" id="paiementCard" style="display:none; margin-bottom:0;">
         <label class="field" style="margin-top:0;" data-i18n="mode_paiement">Mode de paiement</label>
         <div class="segmented">
-          <button id="modeComptant" class="active" data-i18n="comptant" onclick="setModePaiement('comptant')">Comptant</button>
+          <button id="modeComptant" data-i18n="comptant" onclick="setModePaiement('comptant')">Comptant</button>
           <button id="modeCredit" data-i18n="credit" onclick="setModePaiement('credit')">Crédit</button>
         </div>
-        <div id="montantPayeBox">
+        <div id="montantPayeBox" style="display:none;">
           <label class="field" data-i18n="montant_paye">Montant payé maintenant</label>
-          <input type="number" id="venteMontantPaye" min="0" step="any" inputmode="decimal">
+          <input type="number" id="venteMontantPaye" min="0" step="any" inputmode="decimal" oninput="majStatutPaiementVente()">
+          <div id="ventePaiementStatut" style="display:none; margin-top:8px;"></div>
         </div>
         <button class="btn block" id="btnValiderVente" style="margin-top:12px; margin-bottom:6px; background:var(--green);" data-i18n="valider_vente" onclick="validerVente()">Valider la vente</button>
       </div>
@@ -765,6 +771,7 @@
       <button class="btn" data-i18n="reimprimer" onclick="reimprimerVente()">🖨️ Réimprimer</button>
       <button class="btn red" data-i18n="valider_retour" onclick="validerRetourVente()">Valider le retour</button>
     </div>
+    <button class="btn red block" style="margin-top:8px; background:transparent; border:1.5px solid var(--red); color:var(--red);" data-i18n="supprimer_vente" onclick="supprimerVente()">🗑️ Supprimer cette vente</button>
   </div>
 </div>
 
@@ -787,6 +794,7 @@
     </div>
     <div class="card" style="margin-top:10px;" id="adLignesCard"></div>
     <button class="btn red block" style="margin-top:10px;" data-i18n="valider_retour_marchandise" onclick="validerRetourAchat()">Valider le retour marchandise</button>
+    <button class="btn red block" style="margin-top:8px; background:transparent; border:1.5px solid var(--red); color:var(--red);" data-i18n="supprimer_achat" onclick="supprimerAchat()">🗑️ Supprimer cet achat</button>
   </div>
 </div>
 
@@ -981,7 +989,8 @@ function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(
 let PRODUITS=[], CLIENTS=[], FOURNISSEURS=[], VENTES=[], ACHATS=[], CAISSE=[], RETOURS_VENTE=[], RETOURS_ACHAT=[], VENDEURS=[];
 let panierVente = [];
 let panierAchat = [];
-let modePaiementVente = 'comptant';
+let modePaiementVente = null;
+let venteTypeProduitActuel = 'stock';
 let periodeActuelle = 'jour';
 let venteModalEnCours = false;
 let venteHistoryPushed = false;
@@ -1000,7 +1009,7 @@ const I18N = {
     afficher:'Afficher ▾', masquer:'Masquer ▴',
     nouvelle_vente:'🛒 Nouvelle vente', rechercher_global:'🔍 Rechercher un produit, client, vente...',
     date_heure_vente:'Date et heure de la vente', vendeur:'Vendeur',
-    client_label:'Client (optionnel en comptant, obligatoire à crédit)', client_passage:'-- Client de passage (comptant) --',
+    client_label:'Client (obligatoire)', client_passage:'Rechercher ou créer un client...',
     nouveau:'+ Nouveau', ajouter_produit:'Ajouter un produit', nouveau_produit:'+ Nouveau produit',
     quantite:'Quantité', prix_unitaire:'Prix unitaire', ajouter_panier:'Ajouter au panier',
     panier:'Panier', total:'Total', mode_paiement:'Mode de paiement', comptant:'Comptant', credit:'Crédit',
@@ -1120,6 +1129,18 @@ const I18N = {
     cat_charges:'Charges', cat_solde_initial:'Solde initial',
     motif_vente:'Vente', motif_achat:'Achat', motif_retour_vente:'Retour vente', motif_retour_achat:'Retour marchandise - achat',
     motif_reglement_credit:'Règlement crédit', motif_paiement_fournisseur:'Paiement fournisseur',
+    motif_annulation_vente:'Annulation vente', motif_annulation_achat:'Annulation achat',
+    produit_stock:'Produit du stock', produit_hors_stock:'Autre produit', nom_produit_libre:'Nom du produit',
+    pill_hors_stock:'Hors stock', stock_disponible:'Stock disponible : ',
+    tag_produit:'Produit', tag_client:'Client', tag_vente:'Vente',
+    err_client_requis:'Sélectionne ou crée un client pour cette vente',
+    err_mode_paiement_requis:'Choisis Comptant ou Crédit pour finaliser la vente',
+    solde_compte_client:'Solde du compte client',
+    supprimer_vente:'🗑️ Supprimer cette vente', supprimer_achat:'🗑️ Supprimer cet achat',
+    confirm_supprimer_vente:'Supprimer définitivement la vente', confirm_supprimer_achat:"Supprimer définitivement l'achat",
+    err_suppression_retour_existant:'Impossible : un retour existe déjà sur cette opération. Utilise le retour pour l\'ajuster, la suppression n\'est plus possible.',
+    err_suppression_stock_insuffisant:'Suppression impossible : stock insuffisant pour annuler cet achat (déjà vendu en partie) - ',
+    toast_vente_supprimee:'Vente supprimée', toast_achat_supprime:'Achat supprimé',
   },
   en: {
     nav_vente:'Sale', nav_clients:'Clients', nav_achats:'Purchases', nav_historique:'History', nav_bilan:'Overview',
@@ -1129,7 +1150,7 @@ const I18N = {
     afficher:'Show ▾', masquer:'Hide ▴',
     nouvelle_vente:'🛒 New sale', rechercher_global:'🔍 Search a product, client, sale...',
     date_heure_vente:'Sale date and time', vendeur:'Seller',
-    client_label:'Client (optional for cash, required for credit)', client_passage:'-- Walk-in client (cash) --',
+    client_label:'Client (required)', client_passage:'Search or create a client...',
     nouveau:'+ New', ajouter_produit:'Add a product', nouveau_produit:'+ New product',
     quantite:'Quantity', prix_unitaire:'Unit price', ajouter_panier:'Add to cart',
     panier:'Cart', total:'Total', mode_paiement:'Payment method', comptant:'Cash', credit:'Credit',
@@ -1249,6 +1270,18 @@ const I18N = {
     cat_charges:'Expenses', cat_solde_initial:'Opening balance',
     motif_vente:'Sale', motif_achat:'Purchase', motif_retour_vente:'Sale return', motif_retour_achat:'Goods return - purchase',
     motif_reglement_credit:'Credit settlement', motif_paiement_fournisseur:'Supplier payment',
+    motif_annulation_vente:'Sale cancellation', motif_annulation_achat:'Purchase cancellation',
+    produit_stock:'Stock product', produit_hors_stock:'Other product', nom_produit_libre:'Product name',
+    pill_hors_stock:'Off-stock', stock_disponible:'Available stock: ',
+    tag_produit:'Product', tag_client:'Client', tag_vente:'Sale',
+    err_client_requis:'Select or create a client for this sale',
+    err_mode_paiement_requis:'Choose Cash or Credit to finalize the sale',
+    solde_compte_client:'Client account balance',
+    supprimer_vente:'🗑️ Delete this sale', supprimer_achat:'🗑️ Delete this purchase',
+    confirm_supprimer_vente:'Permanently delete the sale', confirm_supprimer_achat:'Permanently delete the purchase',
+    err_suppression_retour_existant:'Cannot delete: a return already exists on this record. Use the return to adjust it instead; deletion is no longer possible.',
+    err_suppression_stock_insuffisant:'Cannot delete: not enough stock to cancel this purchase (some was already sold) - ',
+    toast_vente_supprimee:'Sale deleted', toast_achat_supprime:'Purchase deleted',
   }
 };
 function t(key){
@@ -1550,8 +1583,7 @@ window.addEventListener('popstate', function(){
       panierVente = []; renderPanierVente();
       document.getElementById('venteClient').value='';
       document.getElementById('venteClientSearch').value='';
-      document.getElementById('venteMontantPaye').value='';
-      setModePaiement('comptant');
+      resetPaiementVente();
       _fermerModalVenteInterne();
       updateMiniCartBar();
     }
@@ -1692,7 +1724,7 @@ document.getElementById('venteProduitSelect').addEventListener('change', functio
   const info = document.getElementById('venteStockInfo');
   if(p){
     const seuil = p.seuilAlerte!=null ? p.seuilAlerte : 5;
-    info.textContent = 'Stock disponible : '+fmtQty(p.stock, p.unite);
+    info.textContent = t('stock_disponible')+fmtQty(p.stock, p.unite);
     info.style.color = (p.stock||0) <= seuil ? 'var(--red)' : 'var(--muted)';
   } else {
     info.textContent = '';
@@ -1737,23 +1769,42 @@ function choisirClientVente(id){
   document.getElementById('venteClientSearch').value = c.nom;
   document.getElementById('venteClientResults').style.display='none';
 }
+function setVenteTypeProduit(type){
+  venteTypeProduitActuel = type;
+  document.getElementById('venteTypeStock').classList.toggle('active', type==='stock');
+  document.getElementById('venteTypeHorsStock').classList.toggle('active', type==='horsstock');
+  document.getElementById('venteProduitSelect').style.display = type==='stock' ? 'block' : 'none';
+  document.getElementById('venteProduitNomLibre').style.display = type==='horsstock' ? 'block' : 'none';
+  document.getElementById('venteStockInfo').style.display = type==='stock' ? 'block' : 'none';
+  document.getElementById('venteProduitSelect').value = '';
+  document.getElementById('venteProduitNomLibre').value = '';
+  document.getElementById('venteStockInfo').textContent = '';
+  document.getElementById('ventePU').value = '';
+}
 function ajouterLigneVente(){
-  const pid = document.getElementById('venteProduitSelect').value;
   const qte = parseFloat(document.getElementById('venteQte').value);
   const pu = parseFloat(document.getElementById('ventePU').value);
-  const produit = PRODUITS.find(p=>p.id===pid);
-  if(!produit){ toast(t('err_choisir_produit')); return; }
   if(!qte || qte<=0){ toast(t('err_quantite')); return; }
   if(isNaN(pu) || pu<0){ toast(t('err_prix')); return; }
-  const dejaDansPanier = panierVente.filter(l=>l.produitId===produit.id).reduce((s,l)=>s+l.qte,0);
-  if(qte + dejaDansPanier > (produit.stock||0)){
-    toast(t('err_stock_insuffisant')+fmt((produit.stock||0)-dejaDansPanier)+')');
-    return;
+  if(venteTypeProduitActuel==='horsstock'){
+    const nom = document.getElementById('venteProduitNomLibre').value.trim();
+    if(!nom){ toast(t('err_nom_produit')); return; }
+    panierVente.push({produitId:null, nom, qte, prixVente:pu, prixAchat:null, unite:'', horsStock:true});
+    document.getElementById('venteProduitNomLibre').value='';
+  } else {
+    const pid = document.getElementById('venteProduitSelect').value;
+    const produit = PRODUITS.find(p=>p.id===pid);
+    if(!produit){ toast(t('err_choisir_produit')); return; }
+    const dejaDansPanier = panierVente.filter(l=>l.produitId===produit.id).reduce((s,l)=>s+l.qte,0);
+    if(qte + dejaDansPanier > (produit.stock||0)){
+      toast(t('err_stock_insuffisant')+fmt((produit.stock||0)-dejaDansPanier)+')');
+      return;
+    }
+    panierVente.push({produitId:produit.id, nom:produit.nom, qte, prixVente:pu, prixAchat:produit.prixAchat, unite:produit.unite, horsStock:false});
+    document.getElementById('venteProduitSelect').value='';
   }
-  panierVente.push({produitId:produit.id, nom:produit.nom, qte, prixVente:pu, prixAchat:produit.prixAchat, unite:produit.unite});
   document.getElementById('venteQte').value='1';
   document.getElementById('ventePU').value='';
-  document.getElementById('venteProduitSelect').value='';
   document.getElementById('venteStockInfo').textContent='';
   renderPanierVente();
 }
@@ -1767,7 +1818,7 @@ function renderPanierVente(){
     const st = l.qte*l.prixVente; total+=st;
     return `<div class="cart-line">
       <div style="flex:1;">
-        <div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
+        <div style="font-weight:700; font-size:13.5px;">${l.nom} ${l.horsStock?'<span class="pill warn" style="margin-left:4px;">'+t('pill_hors_stock')+'</span>':''}</div>
         <div class="meta">${fmtQty(l.qte, l.unite)} × ${fmt(l.prixVente)}</div>
       </div>
       <div class="amount">${fmt(st)}</div>
@@ -1775,13 +1826,7 @@ function renderPanierVente(){
     </div>`;
   }).join('');
   document.getElementById('panierTotal').textContent = fmt(total);
-  const champPaye = document.getElementById('venteMontantPaye');
-  if(modePaiementVente==='comptant'){
-    // En comptant, le montant payé suit toujours le total du panier (paiement intégral).
-    champPaye.value = total;
-  } else if(champPaye.value===''){
-    champPaye.value = 0;
-  }
+  majStatutPaiementVente();
   updateMiniCartBar();
 }
 function retirerLigneVente(i){ panierVente.splice(i,1); renderPanierVente(); }
@@ -1789,23 +1834,46 @@ function setModePaiement(mode){
   modePaiementVente = mode;
   document.getElementById('modeComptant').classList.toggle('active', mode==='comptant');
   document.getElementById('modeCredit').classList.toggle('active', mode==='credit');
-  const total = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
-  document.getElementById('venteMontantPaye').value = mode==='comptant' ? total : 0;
-  document.getElementById('venteMontantPaye').readOnly = (mode==='comptant');
   document.getElementById('montantPayeBox').style.display = 'block';
+  document.getElementById('venteMontantPaye').value = '';
+  majStatutPaiementVente();
+}
+function majStatutPaiementVente(){
+  const box = document.getElementById('ventePaiementStatut');
+  if(!box) return;
+  if(!modePaiementVente){ box.style.display='none'; return; }
+  const total = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
+  const champ = document.getElementById('venteMontantPaye');
+  let montant = parseFloat(champ.value);
+  if(isNaN(montant) || montant<0) montant = 0;
+  if(montant > total){ montant = total; champ.value = total; }
+  let st;
+  if(montant<=0) st = {cls:'credit', label:t('pill_impaye')};
+  else if(montant >= total && total>0) st = {cls:'ok', label:t('pill_paye')};
+  else st = {cls:'warn', label:t('pill_partiel')};
+  box.style.display = 'block';
+  box.innerHTML = '<span class="pill '+st.cls+'">'+st.label+'</span>';
+}
+function resetPaiementVente(){
+  modePaiementVente = null;
+  document.getElementById('modeComptant').classList.remove('active');
+  document.getElementById('modeCredit').classList.remove('active');
+  document.getElementById('montantPayeBox').style.display = 'none';
+  document.getElementById('venteMontantPaye').value = '';
+  const box = document.getElementById('ventePaiementStatut');
+  if(box){ box.style.display='none'; box.innerHTML=''; }
+  setVenteTypeProduit('stock');
 }
 async function validerVente(){
   await withLock(document.getElementById('btnValiderVente'), async ()=>{
     try{
       if(panierVente.length===0){ toast(t('err_panier_vide')); return; }
       const clientId = document.getElementById('venteClient').value || null;
-      if(modePaiementVente==='credit' && !clientId){
-        toast(t('err_client_credit')); return;
+      if(!clientId){
+        toast(t('err_client_requis')); return;
       }
-      const totalPanier = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
-      const montantPayeCheck = parseFloat(document.getElementById('venteMontantPaye').value) || 0;
-      if(totalPanier > 0 && montantPayeCheck <= 0){
-        toast(t('err_montant')); return;   // or a dedicated new key, e.g. err_paiement_requis
+      if(!modePaiementVente){
+        toast(t('err_mode_paiement_requis')); return;
       }
       let vendeurId = null;
       if(PARAMETRES.multiVendeur){
@@ -1816,7 +1884,7 @@ async function validerVente(){
       const total = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
       let montantPaye = parseFloat(document.getElementById('venteMontantPaye').value);
       if(isNaN(montantPaye)) montantPaye = 0;
-      montantPaye = Math.min(montantPaye, total);
+      montantPaye = Math.min(Math.max(0,montantPaye), total);
 
       const dateChoisieVal = document.getElementById('venteDateHeure').value;
       let dateVente = dateChoisieVal ? new Date(dateChoisieVal) : new Date();
@@ -1832,16 +1900,15 @@ async function validerVente(){
       VENTES.push(vente);
 
       for(const l of panierVente){
+        if(!l.produitId) continue;
         const p = PRODUITS.find(x=>x.id===l.produitId);
         if(p){ p.stock = (p.stock||0) - l.qte; await put('produits', p); }
       }
       remplirSelectProduits();
 
       const reste = total - montantPaye;
-      if(clientId && reste>0){
-        const c = CLIENTS.find(x=>x.id===clientId);
-        if(c){ c.solde = (c.solde||0) + reste; await put('clients', c); }
-      }
+      const c = CLIENTS.find(x=>x.id===clientId);
+      if(c && reste>0){ c.solde = (c.solde||0) + reste; await put('clients', c); }
 
       if(montantPaye>0){
         const mvt = {id:uid(), date:dateVenteISO, type:'entree', montant:montantPaye, motif:t('motif_vente')+' '+vente.numero, lien:{type:'vente', id:vente.id}};
@@ -1853,14 +1920,14 @@ async function validerVente(){
       panierVente = []; renderPanierVente();
       document.getElementById('venteClient').value='';
       document.getElementById('venteClientSearch').value='';
-      document.getElementById('venteMontantPaye').value='';
       document.getElementById('venteDateHeure').value = auMaintenantLocal();
       document.getElementById('venteDateAvertissement').style.display='none';
       remplirSelectVendeurs();
-      setModePaiement('comptant');
+      resetPaiementVente();
       confirmerAnimation();
       renderVentesChart();
       renderHomeWidgets();
+      renderBilan();
       toast(t('toast_vente_enregistree'));
     }catch(err){
       console.error(err);
@@ -1886,6 +1953,10 @@ function afficherRecuVente(vente){
   txt += t('recu_paye')+': '+fmt(vente.montantPaye)+'\n';
   const reste = vente.total - vente.montantPaye;
   if(reste>0) txt += t('recu_reste')+': '+fmt(reste)+'\n';
+  if(client){
+    txt += '------------------------\n';
+    txt += t('solde_compte_client')+': '+fmt(client.solde||0)+'\n';
+  }
   txt += '------------------------\n';
   txt += t('merci_confiance')+'\n';
   document.getElementById('recuTexte').textContent = txt;
@@ -1935,28 +2006,63 @@ function openVenteDetail(id){
   renderVenteDetailContent(v);
   openModal('modalVenteDetail');
 }
+/* Single source of truth for client payments: either targeted at one sale
+   (venteIdCible) or allocated FIFO across the client's oldest open sales
+   when applied generically (venteIdCible=null). Keeps client.solde and the
+   sum of per-sale balances from ever drifting apart. */
+async function appliquerPaiementClient(clientId, montantSaisi, venteIdCible){
+  const c = CLIENTS.find(x=>x.id===clientId);
+  if(!c) return {ok:false};
+  let montant = parseFloat(montantSaisi);
+  if(!montant || montant<=0) return {ok:false};
+
+  const ventesTouchees = [];
+  if(venteIdCible){
+    const v = VENTES.find(x=>x.id===venteIdCible);
+    if(!v) return {ok:false};
+    montant = Math.min(montant, soldeRestantVente(v));
+    if(montant<=0) return {ok:false};
+    v.montantPaye = (v.montantPaye||0) + montant;
+    await put('ventes', v);
+    ventesTouchees.push(v.numero);
+  } else {
+    montant = Math.min(montant, c.solde||0);
+    if(montant<=0) return {ok:false};
+    let restant = montant;
+    const ventesOuvertes = VENTES.filter(v=>v.clientId===clientId && soldeRestantVente(v)>0)
+      .sort((a,b)=> new Date(a.date)-new Date(b.date));
+    for(const v of ventesOuvertes){
+      if(restant<=0) break;
+      const alloc = Math.min(restant, soldeRestantVente(v));
+      if(alloc<=0) continue;
+      v.montantPaye = (v.montantPaye||0) + alloc;
+      await put('ventes', v);
+      restant -= alloc;
+      ventesTouchees.push(v.numero);
+    }
+  }
+
+  c.solde = Math.max(0, (c.solde||0) - montant);
+  await put('clients', c);
+
+  const motif = ventesTouchees.length
+    ? t('motif_reglement_credit')+' - '+c.nom+' ('+ventesTouchees.join(', ')+')'
+    : t('motif_reglement_credit')+' - '+c.nom;
+  const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif, lien:{type:'client', id:c.id, ventes:ventesTouchees}};
+  await put('caisse', mvt); CAISSE.push(mvt);
+
+  return {ok:true, montant, ventesTouchees};
+}
 async function payerVenteDepuisHistorique(){
   await withLock(document.getElementById('btnPayerVente'), async ()=>{
     const v = VENTES.find(x=>x.id===window._currentVenteId);
-    if(!v) return;
-    let montant = parseFloat(document.getElementById('vdMontantPaiement').value);
-    if(!montant || montant<=0){ toast(t('err_montant')); return; }
-    montant = Math.min(montant, soldeRestantVente(v));
-    if(montant<=0){ toast(t('err_montant')); return; }
-
-    v.montantPaye = (v.montantPaye||0) + montant;
-    await put('ventes', v);
-
-    if(v.clientId){
-      const c = CLIENTS.find(x=>x.id===v.clientId);
-      if(c){ c.solde = Math.max(0, (c.solde||0) - montant); await put('clients', c); }
-    }
-
-    const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif:t('motif_vente')+' '+v.numero, lien:{type:'vente', id:v.id}};
-    await put('caisse', mvt); CAISSE.push(mvt);
+    if(!v || !v.clientId) { toast(t('err_montant')); return; }
+    const montantSaisi = document.getElementById('vdMontantPaiement').value;
+    const res = await appliquerPaiementClient(v.clientId, montantSaisi, v.id);
+    if(!res.ok){ toast(t('err_montant')); return; }
 
     renderVenteDetailContent(v);
-    renderHistorique(); renderClients(); renderHomeWidgets();
+    renderHistorique(); renderClients(); renderHomeWidgets(); renderBilan();
     confirmerAnimation();
     toast(t('toast_paiement_encaisse'));
   });
@@ -2016,8 +2122,42 @@ async function validerRetourVente(){
   await put('retoursVente', retour); RETOURS_VENTE.push(retour);
 
   closeModal('modalVenteDetail');
-  renderClients(); renderHistorique(); renderStock(); renderHomeWidgets(); renderVentesChart();
+  renderClients(); renderHistorique(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
   toast(t('toast_retour_enregistre')+fmt(montantRetour));
+}
+async function supprimerVente(){
+  const v = VENTES.find(x=>x.id===window._currentVenteId);
+  if(!v) return;
+  if(montantRetourneVente(v.id) > 0){
+    toast(t('err_suppression_retour_existant'));
+    return;
+  }
+  if(!confirm(t('confirm_supprimer_vente')+' '+v.numero+' ? '+t('confirm_retour_suite'))) return;
+
+  for(const l of v.items){
+    if(!l.produitId) continue;
+    const p = PRODUITS.find(x=>x.id===l.produitId);
+    if(p){ p.stock = (p.stock||0) + l.qte; await put('produits', p); }
+  }
+  remplirSelectProduits();
+
+  if(v.montantPaye>0){
+    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant:v.montantPaye, motif:t('motif_annulation_vente')+' '+v.numero, lien:{type:'venteAnnulee', id:v.id}};
+    await put('caisse', mvt); CAISSE.push(mvt);
+  }
+
+  const resteNonPaye = Math.max(0, v.total - (v.montantPaye||0));
+  if(v.clientId && resteNonPaye>0){
+    const c = CLIENTS.find(x=>x.id===v.clientId);
+    if(c){ c.solde = Math.max(0, (c.solde||0) - resteNonPaye); await put('clients', c); }
+  }
+
+  await del('ventes', v.id);
+  VENTES = VENTES.filter(x=>x.id!==v.id);
+
+  closeModal('modalVenteDetail');
+  renderClients(); renderHistorique(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
+  toast(t('toast_vente_supprimee'));
 }
 
 /* ===================== DETAIL ACHAT / RETOUR MARCHANDISE ===================== */
@@ -2062,28 +2202,61 @@ function openAchatDetail(id){
   renderAchatDetailContent(a);
   openModal('modalAchatDetail');
 }
+/* Mirrors appliquerPaiementClient for suppliers: targeted at one achat, or
+   FIFO-allocated across the supplier's oldest open achats when generic. */
+async function appliquerPaiementFournisseur(fournisseurId, montantSaisi, achatIdCible){
+  const f = FOURNISSEURS.find(x=>x.id===fournisseurId);
+  if(!f) return {ok:false};
+  let montant = parseFloat(montantSaisi);
+  if(!montant || montant<=0) return {ok:false};
+
+  const achatsTouches = [];
+  if(achatIdCible){
+    const a = ACHATS.find(x=>x.id===achatIdCible);
+    if(!a) return {ok:false};
+    montant = Math.min(montant, soldeRestantAchat(a));
+    if(montant<=0) return {ok:false};
+    a.montantPaye = (a.montantPaye||0) + montant;
+    await put('achats', a);
+    achatsTouches.push(a.numero);
+  } else {
+    montant = Math.min(montant, f.solde||0);
+    if(montant<=0) return {ok:false};
+    let restant = montant;
+    const achatsOuverts = ACHATS.filter(a=>a.fournisseurId===fournisseurId && soldeRestantAchat(a)>0)
+      .sort((a,b)=> new Date(a.date)-new Date(b.date));
+    for(const a of achatsOuverts){
+      if(restant<=0) break;
+      const alloc = Math.min(restant, soldeRestantAchat(a));
+      if(alloc<=0) continue;
+      a.montantPaye = (a.montantPaye||0) + alloc;
+      await put('achats', a);
+      restant -= alloc;
+      achatsTouches.push(a.numero);
+    }
+  }
+
+  f.solde = Math.max(0, (f.solde||0) - montant);
+  await put('fournisseurs', f);
+
+  const motif = achatsTouches.length
+    ? t('motif_paiement_fournisseur')+' - '+f.nom+' ('+achatsTouches.join(', ')+')'
+    : t('motif_paiement_fournisseur')+' - '+f.nom;
+  const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif, lien:{type:'fournisseur', id:f.id, achats:achatsTouches}};
+  await put('caisse', mvt); CAISSE.push(mvt);
+
+  return {ok:true, montant, achatsTouches};
+}
 async function payerAchatDepuisHistorique(){
   await withLock(document.getElementById('btnPayerAchat'), async ()=>{
     const a = ACHATS.find(x=>x.id===window._currentAchatId);
-    if(!a) return;
-    let montant = parseFloat(document.getElementById('adMontantPaiement').value);
-    if(!montant || montant<=0){ toast(t('err_montant')); return; }
-    montant = Math.min(montant, soldeRestantAchat(a));
-    if(montant<=0){ toast(t('err_montant')); return; }
-
-    a.montantPaye = (a.montantPaye||0) + montant;
-    await put('achats', a);
-
-    if(a.fournisseurId){
-      const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
-      if(f){ f.solde = Math.max(0, (f.solde||0) - montant); await put('fournisseurs', f); }
-    }
-
-    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif:t('motif_achat')+' '+a.numero, lien:{type:'achat', id:a.id}};
-    await put('caisse', mvt); CAISSE.push(mvt);
+    if(!a || !a.fournisseurId){ toast(t('err_montant')); return; }
+    const montantSaisi = document.getElementById('adMontantPaiement').value;
+    const res = await appliquerPaiementFournisseur(a.fournisseurId, montantSaisi, a.id);
+    if(!res.ok){ toast(t('err_montant')); return; }
 
     renderAchatDetailContent(a);
-    renderHistorique(); renderFournisseurs(); renderHomeWidgets();
+    renderHistorique(); renderFournisseurs(); renderHomeWidgets(); renderBilan();
     toast(t('toast_paiement_effectue'));
   });
 }
@@ -2138,8 +2311,51 @@ async function validerRetourAchat(){
   await put('retoursAchat', retour); RETOURS_ACHAT.push(retour);
 
   closeModal('modalAchatDetail');
-  renderFournisseurs(); renderHistorique(); renderStock(); renderHomeWidgets();
+  renderFournisseurs(); renderHistorique(); renderStock(); renderHomeWidgets(); renderBilan();
   toast(t('toast_retour_marchandise_enregistre')+fmt(montantRetour));
+}
+async function supprimerAchat(){
+  const a = ACHATS.find(x=>x.id===window._currentAchatId);
+  if(!a) return;
+  if(montantRetourneAchat(a.id) > 0){
+    toast(t('err_suppression_retour_existant'));
+    return;
+  }
+  // Un achat qui a déjà partiellement alimenté des ventes ne peut pas être
+  // annulé sans faire passer le stock sous zéro : on vérifie ligne par ligne.
+  for(const l of a.items){
+    const p = PRODUITS.find(x=>x.id===l.produitId);
+    const dispo = p ? (p.stock||0) : 0;
+    if(dispo - l.qte < 0){
+      toast(t('err_suppression_stock_insuffisant')+(p?p.nom:l.nom)+')');
+      return;
+    }
+  }
+  if(!confirm(t('confirm_supprimer_achat')+' '+a.numero+' ? '+t('confirm_retour_suite'))) return;
+
+  for(const l of a.items){
+    const p = PRODUITS.find(x=>x.id===l.produitId);
+    if(p){ p.stock = Math.max(0, (p.stock||0) - l.qte); await put('produits', p); }
+  }
+  remplirSelectProduits();
+
+  if(a.montantPaye>0){
+    const mvt = {id:uid(), date:nowISO(), type:'entree', montant:a.montantPaye, motif:t('motif_annulation_achat')+' '+a.numero, lien:{type:'achatAnnule', id:a.id}};
+    await put('caisse', mvt); CAISSE.push(mvt);
+  }
+
+  const resteNonPaye = Math.max(0, a.total - (a.montantPaye||0));
+  if(a.fournisseurId && resteNonPaye>0){
+    const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
+    if(f){ f.solde = Math.max(0, (f.solde||0) - resteNonPaye); await put('fournisseurs', f); }
+  }
+
+  await del('achats', a.id);
+  ACHATS = ACHATS.filter(x=>x.id!==a.id);
+
+  closeModal('modalAchatDetail');
+  renderFournisseurs(); renderHistorique(); renderStock(); renderHomeWidgets(); renderBilan();
+  toast(t('toast_achat_supprime'));
 }
 
 /* ===================== IMPRESSION TICKET (ESC/POS Bluetooth + fallback RawBT) ===================== */
@@ -2259,7 +2475,8 @@ async function enregistrerClient(){
 }
 function caClient(id){
   const c = CLIENTS.find(x=>x.id===id);
-  return VENTES.filter(v=>v.clientId===id).reduce((s,v)=>s+v.total,0) + (c ? (c.caInitial||0) : 0);
+  const netVentes = VENTES.filter(v=>v.clientId===id).reduce((s,v)=> s + (v.total - montantRetourneVente(v.id)), 0);
+  return netVentes + (c ? (c.caInitial||0) : 0);
 }
 let clientSortMode = 'dette';
 function setClientSort(mode){
@@ -2317,8 +2534,9 @@ function openClientDetail(id){
     }
     if(op.type==='paiement'){
       const m = op.ref;
+      const couvre = (m.lien && m.lien.ventes && m.lien.ventes.length) ? ' · '+m.lien.ventes.join(', ') : '';
       return `<div class="list-item">
-        <div><div class="name">${t('operation_paiement')}</div><div class="meta">${dateFR(m.date)}</div></div>
+        <div><div class="name">${t('operation_paiement')}</div><div class="meta">${dateFR(m.date)}${couvre}</div></div>
         <div class="amount pos">+${fmt(m.montant)}</div>
       </div>`;
     }
@@ -2334,20 +2552,15 @@ function openClientDetail(id){
 async function encaisserPaiementClient(){
   await withLock(document.getElementById('btnEncaisserPaiement'), async ()=>{
     const id = window._currentClientId;
-    const c = CLIENTS.find(x=>x.id===id);
-    let montant = parseFloat(document.getElementById('cdPaiement').value);
-    if(!montant || montant<=0){ toast(t('err_montant')); return; }
-    montant = Math.min(montant, c.solde||0);
-    if(montant<=0){ toast(t('err_montant')); return; }
-    c.solde = Math.max(0, (c.solde||0) - montant);
-    await put('clients', c);
-    const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif:t('motif_reglement_credit')+' - '+c.nom, lien:{type:'client', id:c.id}};
-    await put('caisse', mvt); CAISSE.push(mvt);
+    const montantSaisi = document.getElementById('cdPaiement').value;
+    const res = await appliquerPaiementClient(id, montantSaisi, null);
+    if(!res.ok){ toast(t('err_montant')); return; }
     closeModal('modalClientDetail');
     renderClients();
     confirmerAnimation();
     renderVentesChart();
     renderHomeWidgets();
+    renderBilan();
     toast(t('toast_paiement_encaisse'));
   });
 }
@@ -2451,7 +2664,8 @@ async function supprimerFournisseur(){
 }
 function achatsRealisesFournisseur(id){
   const f = FOURNISSEURS.find(x=>x.id===id);
-  return ACHATS.filter(a=>a.fournisseurId===id).reduce((s,a)=>s+a.total,0) + (f ? (f.caInitial||0) : 0);
+  const netAchats = ACHATS.filter(a=>a.fournisseurId===id).reduce((s,a)=> s + (a.total - montantRetourneAchat(a.id)), 0);
+  return netAchats + (f ? (f.caInitial||0) : 0);
 }
 function renderFournisseurs(){
   const card = document.getElementById('fournisseurListCard');
@@ -2489,8 +2703,9 @@ function openFournisseurDetail(id){
     }
     if(op.type==='paiement'){
       const m = op.ref;
+      const couvre = (m.lien && m.lien.achats && m.lien.achats.length) ? ' · '+m.lien.achats.join(', ') : '';
       return `<div class="list-item">
-        <div><div class="name">${t('operation_paiement_effectue')}</div><div class="meta">${dateFR(m.date)}</div></div>
+        <div><div class="name">${t('operation_paiement_effectue')}</div><div class="meta">${dateFR(m.date)}${couvre}</div></div>
         <div class="amount pos">+${fmt(m.montant)}</div>
       </div>`;
     }
@@ -2506,18 +2721,13 @@ function openFournisseurDetail(id){
 async function payerFournisseur(){
   await withLock(document.getElementById('btnPayerFournisseur'), async ()=>{
     const id = window._currentFournisseurId;
-    const f = FOURNISSEURS.find(x=>x.id===id);
-    let montant = parseFloat(document.getElementById('fdPaiement').value);
-    if(!montant || montant<=0){ toast(t('err_montant')); return; }
-    montant = Math.min(montant, f.solde||0);
-    if(montant<=0){ toast(t('err_montant')); return; }
-    f.solde = Math.max(0, (f.solde||0) - montant);
-    await put('fournisseurs', f);
-    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif:t('motif_paiement_fournisseur')+' - '+f.nom, lien:{type:'fournisseur', id:f.id}};
-    await put('caisse', mvt); CAISSE.push(mvt);
+    const montantSaisi = document.getElementById('fdPaiement').value;
+    const res = await appliquerPaiementFournisseur(id, montantSaisi, null);
+    if(!res.ok){ toast(t('err_montant')); return; }
     closeModal('modalFournisseurDetail');
     renderFournisseurs();
     renderHomeWidgets();
+    renderBilan();
     toast(t('toast_paiement_effectue'));
   });
 }
@@ -2834,8 +3044,8 @@ function renderBilan(){
   const debut = debutPeriode(periodeActuelle);
   const fin = finPeriode(periodeActuelle);
   const ventesPeriode = VENTES.filter(v=> { const d=new Date(v.date); return d >= debut && d <= fin; });
-  const totalVentes = ventesPeriode.reduce((s,v)=>s+v.total,0);
-  const benefice = ventesPeriode.reduce((s,v)=> s + v.items.reduce((ss,l)=> ss + (l.prixVente - (l.prixAchat||0))*l.qte, 0), 0);
+  const totalVentes = ventesPeriode.reduce((s,v)=> s + (v.total - montantRetourneVente(v.id)), 0);
+  const benefice = ventesPeriode.reduce((s,v)=> s + v.items.filter(l=>l.produitId).reduce((ss,l)=> ss + (l.prixVente - (l.prixAchat||0))*(l.qte - (l.qteRetournee||0)), 0), 0);
   const totalCredits = CLIENTS.reduce((s,c)=>s+(c.solde||0),0);
 
   document.getElementById('statVentes').textContent = fmt(totalVentes);
@@ -3027,8 +3237,7 @@ function fermerModalVente(){
     panierVente = []; renderPanierVente();
     document.getElementById('venteClient').value='';
     document.getElementById('venteClientSearch').value='';
-    document.getElementById('venteMontantPaye').value='';
-    setModePaiement('comptant');
+    resetPaiementVente();
   }
   _fermerModalVenteInterne();
   updateMiniCartBar();
@@ -3063,20 +3272,20 @@ function rechercheGlobaleInput(){
   let html = '';
   produits.forEach(p=>{
     html += `<div class="search-result-item" onclick="rechercheChoisirProduit('${p.id}')">
-      <span class="search-result-tag">Produit</span>
+      <span class="search-result-tag">${t('tag_produit')}</span>
       <div style="flex:1;"><div class="name">${p.nom}</div><div class="meta">Stock: ${fmtQty(p.stock, p.unite)} · Vente: ${fmt(p.prixVente)}</div></div>
     </div>`;
   });
   clients.forEach(c=>{
     html += `<div class="search-result-item" onclick="rechercheOuvrirClient('${c.id}')">
-      <span class="search-result-tag">Client</span>
+      <span class="search-result-tag">${t('tag_client')}</span>
       <div style="flex:1;"><div class="name">${c.nom}</div><div class="meta">${(c.solde||0)>0 ? t('pill_doit')+' '+fmt(c.solde) : t('pill_ajour')}</div></div>
     </div>`;
   });
   ventes.forEach(v=>{
     const c = CLIENTS.find(x=>x.id===v.clientId);
     html += `<div class="search-result-item" onclick="rechercheOuvrirVente('${v.id}')">
-      <span class="search-result-tag">Vente</span>
+      <span class="search-result-tag">${t('tag_vente')}</span>
       <div style="flex:1;"><div class="name">${v.numero}${c?' · '+c.nom:''}</div><div class="meta">${fmt(v.total)}</div></div>
     </div>`;
   });
@@ -3131,7 +3340,7 @@ async function init(){
   remplirSelectClients();
   remplirSelectFournisseurs();
   remplirSelectVendeurs();
-  setModePaiement('comptant');
+  resetPaiementVente();
   tickClock();
   renderBilan();
   renderVentesChart();
