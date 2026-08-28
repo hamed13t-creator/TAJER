@@ -188,7 +188,6 @@
   }
   label.field{display:block; font-size:11.5px; color:var(--muted); margin:8px 0 4px; font-weight:600; text-transform:uppercase; letter-spacing:.3px;}
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
-  .grid3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;}
   .list-item{display:flex; justify-content:space-between; align-items:center; padding:10px 2px; border-bottom:1px solid var(--line);}
   .list-item:last-child{border-bottom:none;}
   .name{font-weight:700; font-size:14px;}
@@ -216,8 +215,6 @@
   .modal h3{margin:0 0 4px; font-size:16px; color:var(--navy);}
   .modal-close{position:absolute; top:10px; right:14px; font-size:22px; background:none; border:none; color:var(--muted);}
   .cart-line{display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--line);}
-  .cart-line .qty-ctrl{display:flex; align-items:center; gap:6px;}
-  .qty-ctrl button{width:26px; height:26px; border-radius:6px; border:1px solid var(--line); background:#fff; font-size:15px;}
   .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;}
   .stat{background:var(--navy); color:#fff; border-radius:var(--radius); padding:12px;}
   .stat .v{font-size:20px; font-weight:800;}
@@ -405,7 +402,7 @@
           <input type="number" id="venteMontantPaye" min="0" step="any" inputmode="decimal" oninput="majStatutPaiementVente()">
           <div id="ventePaiementStatut" style="display:none; margin-top:8px;"></div>
         </div>
-        <button class="btn block" id="btnValiderVente" style="margin-top:12px; margin-bottom:6px; background:var(--green);" data-i18n="valider_vente" onclick="validerVente()">Valider la vente</button>
+        <button class="btn block" id="btnValiderVente" disabled style="margin-top:12px; margin-bottom:6px; background:var(--green);" data-i18n="valider_vente" onclick="validerVente()">Valider la vente</button>
       </div>
     </div>
   </div>
@@ -600,14 +597,14 @@
     <input type="number" id="pSeuilAlerte" value="5" min="0" step="any" inputmode="decimal">
     <label class="field" data-i18n="unite_produit">Unité</label>
     <select id="pUnite" onchange="onUniteChange()">
-      <option value="Pièce">Pièce</option>
-      <option value="Kg">Kg</option>
-      <option value="g">g</option>
-      <option value="Litre">Litre</option>
-      <option value="ml">ml</option>
-      <option value="Carton">Carton</option>
-      <option value="Sac">Sac</option>
-      <option value="Boîte">Boîte</option>
+      <option value="piece" data-i18n="unite_piece">Pièce</option>
+      <option value="kg" data-i18n="unite_kg">Kg</option>
+      <option value="g" data-i18n="unite_g">g</option>
+      <option value="litre" data-i18n="unite_litre">Litre</option>
+      <option value="ml" data-i18n="unite_ml">ml</option>
+      <option value="carton" data-i18n="unite_carton">Carton</option>
+      <option value="sac" data-i18n="unite_sac">Sac</option>
+      <option value="boite" data-i18n="unite_boite">Boîte</option>
       <option value="autre" data-i18n="unite_autre">Autre...</option>
     </select>
     <input type="text" id="pUniteAutre" data-i18n-ph="unite_autre_placeholder" placeholder="Précise l'unité" style="display:none; margin-top:8px;">
@@ -767,6 +764,32 @@
       </div>
     </div>
     <div class="card" style="margin-top:10px;" id="vdLignesCard"></div>
+    <div class="card" id="vdAjoutCard">
+      <div class="row" style="cursor:pointer;" onclick="toggleVdAjoutProduit()">
+        <span style="font-weight:800; font-size:13px; color:var(--navy);" data-i18n="ajouter_produit_vente">+ Ajouter un produit à cette vente</span>
+        <span class="linklike" id="vdAjoutToggleLabel" data-i18n="afficher">Afficher ▾</span>
+      </div>
+      <div id="vdAjoutWrap" style="display:none; margin-top:10px;">
+        <div class="chip-toggle" style="margin-bottom:8px;">
+          <button type="button" id="vdTypeStock" class="active" data-i18n="produit_stock" onclick="setVdTypeProduit('stock')">Produit du stock</button>
+          <button type="button" id="vdTypeHorsStock" data-i18n="produit_hors_stock" onclick="setVdTypeProduit('horsstock')">Autre produit</button>
+        </div>
+        <select id="vdProduitSelect"></select>
+        <input type="text" id="vdProduitNomLibre" data-i18n-ph="nom_produit_libre" placeholder="Nom du produit" style="display:none;">
+        <div class="meta" id="vdStockInfo" style="margin-top:6px;"></div>
+        <div class="grid2" style="margin-top:8px;">
+          <div>
+            <label class="field" data-i18n="quantite">Quantité</label>
+            <input type="number" id="vdAjoutQte" value="1" min="0.01" step="any" inputmode="decimal">
+          </div>
+          <div>
+            <label class="field" data-i18n="prix_unitaire">Prix unitaire</label>
+            <input type="number" id="vdAjoutPU" min="0" step="any" inputmode="decimal">
+          </div>
+        </div>
+        <button class="btn amber block" id="btnAjouterProduitVente" style="margin-top:10px;" data-i18n="ajouter_a_vente" onclick="ajouterProduitAVente()">Ajouter à cette vente</button>
+      </div>
+    </div>
     <div class="grid2" style="margin-top:10px;">
       <button class="btn" data-i18n="reimprimer" onclick="reimprimerVente()">🖨️ Réimprimer</button>
       <button class="btn red" data-i18n="valider_retour" onclick="validerRetourVente()">Valider le retour</button>
@@ -793,6 +816,26 @@
       </div>
     </div>
     <div class="card" style="margin-top:10px;" id="adLignesCard"></div>
+    <div class="card" id="adAjoutCard">
+      <div class="row" style="cursor:pointer;" onclick="toggleAdAjoutProduit()">
+        <span style="font-weight:800; font-size:13px; color:var(--navy);" data-i18n="ajouter_produit_achat_existant">+ Ajouter un produit à cet achat</span>
+        <span class="linklike" id="adAjoutToggleLabel" data-i18n="afficher">Afficher ▾</span>
+      </div>
+      <div id="adAjoutWrap" style="display:none; margin-top:10px;">
+        <select id="adProduitSelect"></select>
+        <div class="grid2" style="margin-top:8px;">
+          <div>
+            <label class="field" data-i18n="quantite">Quantité</label>
+            <input type="number" id="adAjoutQte" value="1" min="0.01" step="any" inputmode="decimal">
+          </div>
+          <div>
+            <label class="field" data-i18n="prix_achat_unitaire">Prix d'achat unitaire</label>
+            <input type="number" id="adAjoutPU" min="0" step="any" inputmode="decimal">
+          </div>
+        </div>
+        <button class="btn amber block" id="btnAjouterProduitAchat" style="margin-top:10px;" data-i18n="ajouter_a_achat" onclick="ajouterProduitAAchat()">Ajouter à cet achat</button>
+      </div>
+    </div>
     <button class="btn red block" style="margin-top:10px;" data-i18n="valider_retour_marchandise" onclick="validerRetourAchat()">Valider le retour marchandise</button>
     <button class="btn red block" style="margin-top:8px; background:transparent; border:1.5px solid var(--red); color:var(--red);" data-i18n="supprimer_achat" onclick="supprimerAchat()">🗑️ Supprimer cet achat</button>
   </div>
@@ -1117,9 +1160,24 @@ const I18N = {
     historique_operations:'Historique des opérations',
     operation_paiement:'Paiement reçu', plus_produit:'+ Produit',
     unite_produit:'Unité', unite_autre:'Autre...', unite_autre_placeholder:"Précise l'unité",
+    unite_piece:'Pièce', unite_kg:'Kg', unite_g:'g', unite_litre:'Litre', unite_ml:'ml', unite_carton:'Carton', unite_sac:'Sac', unite_boite:'Boîte',
     pill_paye:'Payé', pill_partiel:'Partiel', pill_impaye:'Impayé',
     operation_paiement_effectue:'Paiement effectué', empty_operations:'Aucune opération pour le moment.',
     confirm_nom_existe:'Un nom identique existe déjà :', continuer_quand_meme:'Continuer quand même ?',
+    avert_solde_client_bas:'Attention : ce client a encore ', avert_solde_client_bas_milieu:' de dette liée à ses ventes, mais tu inscris seulement ',
+    avert_solde_client_bas_suite:'. Cet écart va masquer de la dette réelle. ',
+    avert_solde_fournisseur_bas:'Attention : il reste encore ', avert_solde_fournisseur_bas_milieu:' dû sur des achats non soldés, mais tu inscris seulement ',
+    avert_solde_fournisseur_bas_suite:'. Cet écart va masquer de la dette réelle. ',
+    opt_choisir:'-- Choisir --', opt_choisir_produit:'-- Choisir un produit --',
+    stock_ligne_achat:'Achat', stock_ligne_vente:'Vente', stock_ligne_valeur:'Valeur',
+    mini_cart_articles:'articles',
+    ajouter_produit_vente:'+ Ajouter un produit à cette vente', ajouter_a_vente:'Ajouter à cette vente',
+    toast_produit_ajoute_vente:'Produit ajouté à la vente ✓', pill_ajoute:'Ajouté',
+    ajouter_produit_achat_existant:'+ Ajouter un produit à cet achat', ajouter_a_achat:'Ajouter à cet achat',
+    toast_produit_ajoute_achat:'Produit ajouté à l\'achat ✓',
+    toast_ligne_modifiee:'Ligne modifiée ✓',
+    err_qte_min_retournee:'La quantité ne peut pas être inférieure à ce qui a déjà été retourné : ',
+    err_modif_sous_paye:'Impossible : ', err_modif_sous_paye_suite:' est déjà encaissé sur cette opération. Utilise le retour pour rembourser cette partie.',
     confirm_annuler_vente:'Annuler cette vente ? Le panier sera vidé.',
     cat_opt_investissement:"💰 Investissement (j'ajoute de l'argent)", cat_opt_retour_investissement:"↩️ Retour d'investissement (je retire mon argent)",
     cat_opt_fonds_ajout:'🔄 Ajout fonds de roulement', cat_opt_fonds_retrait:'🔄 Retrait fonds de roulement',
@@ -1130,11 +1188,16 @@ const I18N = {
     motif_vente:'Vente', motif_achat:'Achat', motif_retour_vente:'Retour vente', motif_retour_achat:'Retour marchandise - achat',
     motif_reglement_credit:'Règlement crédit', motif_paiement_fournisseur:'Paiement fournisseur',
     motif_annulation_vente:'Annulation vente', motif_annulation_achat:'Annulation achat',
+    mvt_motif_investissement:"Investissement / apport personnel", mvt_motif_retour_investissement:"Retour d'investissement",
+    mvt_motif_fonds_ajout:"Ajout fonds de roulement", mvt_motif_fonds_retrait:"Retrait fonds de roulement",
+    mvt_motif_charges:'Charges (carburant, factures...)', mvt_motif_solde_initial:"Ancien fonds / solde de départ",
+    mvt_motif_autre_entree:'Apport', mvt_motif_autre_sortie:'Dépense',
     produit_stock:'Produit du stock', produit_hors_stock:'Autre produit', nom_produit_libre:'Nom du produit',
     pill_hors_stock:'Hors stock', stock_disponible:'Stock disponible : ',
     tag_produit:'Produit', tag_client:'Client', tag_vente:'Vente',
     err_client_requis:'Sélectionne ou crée un client pour cette vente',
     err_mode_paiement_requis:'Choisis Comptant ou Crédit pour finaliser la vente',
+    err_montant_paye_requis:'Indique le montant payé (comptant)',
     solde_compte_client:'Solde du compte client',
     supprimer_vente:'🗑️ Supprimer cette vente', supprimer_achat:'🗑️ Supprimer cet achat',
     confirm_supprimer_vente:'Supprimer définitivement la vente', confirm_supprimer_achat:"Supprimer définitivement l'achat",
@@ -1258,9 +1321,24 @@ const I18N = {
     historique_operations:'Operations history',
     operation_paiement:'Payment received', plus_produit:'+ Product',
     unite_produit:'Unit', unite_autre:'Other...', unite_autre_placeholder:'Specify the unit',
+    unite_piece:'Piece', unite_kg:'Kg', unite_g:'g', unite_litre:'Liter', unite_ml:'ml', unite_carton:'Carton', unite_sac:'Bag', unite_boite:'Box',
     pill_paye:'Paid', pill_partiel:'Partial', pill_impaye:'Unpaid',
     operation_paiement_effectue:'Payment made', empty_operations:'No operations yet.',
     confirm_nom_existe:'A matching name already exists:', continuer_quand_meme:'Continue anyway?',
+    avert_solde_client_bas:'Heads up: this client still has ', avert_solde_client_bas_milieu:" owed on their sales, but you're entering only ",
+    avert_solde_client_bas_suite:'. This gap will hide real debt. ',
+    avert_solde_fournisseur_bas:'Heads up: there is still ', avert_solde_fournisseur_bas_milieu:" owed on unpaid purchases, but you're entering only ",
+    avert_solde_fournisseur_bas_suite:'. This gap will hide real debt. ',
+    opt_choisir:'-- Choose --', opt_choisir_produit:'-- Choose a product --',
+    stock_ligne_achat:'Buy', stock_ligne_vente:'Sell', stock_ligne_valeur:'Value',
+    mini_cart_articles:'items',
+    ajouter_produit_vente:'+ Add a product to this sale', ajouter_a_vente:'Add to this sale',
+    toast_produit_ajoute_vente:'Product added to the sale ✓', pill_ajoute:'Added',
+    ajouter_produit_achat_existant:'+ Add a product to this purchase', ajouter_a_achat:'Add to this purchase',
+    toast_produit_ajoute_achat:'Product added to the purchase ✓',
+    toast_ligne_modifiee:'Line updated ✓',
+    err_qte_min_retournee:"Quantity can't be lower than what's already been returned: ",
+    err_modif_sous_paye:'Cannot do that: ', err_modif_sous_paye_suite:' is already collected on this record. Use the return to refund that portion.',
     confirm_annuler_vente:'Cancel this sale? The cart will be cleared.',
     cat_opt_investissement:"💰 Investment (I'm adding money)", cat_opt_retour_investissement:"↩️ Investment return (I'm withdrawing money)",
     cat_opt_fonds_ajout:'🔄 Add working capital', cat_opt_fonds_retrait:'🔄 Withdraw working capital',
@@ -1271,11 +1349,16 @@ const I18N = {
     motif_vente:'Sale', motif_achat:'Purchase', motif_retour_vente:'Sale return', motif_retour_achat:'Goods return - purchase',
     motif_reglement_credit:'Credit settlement', motif_paiement_fournisseur:'Supplier payment',
     motif_annulation_vente:'Sale cancellation', motif_annulation_achat:'Purchase cancellation',
+    mvt_motif_investissement:'Investment / personal contribution', mvt_motif_retour_investissement:'Investment return',
+    mvt_motif_fonds_ajout:'Working capital added', mvt_motif_fonds_retrait:'Working capital withdrawn',
+    mvt_motif_charges:'Expenses (fuel, bills...)', mvt_motif_solde_initial:'Prior funds / opening balance',
+    mvt_motif_autre_entree:'Income', mvt_motif_autre_sortie:'Expense',
     produit_stock:'Stock product', produit_hors_stock:'Other product', nom_produit_libre:'Product name',
     pill_hors_stock:'Off-stock', stock_disponible:'Available stock: ',
     tag_produit:'Product', tag_client:'Client', tag_vente:'Sale',
     err_client_requis:'Select or create a client for this sale',
     err_mode_paiement_requis:'Choose Cash or Credit to finalize the sale',
+    err_montant_paye_requis:'Enter the amount paid (cash)',
     solde_compte_client:'Client account balance',
     supprimer_vente:'🗑️ Delete this sale', supprimer_achat:'🗑️ Delete this purchase',
     confirm_supprimer_vente:'Permanently delete the sale', confirm_supprimer_achat:'Permanently delete the purchase',
@@ -1295,11 +1378,23 @@ function fmt(n){
   const base = n.toLocaleString(locale, {maximumFractionDigits:2});
   return PARAMETRES.devise ? base+' '+PARAMETRES.devise : base;
 }
+/* Unités : les produits stockent un code canonique ('kg','piece'...) depuis
+   cette version. Les anciens produits enregistrés avant ce correctif ont le
+   mot français en dur ('Kg','Pièce'...) — UNITES_LEGACY_FR fait le pont pour
+   que l'affichage reste traduit même sur ces anciennes fiches. */
+const UNITES_LEGACY_FR = {'Pièce':'piece','Kg':'kg','g':'g','Litre':'litre','ml':'ml','Carton':'carton','Sac':'sac','Boîte':'boite'};
+function uniteLabel(code){
+  if(!code) return '';
+  let c = UNITES_LEGACY_FR[code] || code;
+  if(UNITES_PRESETS.includes(c)) return t('unite_'+c);
+  return code; // unité libre saisie via "Autre..." : affichée telle quelle
+}
 function fmtQty(n, unite){
   n = Number(n)||0;
   const locale = (PARAMETRES.langue==='en') ? 'en-US' : 'fr-FR';
   const base = n.toLocaleString(locale, {maximumFractionDigits:2});
-  return unite ? base+' '+unite : base;
+  const label = uniteLabel(unite);
+  return label ? base+' '+label : base;
 }
 function statutPaiement(obj, montantRetourne){
   const total = (obj.total||0) - (montantRetourne||0);
@@ -1362,12 +1457,6 @@ function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
   const meta = document.querySelector('meta[name="theme-color"]');
   if(meta) meta.setAttribute('content', theme==='dark' ? '#0D131C' : '#131A24');
-}
-function toggleTheme(){
-  const current = document.documentElement.getAttribute('data-theme') || 'light';
-  const next = current==='dark' ? 'light' : 'dark';
-  localStorage.setItem('theme', next);
-  applyTheme(next);
 }
 function initTheme(){
   const saved = localStorage.getItem('theme');
@@ -1530,7 +1619,7 @@ function remplirSelectVendeurs(){
   const sel = document.getElementById('venteVendeurSelect');
   if(!sel) return;
   const actifs = VENDEURS.filter(v=>v.actif);
-  sel.innerHTML = '<option value="">-- Choisir --</option>' + actifs.map(v=>`<option value="${v.id}">${v.nom}</option>`).join('');
+  sel.innerHTML = '<option value="">'+t('opt_choisir')+'</option>' + actifs.map(v=>`<option value="${v.id}">${v.nom}</option>`).join('');
   if(dernierVendeurUtilise && actifs.some(v=>v.id===dernierVendeurUtilise)) sel.value = dernierVendeurUtilise;
 }
 function caParVendeur(debut, fin){
@@ -1603,7 +1692,7 @@ window.addEventListener('popstate', function(){
 });
 
 /* ===================== PRODUITS ===================== */
-const UNITES_PRESETS = ['Pièce','Kg','g','Litre','ml','Carton','Sac','Boîte'];
+const UNITES_PRESETS = ['piece','kg','g','litre','ml','carton','sac','boite'];
 function onUniteChange(){
   const v = document.getElementById('pUnite').value;
   document.getElementById('pUniteAutre').style.display = v==='autre' ? 'block' : 'none';
@@ -1614,14 +1703,15 @@ function getUniteSelectionnee(){
   return v;
 }
 function setUniteChamp(unite){
-  if(unite && UNITES_PRESETS.includes(unite)){
-    document.getElementById('pUnite').value = unite;
+  const code = UNITES_LEGACY_FR[unite] || unite;
+  if(code && UNITES_PRESETS.includes(code)){
+    document.getElementById('pUnite').value = code;
     document.getElementById('pUniteAutre').value = '';
   } else if(unite){
     document.getElementById('pUnite').value = 'autre';
     document.getElementById('pUniteAutre').value = unite;
   } else {
-    document.getElementById('pUnite').value = 'Pièce';
+    document.getElementById('pUnite').value = 'piece';
     document.getElementById('pUniteAutre').value = '';
   }
   onUniteChange();
@@ -1657,7 +1747,7 @@ async function enregistrerProduit(){
     const prixVente = parseFloat(document.getElementById('pPrixVente').value)||0;
     const stock = parseFloat(document.getElementById('pStock').value)||0;
     const seuilAlerte = parseFloat(document.getElementById('pSeuilAlerte').value)||0;
-    const unite = getUniteSelectionnee() || 'Pièce';
+    const unite = getUniteSelectionnee() || 'piece';
     if(!nom){ toast(t('err_nom_produit')); return; }
     const doublon = PRODUITS.find(x=>x.id!==id && x.nom.trim().toLowerCase()===nom.toLowerCase());
     if(doublon && !confirm(t('confirm_nom_existe')+' "'+nom+'". '+t('continuer_quand_meme'))) return;
@@ -1683,7 +1773,7 @@ async function supprimerProduit(){
     toast(t('err_produit_utilise'));
     return;
   }
-  if(!confirm(t('confirm_supprimer_produit')+' "'+p.nom+'"? '+t('confirm_retour_suite'))) return;
+  if(!confirm(t('confirm_supprimer_produit')+' "'+p.nom+'"'+t('confirm_retour_suite'))) return;
   await del('produits', id);
   PRODUITS = PRODUITS.filter(x=>x.id!==id);
   remplirSelectProduits();
@@ -1706,17 +1796,19 @@ function renderStock(){
     <div class="list-item" onclick="openProduitModal('${p.id}')" style="cursor:pointer;">
       <div>
         <div class="name">${p.nom} ${stockBas?'<span class="pill warn">'+t('pill_stockbas')+'</span>':''}</div>
-        <div class="meta">Achat ${fmt(p.prixAchat)} · Vente ${fmt(p.prixVente)} · Valeur ${fmt((p.stock||0)*(p.prixAchat||0))}</div>
+        <div class="meta">${t('stock_ligne_achat')} ${fmt(p.prixAchat)} · ${t('stock_ligne_vente')} ${fmt(p.prixVente)} · ${t('stock_ligne_valeur')} ${fmt((p.stock||0)*(p.prixAchat||0))}</div>
       </div>
       <div class="amount">${fmtQty(p.stock, p.unite)}</div>
     </div>`;
   }).join('');
 }
 function remplirSelectProduits(){
-  const opts = '<option value="">-- Choisir un produit --</option>' + PRODUITS.map(p=>
+  const opts = '<option value="">'+t('opt_choisir_produit')+'</option>' + PRODUITS.map(p=>
     `<option value="${p.id}">${p.nom} (stock: ${fmtQty(p.stock, p.unite)})</option>`).join('');
   document.getElementById('venteProduitSelect').innerHTML = opts;
   document.getElementById('achatProduitSelect').innerHTML = opts;
+  document.getElementById('vdProduitSelect').innerHTML = opts;
+  document.getElementById('adProduitSelect').innerHTML = opts;
 }
 document.getElementById('venteProduitSelect').addEventListener('change', function(){
   const p = PRODUITS.find(x=>x.id===this.value);
@@ -1734,6 +1826,22 @@ document.getElementById('achatProduitSelect').addEventListener('change', functio
   const p = PRODUITS.find(x=>x.id===this.value);
   document.getElementById('achatPU').value = p ? p.prixAchat : '';
 });
+document.getElementById('vdProduitSelect').addEventListener('change', function(){
+  const p = PRODUITS.find(x=>x.id===this.value);
+  document.getElementById('vdAjoutPU').value = p ? p.prixVente : '';
+  const info = document.getElementById('vdStockInfo');
+  if(p){
+    const seuil = p.seuilAlerte!=null ? p.seuilAlerte : 5;
+    info.textContent = t('stock_disponible')+fmtQty(p.stock, p.unite);
+    info.style.color = (p.stock||0) <= seuil ? 'var(--red)' : 'var(--muted)';
+  } else {
+    info.textContent = '';
+  }
+});
+document.getElementById('adProduitSelect').addEventListener('change', function(){
+  const p = PRODUITS.find(x=>x.id===this.value);
+  document.getElementById('adAjoutPU').value = p ? p.prixAchat : '';
+});
 function ajusterQte(delta){
   const input = document.getElementById('venteQte');
   let v = parseFloat(input.value)||0;
@@ -1742,8 +1850,6 @@ function ajusterQte(delta){
 }
 
 /* ===================== VENTE ===================== */
-function remplirSelectClients(){
-}
 function filtrerClientVente(){
   const q = document.getElementById('venteClientSearch').value.trim().toLowerCase();
   const box = document.getElementById('venteClientResults');
@@ -1834,25 +1940,43 @@ function setModePaiement(mode){
   modePaiementVente = mode;
   document.getElementById('modeComptant').classList.toggle('active', mode==='comptant');
   document.getElementById('modeCredit').classList.toggle('active', mode==='credit');
-  document.getElementById('montantPayeBox').style.display = 'block';
   document.getElementById('venteMontantPaye').value = '';
+  // Crédit = pas payé, point final : pas besoin d'ouvrir le champ montant.
+  document.getElementById('montantPayeBox').style.display = (mode==='comptant') ? 'block' : 'none';
   majStatutPaiementVente();
 }
 function majStatutPaiementVente(){
   const box = document.getElementById('ventePaiementStatut');
+  majEtatBoutonValiderVente();
   if(!box) return;
   if(!modePaiementVente){ box.style.display='none'; return; }
   const total = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
-  const champ = document.getElementById('venteMontantPaye');
-  let montant = parseFloat(champ.value);
-  if(isNaN(montant) || montant<0) montant = 0;
-  if(montant > total){ montant = total; champ.value = total; }
   let st;
-  if(montant<=0) st = {cls:'credit', label:t('pill_impaye')};
-  else if(montant >= total && total>0) st = {cls:'ok', label:t('pill_paye')};
-  else st = {cls:'warn', label:t('pill_partiel')};
+  if(modePaiementVente==='credit'){
+    st = {cls:'credit', label:t('pill_impaye')};
+  } else {
+    const champ = document.getElementById('venteMontantPaye');
+    let montant = parseFloat(champ.value);
+    if(isNaN(montant) || montant<0) montant = 0;
+    if(montant > total){ montant = total; champ.value = total; }
+    if(montant<=0) st = {cls:'credit', label:t('pill_impaye')};
+    else if(montant >= total && total>0) st = {cls:'ok', label:t('pill_paye')};
+    else st = {cls:'warn', label:t('pill_partiel')};
+  }
   box.style.display = 'block';
   box.innerHTML = '<span class="pill '+st.cls+'">'+st.label+'</span>';
+}
+/* Le bouton Valider n'est activé que si : panier non vide, mode choisi,
+   et si Comptant, un montant > 0 saisi. Crédit n'a pas besoin de montant. */
+function majEtatBoutonValiderVente(){
+  const btn = document.getElementById('btnValiderVente');
+  if(!btn) return;
+  if(panierVente.length===0 || !modePaiementVente){ btn.disabled = true; return; }
+  if(modePaiementVente==='comptant'){
+    const montant = parseFloat(document.getElementById('venteMontantPaye').value);
+    if(isNaN(montant) || montant<=0){ btn.disabled = true; return; }
+  }
+  btn.disabled = false;
 }
 function resetPaiementVente(){
   modePaiementVente = null;
@@ -1863,6 +1987,7 @@ function resetPaiementVente(){
   const box = document.getElementById('ventePaiementStatut');
   if(box){ box.style.display='none'; box.innerHTML=''; }
   setVenteTypeProduit('stock');
+  majEtatBoutonValiderVente();
 }
 async function validerVente(){
   await withLock(document.getElementById('btnValiderVente'), async ()=>{
@@ -1882,9 +2007,13 @@ async function validerVente(){
         dernierVendeurUtilise = vendeurId;
       }
       const total = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
-      let montantPaye = parseFloat(document.getElementById('venteMontantPaye').value);
-      if(isNaN(montantPaye)) montantPaye = 0;
-      montantPaye = Math.min(Math.max(0,montantPaye), total);
+      let montantPaye = 0;
+      if(modePaiementVente==='comptant'){
+        montantPaye = parseFloat(document.getElementById('venteMontantPaye').value);
+        if(isNaN(montantPaye) || montantPaye<=0){ toast(t('err_montant_paye_requis')); return; }
+        montantPaye = Math.min(montantPaye, total);
+      }
+      // Crédit : montantPaye reste à 0, aucune saisie requise.
 
       const dateChoisieVal = document.getElementById('venteDateHeure').value;
       let dateVente = dateChoisieVal ? new Date(dateChoisieVal) : new Date();
@@ -1934,6 +2063,7 @@ async function validerVente(){
       toast(t('err_enregistrement_vente'));
     }
   });
+  majEtatBoutonValiderVente();
 }
 function afficherRecuVente(vente){
   const client = CLIENTS.find(c=>c.id===vente.clientId);
@@ -1992,19 +2122,154 @@ function renderVenteDetailContent(v){
       const restant = l.qte - dejaRetourne;
       return `<div class="cart-line">
         <div style="flex:1;">
-          <div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
+          <div style="font-weight:700; font-size:13.5px;">${l.nom} ${l.ajouteLe?'<span class="pill ok" style="margin-left:4px;">'+t('pill_ajoute')+'</span>':''} <button type="button" class="btn outline sm" style="padding:3px 8px; font-size:11px; margin-left:6px;" onclick="toggleEditLigneVente(${i})">✏️</button></div>
           <div class="meta">${t('vendu')}: ${fmtQty(l.qte, l.unite)} × ${fmt(l.prixVente)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmtQty(dejaRetourne, l.unite):''}</div>
+          <div id="vdEditLigne_${i}" style="display:none; margin-top:6px;">
+            <div class="grid2">
+              <input type="number" id="vdEditQte_${i}" value="${l.qte}" min="${dejaRetourne>0?dejaRetourne:0.01}" step="any" inputmode="decimal">
+              <input type="number" id="vdEditPU_${i}" value="${l.prixVente}" min="0" step="any" inputmode="decimal">
+            </div>
+            <button class="btn amber sm block" id="vdEditSave_${i}" style="margin-top:6px;" onclick="enregistrerModifLigneVente(${i})">${t('enregistrer')}</button>
+          </div>
         </div>
         <input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="vdQte_${i}" ${restant<=0?'disabled':''}>
       </div>`;
     }).join('');
 }
+function toggleEditLigneVente(i){
+  const el = document.getElementById('vdEditLigne_'+i);
+  if(!el) return;
+  el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
+}
+/* Corrige une ligne déjà enregistrée (typo qté/prix) sans passer par un
+   retour. Ne touche jamais montantPaye : si le nouveau total tomberait
+   sous ce qui est déjà encaissé, on bloque et on renvoie vers "Valider le
+   retour", seul chemin qui sait gérer le remboursement correctement. */
+async function enregistrerModifLigneVente(i){
+  await withLock(document.getElementById('vdEditSave_'+i), async ()=>{
+    const v = VENTES.find(x=>x.id===window._currentVenteId);
+    if(!v) return;
+    const l = v.items[i];
+    if(!l) return;
+    const newQte = parseFloat(document.getElementById('vdEditQte_'+i).value);
+    const newPU = parseFloat(document.getElementById('vdEditPU_'+i).value);
+    if(!newQte || newQte<=0){ toast(t('err_quantite')); return; }
+    if(isNaN(newPU) || newPU<0){ toast(t('err_prix')); return; }
+    const dejaRetourne = l.qteRetournee||0;
+    if(newQte < dejaRetourne){
+      toast(t('err_qte_min_retournee')+fmtQty(dejaRetourne, l.unite));
+      return;
+    }
+    const deltaQte = newQte - l.qte;
+    let produit = null;
+    if(l.produitId){
+      produit = PRODUITS.find(p=>p.id===l.produitId);
+      if(deltaQte > 0){
+        const dispo = produit ? (produit.stock||0) : 0;
+        if(deltaQte > dispo){ toast(t('err_stock_insuffisant')+fmt(dispo)+')'); return; }
+      }
+    }
+    const delta = (newQte*newPU) - (l.qte*l.prixVente);
+    const nouveauTotal = (v.total||0) + delta;
+    if(nouveauTotal < (v.montantPaye||0)){
+      toast(t('err_modif_sous_paye')+fmt(v.montantPaye)+t('err_modif_sous_paye_suite'));
+      return;
+    }
+    if(produit){ produit.stock = (produit.stock||0) - deltaQte; await put('produits', produit); remplirSelectProduits(); }
+    l.qte = newQte; l.prixVente = newPU;
+    v.total = nouveauTotal;
+    await put('ventes', v);
+    if(v.clientId){
+      const c = CLIENTS.find(x=>x.id===v.clientId);
+      if(c){ c.solde = Math.max(0, (c.solde||0) + delta); await put('clients', c); }
+    }
+    renderVenteDetailContent(v);
+    renderHistorique(); renderClients(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
+    toast(t('toast_ligne_modifiee'));
+  });
+}
 function openVenteDetail(id){
   const v = VENTES.find(x=>x.id===id);
   if(!v) return;
   window._currentVenteId = id;
+  resetVdAjoutProduit();
   renderVenteDetailContent(v);
   openModal('modalVenteDetail');
+}
+/* ===== Ajouter un produit à une vente déjà enregistrée ===== */
+let vdAjoutOuvert = false;
+let vdTypeProduitActuel = 'stock';
+function toggleVdAjoutProduit(){
+  vdAjoutOuvert = !vdAjoutOuvert;
+  document.getElementById('vdAjoutWrap').style.display = vdAjoutOuvert ? 'block' : 'none';
+  document.getElementById('vdAjoutToggleLabel').textContent = vdAjoutOuvert ? t('masquer') : t('afficher');
+}
+function resetVdAjoutProduit(){
+  vdAjoutOuvert = false;
+  document.getElementById('vdAjoutWrap').style.display = 'none';
+  document.getElementById('vdAjoutToggleLabel').textContent = t('afficher');
+  document.getElementById('vdAjoutQte').value = '1';
+  document.getElementById('vdAjoutPU').value = '';
+  setVdTypeProduit('stock');
+}
+function setVdTypeProduit(type){
+  vdTypeProduitActuel = type;
+  document.getElementById('vdTypeStock').classList.toggle('active', type==='stock');
+  document.getElementById('vdTypeHorsStock').classList.toggle('active', type==='horsstock');
+  document.getElementById('vdProduitSelect').style.display = type==='stock' ? 'block' : 'none';
+  document.getElementById('vdProduitNomLibre').style.display = type==='horsstock' ? 'block' : 'none';
+  document.getElementById('vdStockInfo').style.display = type==='stock' ? 'block' : 'none';
+  document.getElementById('vdProduitSelect').value = '';
+  document.getElementById('vdProduitNomLibre').value = '';
+  document.getElementById('vdStockInfo').textContent = '';
+  document.getElementById('vdAjoutPU').value = '';
+}
+/* Ajoute une ligne à une vente déjà enregistrée : met à jour, dans la même
+   opération, les items, le total de la vente, le stock (si produit du
+   stock) et la dette du client d'un montant identique — pour ne jamais
+   désynchroniser le solde client des ventes réelles. */
+async function ajouterProduitAVente(){
+  await withLock(document.getElementById('btnAjouterProduitVente'), async ()=>{
+    const v = VENTES.find(x=>x.id===window._currentVenteId);
+    if(!v) return;
+    const qte = parseFloat(document.getElementById('vdAjoutQte').value);
+    const pu = parseFloat(document.getElementById('vdAjoutPU').value);
+    if(!qte || qte<=0){ toast(t('err_quantite')); return; }
+    if(isNaN(pu) || pu<0){ toast(t('err_prix')); return; }
+
+    let ligne;
+    if(vdTypeProduitActuel==='horsstock'){
+      const nom = document.getElementById('vdProduitNomLibre').value.trim();
+      if(!nom){ toast(t('err_nom_produit')); return; }
+      ligne = {produitId:null, nom, qte, prixVente:pu, prixAchat:null, unite:'', horsStock:true, ajouteLe:nowISO()};
+    } else {
+      const pid = document.getElementById('vdProduitSelect').value;
+      const produit = PRODUITS.find(p=>p.id===pid);
+      if(!produit){ toast(t('err_choisir_produit')); return; }
+      if(qte > (produit.stock||0)){
+        toast(t('err_stock_insuffisant')+fmt(produit.stock||0)+')');
+        return;
+      }
+      ligne = {produitId:produit.id, nom:produit.nom, qte, prixVente:pu, prixAchat:produit.prixAchat, unite:produit.unite, horsStock:false, ajouteLe:nowISO()};
+      produit.stock = (produit.stock||0) - qte;
+      await put('produits', produit);
+      remplirSelectProduits();
+    }
+
+    v.items.push(ligne);
+    v.total = (v.total||0) + qte*pu;
+    await put('ventes', v);
+
+    if(v.clientId){
+      const c = CLIENTS.find(x=>x.id===v.clientId);
+      if(c){ c.solde = (c.solde||0) + qte*pu; await put('clients', c); }
+    }
+
+    resetVdAjoutProduit();
+    renderVenteDetailContent(v);
+    renderHistorique(); renderClients(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
+    toast(t('toast_produit_ajoute_vente'));
+  });
 }
 /* Single source of truth for client payments: either targeted at one sale
    (venteIdCible) or allocated FIFO across the client's oldest open sales
@@ -2132,7 +2397,7 @@ async function supprimerVente(){
     toast(t('err_suppression_retour_existant'));
     return;
   }
-  if(!confirm(t('confirm_supprimer_vente')+' '+v.numero+' ? '+t('confirm_retour_suite'))) return;
+  if(!confirm(t('confirm_supprimer_vente')+' '+v.numero+t('confirm_retour_suite'))) return;
 
   for(const l of v.items){
     if(!l.produitId) continue;
@@ -2188,19 +2453,126 @@ function renderAchatDetailContent(a){
       const restant = l.qte - dejaRetourne;
       return `<div class="cart-line">
         <div style="flex:1;">
-          <div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
+          <div style="font-weight:700; font-size:13.5px;">${l.nom} ${l.ajouteLe?'<span class="pill ok" style="margin-left:4px;">'+t('pill_ajoute')+'</span>':''} <button type="button" class="btn outline sm" style="padding:3px 8px; font-size:11px; margin-left:6px;" onclick="toggleEditLigneAchat(${i})">✏️</button></div>
           <div class="meta">${t('achete')}: ${fmtQty(l.qte, l.unite)} × ${fmt(l.prixAchat)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmtQty(dejaRetourne, l.unite):''}</div>
+          <div id="adEditLigne_${i}" style="display:none; margin-top:6px;">
+            <div class="grid2">
+              <input type="number" id="adEditQte_${i}" value="${l.qte}" min="${dejaRetourne>0?dejaRetourne:0.01}" step="any" inputmode="decimal">
+              <input type="number" id="adEditPU_${i}" value="${l.prixAchat}" min="0" step="any" inputmode="decimal">
+            </div>
+            <button class="btn amber sm block" id="adEditSave_${i}" style="margin-top:6px;" onclick="enregistrerModifLigneAchat(${i})">${t('enregistrer')}</button>
+          </div>
         </div>
         <input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="adQte_${i}" ${restant<=0?'disabled':''}>
       </div>`;
     }).join('');
 }
+function toggleEditLigneAchat(i){
+  const el = document.getElementById('adEditLigne_'+i);
+  if(!el) return;
+  el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
+}
+/* Miroir de enregistrerModifLigneVente, mais une baisse de quantité ici
+   retire du stock déjà reçu — donc vérifie qu'il en reste assez (une
+   partie a peut-être déjà été revendue) avant d'appliquer. */
+async function enregistrerModifLigneAchat(i){
+  await withLock(document.getElementById('adEditSave_'+i), async ()=>{
+    const a = ACHATS.find(x=>x.id===window._currentAchatId);
+    if(!a) return;
+    const l = a.items[i];
+    if(!l) return;
+    const newQte = parseFloat(document.getElementById('adEditQte_'+i).value);
+    const newPU = parseFloat(document.getElementById('adEditPU_'+i).value);
+    if(!newQte || newQte<=0){ toast(t('err_quantite')); return; }
+    if(isNaN(newPU) || newPU<0){ toast(t('err_prix')); return; }
+    const dejaRetourne = l.qteRetournee||0;
+    if(newQte < dejaRetourne){
+      toast(t('err_qte_min_retournee')+fmtQty(dejaRetourne, l.unite));
+      return;
+    }
+    const deltaQte = newQte - l.qte;
+    const produit = PRODUITS.find(p=>p.id===l.produitId);
+    if(deltaQte < 0){
+      const dispo = produit ? (produit.stock||0) : 0;
+      if(dispo + deltaQte < 0){
+        toast(t('err_suppression_stock_insuffisant')+(produit?produit.nom:l.nom)+')');
+        return;
+      }
+    }
+    const delta = (newQte*newPU) - (l.qte*l.prixAchat);
+    const nouveauTotal = (a.total||0) + delta;
+    if(nouveauTotal < (a.montantPaye||0)){
+      toast(t('err_modif_sous_paye')+fmt(a.montantPaye)+t('err_modif_sous_paye_suite'));
+      return;
+    }
+    if(produit){ produit.stock = (produit.stock||0) + deltaQte; await put('produits', produit); remplirSelectProduits(); }
+    l.qte = newQte; l.prixAchat = newPU;
+    a.total = nouveauTotal;
+    await put('achats', a);
+    if(a.fournisseurId){
+      const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
+      if(f){ f.solde = Math.max(0, (f.solde||0) + delta); await put('fournisseurs', f); }
+    }
+    renderAchatDetailContent(a);
+    renderHistorique(); renderFournisseurs(); renderStock(); renderHomeWidgets(); renderBilan();
+    toast(t('toast_ligne_modifiee'));
+  });
+}
 function openAchatDetail(id){
   const a = ACHATS.find(x=>x.id===id);
   if(!a) return;
   window._currentAchatId = id;
+  resetAdAjoutProduit();
   renderAchatDetailContent(a);
   openModal('modalAchatDetail');
+}
+/* ===== Ajouter un produit à un achat déjà enregistré ===== */
+let adAjoutOuvert = false;
+function toggleAdAjoutProduit(){
+  adAjoutOuvert = !adAjoutOuvert;
+  document.getElementById('adAjoutWrap').style.display = adAjoutOuvert ? 'block' : 'none';
+  document.getElementById('adAjoutToggleLabel').textContent = adAjoutOuvert ? t('masquer') : t('afficher');
+}
+function resetAdAjoutProduit(){
+  adAjoutOuvert = false;
+  document.getElementById('adAjoutWrap').style.display = 'none';
+  document.getElementById('adAjoutToggleLabel').textContent = t('afficher');
+  document.getElementById('adAjoutQte').value = '1';
+  document.getElementById('adAjoutPU').value = '';
+  document.getElementById('adProduitSelect').value = '';
+}
+async function ajouterProduitAAchat(){
+  await withLock(document.getElementById('btnAjouterProduitAchat'), async ()=>{
+    const a = ACHATS.find(x=>x.id===window._currentAchatId);
+    if(!a) return;
+    const pid = document.getElementById('adProduitSelect').value;
+    const produit = PRODUITS.find(p=>p.id===pid);
+    if(!produit){ toast(t('err_choisir_produit')); return; }
+    const qte = parseFloat(document.getElementById('adAjoutQte').value);
+    const pu = parseFloat(document.getElementById('adAjoutPU').value);
+    if(!qte || qte<=0){ toast(t('err_quantite')); return; }
+    if(isNaN(pu) || pu<0){ toast(t('err_prix')); return; }
+
+    const ligne = {produitId:produit.id, nom:produit.nom, qte, prixAchat:pu, unite:produit.unite, ajouteLe:nowISO()};
+    produit.stock = (produit.stock||0) + qte;
+    produit.prixAchat = pu;
+    await put('produits', produit);
+    remplirSelectProduits();
+
+    a.items.push(ligne);
+    a.total = (a.total||0) + qte*pu;
+    await put('achats', a);
+
+    if(a.fournisseurId){
+      const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
+      if(f){ f.solde = (f.solde||0) + qte*pu; await put('fournisseurs', f); }
+    }
+
+    resetAdAjoutProduit();
+    renderAchatDetailContent(a);
+    renderHistorique(); renderFournisseurs(); renderStock(); renderHomeWidgets(); renderBilan();
+    toast(t('toast_produit_ajoute_achat'));
+  });
 }
 /* Mirrors appliquerPaiementClient for suppliers: targeted at one achat, or
    FIFO-allocated across the supplier's oldest open achats when generic. */
@@ -2322,16 +2694,23 @@ async function supprimerAchat(){
     return;
   }
   // Un achat qui a déjà partiellement alimenté des ventes ne peut pas être
-  // annulé sans faire passer le stock sous zéro : on vérifie ligne par ligne.
+  // annulé sans faire passer le stock sous zéro : on cumule d'abord la
+  // quantité requise par produit (une même fiche peut apparaître sur
+  // plusieurs lignes de cet achat) avant de comparer au stock réel.
+  const qteRequiseParProduit = {};
   for(const l of a.items){
-    const p = PRODUITS.find(x=>x.id===l.produitId);
+    if(!l.produitId) continue;
+    qteRequiseParProduit[l.produitId] = (qteRequiseParProduit[l.produitId]||0) + l.qte;
+  }
+  for(const produitId in qteRequiseParProduit){
+    const p = PRODUITS.find(x=>x.id===produitId);
     const dispo = p ? (p.stock||0) : 0;
-    if(dispo - l.qte < 0){
-      toast(t('err_suppression_stock_insuffisant')+(p?p.nom:l.nom)+')');
+    if(dispo - qteRequiseParProduit[produitId] < 0){
+      toast(t('err_suppression_stock_insuffisant')+(p?p.nom:produitId)+')');
       return;
     }
   }
-  if(!confirm(t('confirm_supprimer_achat')+' '+a.numero+' ? '+t('confirm_retour_suite'))) return;
+  if(!confirm(t('confirm_supprimer_achat')+' '+a.numero+t('confirm_retour_suite'))) return;
 
   for(const l of a.items){
     const p = PRODUITS.find(x=>x.id===l.produitId);
@@ -2458,6 +2837,14 @@ async function enregistrerClient(){
   if(!nom){ toast(t('err_nom_client')); return; }
   const doublon = CLIENTS.find(x=>x.id!==id && x.nom.trim().toLowerCase()===nom.toLowerCase());
   if(doublon && !confirm(t('confirm_nom_existe')+' "'+nom+'". '+t('continuer_quand_meme'))) return;
+  if(id){
+    // Le solde d'un client ne peut jamais être inférieur à ce qu'il reste dû
+    // sur ses ventes enregistrées, sinon on masque de la dette réelle.
+    const detteOuverte = detteOuverteVentesClient(id);
+    if(solde < detteOuverte){
+      if(!confirm(t('avert_solde_client_bas')+fmt(detteOuverte)+t('avert_solde_client_bas_milieu')+fmt(solde)+t('avert_solde_client_bas_suite')+t('continuer_quand_meme'))) return;
+    }
+  }
   let c;
   if(id){ c = CLIENTS.find(x=>x.id===id); c.nom=nom; c.tel=tel; c.solde=solde; c.caInitial=caInitial; }
   else {
@@ -2465,13 +2852,16 @@ async function enregistrerClient(){
     CLIENTS.push(c);
   }
   await put('clients', c);
-  remplirSelectClients(); renderClients();
+  renderClients();
   closeModal('modalClient');
   if(window._clientModalContext==='vente'){
     document.getElementById('venteClient').value = c.id;
     document.getElementById('venteClientSearch').value = c.nom;
   }
   toast(t('toast_client_enregistre'));
+}
+function detteOuverteVentesClient(id){
+  return VENTES.filter(v=>v.clientId===id).reduce((s,v)=>s+soldeRestantVente(v),0);
 }
 function caClient(id){
   const c = CLIENTS.find(x=>x.id===id);
@@ -2598,7 +2988,7 @@ function switchAchatsTab(tab){
   if(tab==='stock') renderStock();
 }
 function remplirSelectFournisseurs(){
-  document.getElementById('achatFournisseur').innerHTML = '<option value="">-- Choisir --</option>' +
+  document.getElementById('achatFournisseur').innerHTML = '<option value="">'+t('opt_choisir')+'</option>' +
     FOURNISSEURS.map(f=>`<option value="${f.id}">${f.nom}</option>`).join('');
 }
 function openFournisseurModal(id){
@@ -2631,6 +3021,12 @@ async function enregistrerFournisseur(){
   if(!nom){ toast(t('err_nom_fournisseur')); return; }
   const doublon = FOURNISSEURS.find(x=>x.id!==id && x.nom.trim().toLowerCase()===nom.toLowerCase());
   if(doublon && !confirm(t('confirm_nom_existe')+' "'+nom+'". '+t('continuer_quand_meme'))) return;
+  if(id){
+    const detteOuverte = detteOuverteAchatsFournisseur(id);
+    if(solde < detteOuverte){
+      if(!confirm(t('avert_solde_fournisseur_bas')+fmt(detteOuverte)+t('avert_solde_fournisseur_bas_milieu')+fmt(solde)+t('avert_solde_fournisseur_bas_suite')+t('continuer_quand_meme'))) return;
+    }
+  }
   let f;
   if(id){ f = FOURNISSEURS.find(x=>x.id===id); f.nom=nom; f.tel=tel; f.solde=solde; f.caInitial=caInitial; }
   else {
@@ -2641,6 +3037,9 @@ async function enregistrerFournisseur(){
   remplirSelectFournisseurs(); renderFournisseurs();
   closeModal('modalFournisseur');
   toast(t('toast_fournisseur_enregistre'));
+}
+function detteOuverteAchatsFournisseur(id){
+  return ACHATS.filter(a=>a.fournisseurId===id).reduce((s,a)=>s+soldeRestantAchat(a),0);
 }
 async function supprimerFournisseur(){
   const id = window._currentFournisseurId;
@@ -2772,7 +3171,7 @@ async function validerAchat(){
       const total = panierAchat.reduce((s,l)=>s+l.qte*l.prixAchat,0);
       let montantPaye = parseFloat(document.getElementById('achatMontantPaye').value);
       if(isNaN(montantPaye)) montantPaye=0;
-      montantPaye = Math.min(montantPaye, total);
+      montantPaye = Math.min(Math.max(0,montantPaye), total);
 
       const achat = {id:uid(), date:nowISO(), fournisseurId, items:panierAchat.slice(), total, montantPaye, numero:'A-'+Date.now().toString().slice(-8)};
       await put('achats', achat); ACHATS.push(achat);
@@ -2861,29 +3260,31 @@ function openMouvementModal(){
   onMvtCategorieChange();
   openModal('modalMouvement');
 }
-const MVT_LABELS = {
-  investissement: {type:'entree', motifDefaut:"Investissement / apport personnel"},
-  retour_investissement: {type:'sortie', motifDefaut:"Retour d'investissement"},
-  fonds_roulement_ajout: {type:'entree', motifDefaut:"Ajout fonds de roulement"},
-  fonds_roulement_retrait: {type:'sortie', motifDefaut:"Retrait fonds de roulement"},
-  charges: {type:'sortie', motifDefaut:'Charges (carburant, factures...)'},
-  solde_initial: {type:'entree', motifDefaut:"Ancien fonds / solde de départ"},
-  autre_entree: {type:'entree', motifDefaut:'Apport'},
-  autre_sortie: {type:'sortie', motifDefaut:'Dépense'}
+const MVT_TYPES = {
+  investissement: 'entree', retour_investissement: 'sortie',
+  fonds_roulement_ajout: 'entree', fonds_roulement_retrait: 'sortie',
+  charges: 'sortie', solde_initial: 'entree',
+  autre_entree: 'entree', autre_sortie: 'sortie'
 };
+const MVT_MOTIF_KEYS = {
+  investissement: 'mvt_motif_investissement', retour_investissement: 'mvt_motif_retour_investissement',
+  fonds_roulement_ajout: 'mvt_motif_fonds_ajout', fonds_roulement_retrait: 'mvt_motif_fonds_retrait',
+  charges: 'mvt_motif_charges', solde_initial: 'mvt_motif_solde_initial',
+  autre_entree: 'mvt_motif_autre_entree', autre_sortie: 'mvt_motif_autre_sortie'
+};
+function mvtMotifDefaut(categorie){ return t(MVT_MOTIF_KEYS[categorie]); }
 function onMvtCategorieChange(){
   const cat = document.getElementById('mvtCategorie').value;
-  document.getElementById('mvtMotif').placeholder = MVT_LABELS[cat].motifDefaut;
+  document.getElementById('mvtMotif').placeholder = mvtMotifDefaut(cat);
   document.getElementById('mvtSoldeInitialInfo').style.display = (cat==='solde_initial') ? 'block' : 'none';
 }
 async function enregistrerMouvement(){
   await withLock(document.getElementById('btnEnregistrerMouvement'), async ()=>{
     const montant = parseFloat(document.getElementById('mvtMontant').value);
     const categorie = document.getElementById('mvtCategorie').value;
-    const conf = MVT_LABELS[categorie];
-    const motif = document.getElementById('mvtMotif').value.trim() || conf.motifDefaut;
+    const motif = document.getElementById('mvtMotif').value.trim() || mvtMotifDefaut(categorie);
     if(!montant || montant<=0){ toast(t('err_montant')); return; }
-    const mvt = {id:uid(), date:nowISO(), type:conf.type, categorie, montant, motif, lien:null};
+    const mvt = {id:uid(), date:nowISO(), type:MVT_TYPES[categorie], categorie, montant, motif, lien:null};
     await put('caisse', mvt); CAISSE.push(mvt);
     closeModal('modalMouvement');
     renderBilan();
@@ -2936,9 +3337,9 @@ async function enregistrerModifMouvement(){
     if(!montant || montant<=0){ toast(t('err_montant')); return; }
     const categorie = document.getElementById('mvdCategorie').value;
     m.categorie = categorie;
-    m.type = MVT_LABELS[categorie].type;
+    m.type = MVT_TYPES[categorie];
     m.montant = montant;
-    m.motif = document.getElementById('mvdMotif').value.trim() || MVT_LABELS[categorie].motifDefaut;
+    m.motif = document.getElementById('mvdMotif').value.trim() || mvtMotifDefaut(categorie);
     await put('caisse', m);
     closeModal('modalMouvementDetail');
     renderBilan();
@@ -3002,7 +3403,7 @@ async function importerDonnees(evt){
     RETOURS_VENTE = data.retoursVente||[]; RETOURS_ACHAT = data.retoursAchat||[];
     VENDEURS = data.vendeurs||[];
     if(data.parametres){ PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT, data.parametres); await sauverParametres(); }
-    remplirSelectProduits(); remplirSelectClients(); remplirSelectFournisseurs();
+    remplirSelectProduits(); remplirSelectFournisseurs();
     renderBilan(); renderClients(); renderFournisseurs(); renderStock(); renderHistorique();
     renderVentesChart(); renderHomeWidgets(); appliquerVisibiliteVendeur();
     toast(t('toast_donnees_restaurees'));
@@ -3063,7 +3464,7 @@ function renderBilan(){
     const card = document.getElementById('classementVendeursCard');
     card.innerHTML = lignes.length ? lignes.map((l,i)=>`
       <div class="list-item">
-        <div><div class="name">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}${l.nom}</div><div class="meta">${l.nb} vente${l.nb>1?'s':''}</div></div>
+        <div><div class="name">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}${l.nom}</div><div class="meta">${l.nb} ${t('ventes_label')}</div></div>
         <div class="amount">${fmt(l.total)}</div>
       </div>`).join('') : '<div class="empty">'+t('empty_classement')+'</div>';
   }
@@ -3143,7 +3544,7 @@ function renderVentesChart(){
     const y = (h-padBottom) - barH;
     const labelEch = (labels[i]+'').replace(/'/g,"\\'");
     bars += `<rect x="${i*(barW+gap)}" y="0" width="${barW}" height="${h}" fill="transparent" style="cursor:pointer;" onclick="afficherJourDetail(event,'${labelEch}',${v},${counts[i]})"></rect>`;
-    bars += `<rect x="${x}" y="${y}" width="${barWReduced}" height="${barH}" rx="3" fill="url(#hexBarFill)" style="pointer-events:none;"><title>${labels[i]} : ${fmt(v)} (${counts[i]} vente${counts[i]>1?'s':''})</title></rect>`;
+    bars += `<rect x="${x}" y="${y}" width="${barWReduced}" height="${barH}" rx="3" fill="url(#hexBarFill)" style="pointer-events:none;"><title>${labels[i]} : ${fmt(v)} (${counts[i]} ${t('ventes_label')})</title></rect>`;
     bars += `<rect x="${x}" y="${y}" width="${barWReduced}" height="${barH}" rx="3" fill="url(#hexPattern)" style="pointer-events:none;"></rect>`;
     bars += `<text x="${x+barWReduced/2}" y="${h-4}" font-size="8" text-anchor="middle" style="fill:var(--muted); pointer-events:none;">${labels[i]}</text>`;
   });
@@ -3170,7 +3571,7 @@ function renderVentesChart(){
 let dayPopoverTimeout = null;
 function afficherJourDetail(evt, label, valeur, nb){
   const pop = document.getElementById('dayPopover');
-  pop.innerHTML = label+'<br><span style="font-weight:900; font-size:14px;">'+fmt(valeur)+'</span><br><span style="font-weight:500; opacity:.8;">'+nb+' vente'+(nb>1?'s':'')+'</span>';
+  pop.innerHTML = label+'<br><span style="font-weight:900; font-size:14px;">'+fmt(valeur)+'</span><br><span style="font-weight:500; opacity:.8;">'+nb+' '+t('ventes_label')+'</span>';
   const rect = evt.currentTarget.closest('svg').getBoundingClientRect();
   pop.style.left = Math.min(window.innerWidth-140, Math.max(8, evt.clientX-60))+'px';
   let topPos = rect.top - 66;
@@ -3252,7 +3653,7 @@ function updateMiniCartBar(){
   const modalOuverte = currentModalId === 'modalNouvelleVente';
   if(panierVente.length>0 && !modalOuverte){
     const total = panierVente.reduce((s,l)=>s+l.qte*l.prixVente,0);
-    document.getElementById('miniCartInfo').textContent = '🛒 '+panierVente.length+' article'+(panierVente.length>1?'s':'')+' · '+fmt(total);
+    document.getElementById('miniCartInfo').textContent = '🛒 '+panierVente.length+' '+t('mini_cart_articles')+' · '+fmt(total);
     bar.classList.add('show');
   } else {
     bar.classList.remove('show');
@@ -3337,7 +3738,6 @@ async function init(){
   document.documentElement.lang = PARAMETRES.langue || 'fr';
   applyTranslations();
   remplirSelectProduits();
-  remplirSelectClients();
   remplirSelectFournisseurs();
   remplirSelectVendeurs();
   resetPaiementVente();
