@@ -291,7 +291,7 @@
     <h2 class="title" data-i18n="accueil">Accueil</h2>
 
     <div class="card search-box" style="position:relative;">
-      <input type="text" id="rechercheGlobale" data-i18n-ph="rechercher_global" placeholder="🔍 Rechercher un produit, client, vente..." autocomplete="off" oninput="rechercheGlobaleInput()" onfocus="rechercheGlobaleInput()">
+      <input type="text" id="rechercheGlobale" data-i18n-ph="rechercher_global" placeholder="🔍 Rechercher un produit, client, vente..." autocomplete="off" oninput="rechercheGlobaleInputDebounced()" onfocus="rechercheGlobaleInput()">
       <div id="rechercheGlobaleResults" style="display:none; position:absolute; left:12px; right:12px; top:100%; background:var(--card); border:1px solid var(--line); border-radius:0 0 var(--radius) var(--radius); box-shadow:0 8px 18px rgba(0,0,0,.15); z-index:40; max-height:320px; overflow-y:auto;"></div>
     </div>
 
@@ -410,7 +410,7 @@
   <!-- CLIENTS -->
   <section class="view" id="view-clients">
     <h2 class="title" data-i18n="clients_title">Clients</h2>
-    <div class="card search-box"><input type="text" id="clientSearch" data-i18n-ph="rechercher_client" placeholder="Rechercher un client..." oninput="renderClients()"></div>
+    <div class="card search-box"><input type="text" id="clientSearch" data-i18n-ph="rechercher_client" placeholder="Rechercher un client..." oninput="renderClientsDebounced()"></div>
     <div class="segmented">
       <button id="clientSortDette" class="active" data-i18n="par_dette" onclick="setClientSort('dette')">Par dette</button>
       <button id="clientSortCA" data-i18n="meilleurs_clients" onclick="setClientSort('ca')">Meilleurs clients</button>
@@ -471,7 +471,7 @@
         </div>
         <button class="btn outline sm" data-i18n="plus_produit" onclick="openProduitModal()">+ Produit</button>
       </div>
-      <div class="card search-box"><input type="text" id="stockSearch" data-i18n-ph="rechercher_produit" placeholder="Rechercher un produit..." oninput="renderStock()"></div>
+      <div class="card search-box"><input type="text" id="stockSearch" data-i18n-ph="rechercher_produit" placeholder="Rechercher un produit..." oninput="renderStockDebounced()"></div>
       <div class="card" id="stockListCard"></div>
     </div>
   </section>
@@ -763,7 +763,14 @@
         <button class="btn amber" id="btnPayerVente" data-i18n="encaisser" onclick="payerVenteDepuisHistorique()">Encaisser</button>
       </div>
     </div>
-    <div class="card" style="margin-top:10px;" id="vdLignesCard"></div>
+    <div class="card" style="margin-top:10px;">
+      <div class="segmented" style="margin-bottom:8px;">
+        <button id="vdModeDetails" class="active" data-i18n="mode_details" onclick="setVdLignesMode('details')">Détails</button>
+        <button id="vdModeModifier" data-i18n="mode_modifier" onclick="setVdLignesMode('modifier')">Modifier</button>
+        <button id="vdModeRetour" data-i18n="mode_retour" onclick="setVdLignesMode('retour')">Retour</button>
+      </div>
+      <div id="vdLignesCard"></div>
+    </div>
     <div class="card" id="vdAjoutCard">
       <div class="row" style="cursor:pointer;" onclick="toggleVdAjoutProduit()">
         <span style="font-weight:800; font-size:13px; color:var(--navy);" data-i18n="ajouter_produit_vente">+ Ajouter un produit à cette vente</span>
@@ -790,11 +797,17 @@
         <button class="btn amber block" id="btnAjouterProduitVente" style="margin-top:10px;" data-i18n="ajouter_a_vente" onclick="ajouterProduitAVente()">Ajouter à cette vente</button>
       </div>
     </div>
-    <div class="grid2" style="margin-top:10px;">
-      <button class="btn" data-i18n="reimprimer" onclick="reimprimerVente()">🖨️ Réimprimer</button>
-      <button class="btn red" data-i18n="valider_retour" onclick="validerRetourVente()">Valider le retour</button>
+    <button class="btn outline block" style="margin-top:8px;" data-i18n="reimprimer" onclick="reimprimerVente()">🖨️ Réimprimer</button>
+    <button class="btn block" id="btnValiderRetourVente" style="margin-top:10px; background:var(--amber); color:#2A1D00; display:none;" data-i18n="valider_retour" onclick="validerRetourVente()">Valider le retour</button>
+    <div class="card" style="margin-top:14px; border-color:var(--red);">
+      <div class="row" style="cursor:pointer;" onclick="toggleZoneDangerVente()">
+        <span style="font-weight:800; font-size:12.5px; color:var(--red);" data-i18n="zone_sensible">⚠️ Zone sensible</span>
+        <span class="linklike" id="vdZoneDangerToggle" style="color:var(--red);" data-i18n="afficher">Afficher ▾</span>
+      </div>
+      <div id="vdZoneDangerWrap" style="display:none; margin-top:10px;">
+        <button class="btn block" style="background:var(--red); color:#fff;" data-i18n="supprimer_vente" onclick="supprimerVente()">🗑️ Supprimer cette vente</button>
+      </div>
     </div>
-    <button class="btn red block" style="margin-top:8px; background:transparent; border:1.5px solid var(--red); color:var(--red);" data-i18n="supprimer_vente" onclick="supprimerVente()">🗑️ Supprimer cette vente</button>
   </div>
 </div>
 
@@ -1026,6 +1039,22 @@ function del(store, id){
     r.onerror = reject;
   });
 }
+/* Wraps a set of puts/deletes across multiple stores in one native IndexedDB
+   transaction. opsFn must call store methods synchronously (no await inside)
+   so the browser doesn't auto-commit mid-sequence. Any thrown error or store
+   request failure aborts the WHOLE transaction — no partial writes survive. */
+function atomicWrite(storeNames, opsFn){
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(storeNames, 'readwrite');
+    const stores = {};
+    storeNames.forEach(name => stores[name] = tx.objectStore(name));
+    tx.oncomplete = () => resolve();
+    tx.onerror = (e) => { e.preventDefault && e.preventDefault(); reject(tx.error); };
+    tx.onabort = () => reject(tx.error || new Error('transaction aborted'));
+    try{ opsFn(stores); }
+    catch(err){ try{ tx.abort(); }catch(e2){} reject(err); }
+  });
+}
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 /* ===================== ETAT GLOBAL ===================== */
@@ -1043,333 +1072,18 @@ const PARAMETRES_DEFAUT = {
 let PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT);
 
 /* ===================== TRADUCTIONS (FR/EN) ===================== */
-const I18N = {
-  fr: {
-    nav_vente:'Vente', nav_clients:'Clients', nav_achats:'Achats', nav_historique:'Historique', nav_bilan:'Bilan',
-    header_sub:'Ta caisse, ton stock, tes clients',
-    accueil:'Accueil', caisse:'Caisse', valeur_stock:'Valeur stock',
-    apercu_ventes:'Aperçu des ventes', semaine:'Semaine', mois:'Mois',
-    afficher:'Afficher ▾', masquer:'Masquer ▴',
-    nouvelle_vente:'🛒 Nouvelle vente', rechercher_global:'🔍 Rechercher un produit, client, vente...',
-    date_heure_vente:'Date et heure de la vente', vendeur:'Vendeur',
-    client_label:'Client (obligatoire)', client_passage:'Rechercher ou créer un client...',
-    nouveau:'+ Nouveau', ajouter_produit:'Ajouter un produit', nouveau_produit:'+ Nouveau produit',
-    quantite:'Quantité', prix_unitaire:'Prix unitaire', ajouter_panier:'Ajouter au panier',
-    panier:'Panier', total:'Total', mode_paiement:'Mode de paiement', comptant:'Comptant', credit:'Crédit',
-    montant_paye:'Montant payé maintenant', valider_vente:'Valider la vente',
-    clients_title:'Clients', rechercher_client:'Rechercher un client...', par_dette:'Par dette', meilleurs_clients:'Meilleurs clients',
-    achats_title:'Achats & fournisseurs', nouvel_achat:'Nouvel achat', fournisseurs:'Fournisseurs', stock:'Stock',
-    fournisseur:'Fournisseur', ajouter_produit_achete:'Ajouter un produit acheté', prix_achat_unitaire:"Prix d'achat unitaire",
-    ajouter_bon_achat:"Ajouter au bon d'achat", bon_achat_cours:"Bon d'achat en cours", valider_achat:"Valider l'achat",
-    nouveau_fournisseur:'+ Nouveau fournisseur', valeur_totale_stock:'Valeur totale du stock (au prix d\'achat)',
-    rechercher_produit:'Rechercher un produit...',
-    historique_title:'Historique', ventes:'Ventes', achats:'Achats', rechercher_historique:'Rechercher un numéro, client, fournisseur...',
-    bilan_title:'Tableau de bord', jour:'Jour', semaine_p:'Semaine', mois_p:'Mois', annee:'Année', perso:'Perso', du:'Du', au:'Au',
-    total_ventes:'Total ventes', benefice_estime:'Bénéfice estimé', nombre_ventes:'Nombre de ventes',
-    total_credits:'Total crédits clients', valeur_stock2:'Valeur de stock', classement_vendeurs:'🏆 Classement des vendeurs',
-    caisse_title:'Caisse', solde_caisse:'Solde actuel de la caisse', mouvement:'+ Mouvement',
-    capital_investi:'Capital investi (total)', recupere:'Récupéré (total)', fonds_roulement_net:'Fonds de roulement net',
-    historique_mouvements:'Historique des mouvements', sauvegarde:'Sauvegarde',
-    sauvegarde_desc:"Exporte régulièrement tes données pour éviter toute perte (changement de téléphone, désinstallation...).",
-    exporter:'⬇️ Exporter (JSON)', importer:'⬆️ Importer',
-    nom_produit:'Nom du produit', prix_achat:"Prix d'achat", prix_vente:'Prix de vente', stock_initial:'Stock initial',
-    seuil_alerte:"Seuil d'alerte stock bas", enregistrer:'Enregistrer', supprimer_produit:'🗑️ Supprimer ce produit',
-    nom:'Nom', telephone:'Téléphone', solde_initial_label:'Solde initial (ancienne dette, si le client en a une)',
-    ca_initial:"Chiffre d'affaires initial (ventes réalisées avant l'app)", supprimer_client:'🗑️ Supprimer ce client',
-    solde_initial_f:'Solde initial (dette existante envers lui)', ca_initial_f:"Chiffre d'affaires initial (achats réalisés avant l'app)",
-    supprimer_fournisseur:'🗑️ Supprimer ce fournisseur',
-    solde_du:'Solde (crédit dû)', ca_realise:"Chiffre d'affaires réalisé", montant_recu:'Montant reçu', encaisser:'Encaisser',
-    historique_ventes:'Historique des ventes',
-    solde_devons:'Solde (nous devons)', achats_realises:'Achats réalisés (total)', montant_paye_f:'Montant payé', payer:'Payer',
-    categorie:'Catégorie', montant:'Montant', motif:'Motif',
-    bon_vente:'Bon de vente', imprimer_bt:'🖨️ Imprimer (Bluetooth)', partager:'Partager', fermer:'Fermer',
-    reimprimer:'🖨️ Réimprimer', valider_retour:'Valider le retour', valider_retour_marchandise:'Valider le retour marchandise',
-    supprimer:'Supprimer',
-    parametres:'Paramètres', vibration:'Vibration', vibration_desc:'Vibrer lors des confirmations',
-    plusieurs_vendeurs:'Plusieurs vendeurs', plusieurs_vendeurs_desc:'Suivre qui a réalisé chaque vente',
-    gerer_vendeurs:'👤 Gérer les vendeurs', theme_defaut:'Thème par défaut', clair:'Clair', sombre:'Sombre', auto:'Automatique (système)',
-    symbole_monetaire:'Symbole monétaire', seuil_defaut:"Seuil d'alerte stock bas par défaut",
-    seuil_defaut_desc:'Utilisé comme valeur pré-remplie pour les nouveaux produits.',
-    langue:'Langue', valider:'✓ Valider',
-    nom_vendeur:'Nom du vendeur', ajouter:'+ Ajouter',
-    modifier:'✏️ Modifier',
-    pill_doit:'Doit', pill_ajour:'A jour', pill_du:'Dû', pill_retour:'Retour', pill_inactif:'Inactif', pill_stockbas:'Stock bas',
-    empty_produits:"Aucun produit pour l'instant.<br>Ajoute ton premier article pour commencer à vendre.",
-    empty_clients:"Aucun client enregistré pour l'instant.",
-    empty_fournisseurs:"Aucun fournisseur pour l'instant.<br>Ajoute-en un pour suivre tes achats.",
-    empty_ventes_hist:"Aucune vente enregistrée pour l'instant.<br>Ta première vente apparaîtra ici.",
-    empty_achats_hist:"Aucun achat enregistré pour l'instant.",
-    empty_mouvements:"Aucun mouvement de caisse pour l'instant.",
-    empty_vendeurs:"Aucun vendeur pour l'instant.",
-    empty_classement:'Aucune vente sur cette période.',
-    aucun_resultat:'Aucun résultat pour',
-    toast_produit_enregistre:'Produit enregistré ✓', toast_client_enregistre:'Client enregistré ✓',
-    toast_fournisseur_enregistre:'Fournisseur enregistré ✓', toast_vente_enregistree:'Vente enregistrée ✓',
-    toast_achat_enregistre:'Achat enregistré ✓', toast_paiement_encaisse:'Paiement encaissé ✓',
-    toast_paiement_effectue:'Paiement effectué ✓', toast_mouvement_enregistre:'Mouvement enregistré ✓',
-    toast_mouvement_modifie:'Mouvement modifié ✓', toast_mouvement_supprime:'Mouvement supprimé',
-    toast_client_supprime:'Client supprimé', toast_fournisseur_supprime:'Fournisseur supprimé', toast_produit_supprime:'Produit supprimé',
-    toast_vendeur_ajoute:'Vendeur ajouté ✓', toast_vendeur_supprime:'Vendeur supprimé',
-    toast_parametres_enregistres:'Paramètres enregistrés ✓', toast_donnees_restaurees:'Données restaurées ✓',
-    toast_sauvegarde_exportee:'Sauvegarde exportée ✓',
-    ancien_fonds_info:"ℹ️ Ce montant sera ajouté au fonds de roulement uniquement — il n'affectera pas le solde de caisse actuel, puisqu'il représente de l'argent déjà existant avant l'utilisation de l'app.",
-    err_date_future:'Impossible de choisir une date future', err_nom_vendeur:'Indique le nom du vendeur',
-    err_nom_produit:'Indique le nom du produit', err_produit_utilise:'Impossible : ce produit apparaît dans des ventes ou achats déjà enregistrés.',
-    err_choisir_produit:'Choisis un produit', err_quantite:'Quantité invalide', err_prix:'Prix invalide',
-    err_stock_insuffisant:'Stock insuffisant (dispo: ', err_panier_vide:'Le panier est vide',
-    err_client_credit:'Sélectionne ou crée un client pour une vente à crédit', err_vendeur_requis:'Sélectionne le vendeur pour cette vente',
-    err_qte_retour:'Indique au moins une quantité à retourner',
-    confirm_retour:'Confirmer le retour pour un montant de ', confirm_retour_suite:' ? Cette action est irréversible.',
-    confirm_retour_marchandise:'Confirmer le retour marchandise pour un montant de ',
-    err_rien_imprimer:'Rien à imprimer', info_recherche_imprimante:'Recherche imprimante Bluetooth...',
-    toast_ticket_envoye:'Ticket envoyé à l\'imprimante', err_impression:'Impression impossible : ',
-    err_partage:'Partage non supporté sur ce navigateur', err_nom_client:'Indique le nom du client',
-    err_montant:'Montant invalide', err_client_dette:'Impossible : ce client a encore une dette de ',
-    err_client_dette_suite:'. Encaisse-la d\'abord.', err_fournisseur_solde:'Impossible : il reste ',
-    err_fournisseur_solde_suite:' à payer à ce fournisseur.', err_bon_achat_vide:'Le bon d\'achat est vide',
-    confirm_supprimer_client_histo:'Ce client a un historique de ventes. Le supprimer masquera son nom dans les ventes passées mais conservera les données. Continuer ?',
-    confirm_supprimer_client:'Supprimer définitivement ce client ? Cette action est irréversible.',
-    confirm_supprimer_fournisseur_histo:'Ce fournisseur a un historique d\'achats. Le supprimer masquera son nom dans les achats passés mais conservera les données. Continuer ?',
-    confirm_supprimer_fournisseur:'Supprimer définitivement ce fournisseur ? Cette action est irréversible.',
-    confirm_supprimer_produit:'Supprimer définitivement',
-    confirm_supprimer_mouvement:'Supprimer ce mouvement de caisse ? Cette action est irréversible.',
-    confirm_supprimer_vendeur:'Supprimer ce vendeur ?', confirm_import:'Importer va REMPLACER toutes les données actuelles par celles du fichier. Continuer ?',
-    err_fichier_invalide:'Fichier invalide : ', err_stockage:"Stockage indisponible dans cet aperçu. Installe l'app pour un usage réel.",
-    err_maj_dispo:"Mise à jour disponible — recharge l'application", err_fermer_onglets:"Ferme les autres onglets/fenêtres de l'app, puis rouvre-la",
-    err_rawbt_fallback:"Web Bluetooth indisponible. Si rien ne s'ouvre, installe l'app RawBT",
-    lien_mouvement_info:"⚠️ Ce mouvement est lié à une opération (vente, achat, paiement...). Le modifier ou le supprimer ici n'annulera pas cette opération elle-même.",
-    vente_comptant:'Vente comptant', sans_fournisseur:'Sans fournisseur', merci_confiance:'Merci de votre confiance !',
-    ventes_label:'ventes', err_vendeur_ventes:'Impossible : ce vendeur a des ventes enregistrées. Désactive-le plutôt.',
-    desactiver:'Désactiver', activer:'Activer',
-    err_enregistrement_vente:"Erreur lors de l'enregistrement de la vente. Réessaie.",
-    err_enregistrement_achat:"Erreur lors de l'enregistrement de l'achat. Réessaie.",
-    toast_retour_enregistre:'Retour enregistré : ', toast_retour_marchandise_enregistre:'Retour marchandise enregistré : ',
-    err_nom_fournisseur:'Indique le nom du fournisseur',
-    aucun_client_trouve:'Aucun client trouvé', aucun_client_enregistre:'Aucun client enregistré',
-    recu_bon:'Bon', recu_total:'TOTAL', recu_paye:'Payé', recu_reste:'Reste à payer',
-    titre_nouvelle_vente:'Nouvelle vente', titre_mouvement:'Mouvement de caisse', titre_bon_vente:'Bon de vente',
-    titre_modifier_mouvement:'Modifier le mouvement', titre_vendeurs:'Vendeurs', titre_parametres:'Paramètres',
-    solde_actuel_dette:'Solde actuel (dette)', solde_actuel_devons:'Solde actuel (nous devons)',
-    qte_a_retourner:'Quantité à retourner (si besoin)',
-    nouveau_client:'+ Nouveau client',
-    titre_nouveau_produit:'Nouveau produit', titre_modifier_produit:'Modifier produit',
-    titre_nouveau_client:'Nouveau client', titre_modifier_client:'Modifier client',
-    titre_nouveau_fournisseur:'Nouveau fournisseur', titre_modifier_fournisseur:'Modifier fournisseur',
-    vendu:'Vendu', achete:'Acheté', deja_retourne:'Déjà retourné',
-    derniers_jours_7:'7 derniers jours', ce_mois_ci:'Ce mois-ci',
-    historique_operations:'Historique des opérations',
-    operation_paiement:'Paiement reçu', plus_produit:'+ Produit',
-    unite_produit:'Unité', unite_autre:'Autre...', unite_autre_placeholder:"Précise l'unité",
-    unite_piece:'Pièce', unite_kg:'Kg', unite_g:'g', unite_litre:'Litre', unite_ml:'ml', unite_carton:'Carton', unite_sac:'Sac', unite_boite:'Boîte',
-    pill_paye:'Payé', pill_partiel:'Partiel', pill_impaye:'Impayé',
-    operation_paiement_effectue:'Paiement effectué', empty_operations:'Aucune opération pour le moment.',
-    confirm_nom_existe:'Un nom identique existe déjà :', continuer_quand_meme:'Continuer quand même ?',
-    avert_solde_client_bas:'Attention : ce client a encore ', avert_solde_client_bas_milieu:' de dette liée à ses ventes, mais tu inscris seulement ',
-    avert_solde_client_bas_suite:'. Cet écart va masquer de la dette réelle. ',
-    avert_solde_fournisseur_bas:'Attention : il reste encore ', avert_solde_fournisseur_bas_milieu:' dû sur des achats non soldés, mais tu inscris seulement ',
-    avert_solde_fournisseur_bas_suite:'. Cet écart va masquer de la dette réelle. ',
-    opt_choisir:'-- Choisir --', opt_choisir_produit:'-- Choisir un produit --',
-    stock_ligne_achat:'Achat', stock_ligne_vente:'Vente', stock_ligne_valeur:'Valeur',
-    mini_cart_articles:'articles',
-    ajouter_produit_vente:'+ Ajouter un produit à cette vente', ajouter_a_vente:'Ajouter à cette vente',
-    toast_produit_ajoute_vente:'Produit ajouté à la vente ✓', pill_ajoute:'Ajouté',
-    ajouter_produit_achat_existant:'+ Ajouter un produit à cet achat', ajouter_a_achat:'Ajouter à cet achat',
-    toast_produit_ajoute_achat:'Produit ajouté à l\'achat ✓',
-    toast_ligne_modifiee:'Ligne modifiée ✓',
-    err_qte_min_retournee:'La quantité ne peut pas être inférieure à ce qui a déjà été retourné : ',
-    err_modif_sous_paye:'Impossible : ', err_modif_sous_paye_suite:' est déjà encaissé sur cette opération. Utilise le retour pour rembourser cette partie.',
-    confirm_annuler_vente:'Annuler cette vente ? Le panier sera vidé.',
-    cat_opt_investissement:"💰 Investissement (j'ajoute de l'argent)", cat_opt_retour_investissement:"↩️ Retour d'investissement (je retire mon argent)",
-    cat_opt_fonds_ajout:'🔄 Ajout fonds de roulement', cat_opt_fonds_retrait:'🔄 Retrait fonds de roulement',
-    cat_opt_charges:'⛽ Charges (carburant, factures...)', cat_opt_solde_initial:'📂 Ancien fonds / solde de départ',
-    cat_opt_autre_entree:'➕ Autre entrée', cat_opt_autre_sortie:'➖ Autre dépense / sortie',
-    cat_investissement:'Investissement', cat_retour_investissement:'Retour invest.', cat_fonds_roulement:'Fonds roulement',
-    cat_charges:'Charges', cat_solde_initial:'Solde initial',
-    motif_vente:'Vente', motif_achat:'Achat', motif_retour_vente:'Retour vente', motif_retour_achat:'Retour marchandise - achat',
-    motif_reglement_credit:'Règlement crédit', motif_paiement_fournisseur:'Paiement fournisseur',
-    motif_annulation_vente:'Annulation vente', motif_annulation_achat:'Annulation achat',
-    mvt_motif_investissement:"Investissement / apport personnel", mvt_motif_retour_investissement:"Retour d'investissement",
-    mvt_motif_fonds_ajout:"Ajout fonds de roulement", mvt_motif_fonds_retrait:"Retrait fonds de roulement",
-    mvt_motif_charges:'Charges (carburant, factures...)', mvt_motif_solde_initial:"Ancien fonds / solde de départ",
-    mvt_motif_autre_entree:'Apport', mvt_motif_autre_sortie:'Dépense',
-    produit_stock:'Produit du stock', produit_hors_stock:'Autre produit', nom_produit_libre:'Nom du produit',
-    pill_hors_stock:'Hors stock', stock_disponible:'Stock disponible : ',
-    tag_produit:'Produit', tag_client:'Client', tag_vente:'Vente',
-    err_client_requis:'Sélectionne ou crée un client pour cette vente',
-    err_mode_paiement_requis:'Choisis Comptant ou Crédit pour finaliser la vente',
-    err_montant_paye_requis:'Indique le montant payé (comptant)',
-    solde_compte_client:'Solde du compte client',
-    supprimer_vente:'🗑️ Supprimer cette vente', supprimer_achat:'🗑️ Supprimer cet achat',
-    confirm_supprimer_vente:'Supprimer définitivement la vente', confirm_supprimer_achat:"Supprimer définitivement l'achat",
-    err_suppression_retour_existant:'Impossible : un retour existe déjà sur cette opération. Utilise le retour pour l\'ajuster, la suppression n\'est plus possible.',
-    err_suppression_stock_insuffisant:'Suppression impossible : stock insuffisant pour annuler cet achat (déjà vendu en partie) - ',
-    toast_vente_supprimee:'Vente supprimée', toast_achat_supprime:'Achat supprimé',
-  },
-  en: {
-    nav_vente:'Sale', nav_clients:'Clients', nav_achats:'Purchases', nav_historique:'History', nav_bilan:'Overview',
-    header_sub:'Your register, stock, and clients',
-    accueil:'Home', caisse:'Cash', valeur_stock:'Stock value',
-    apercu_ventes:'Sales overview', semaine:'Week', mois:'Month',
-    afficher:'Show ▾', masquer:'Hide ▴',
-    nouvelle_vente:'🛒 New sale', rechercher_global:'🔍 Search a product, client, sale...',
-    date_heure_vente:'Sale date and time', vendeur:'Seller',
-    client_label:'Client (required)', client_passage:'Search or create a client...',
-    nouveau:'+ New', ajouter_produit:'Add a product', nouveau_produit:'+ New product',
-    quantite:'Quantity', prix_unitaire:'Unit price', ajouter_panier:'Add to cart',
-    panier:'Cart', total:'Total', mode_paiement:'Payment method', comptant:'Cash', credit:'Credit',
-    montant_paye:'Amount paid now', valider_vente:'Confirm sale',
-    clients_title:'Clients', rechercher_client:'Search a client...', par_dette:'By debt', meilleurs_clients:'Best clients',
-    achats_title:'Purchases & suppliers', nouvel_achat:'New purchase', fournisseurs:'Suppliers', stock:'Stock',
-    fournisseur:'Supplier', ajouter_produit_achete:'Add a purchased product', prix_achat_unitaire:'Unit purchase price',
-    ajouter_bon_achat:'Add to purchase order', bon_achat_cours:'Current purchase order', valider_achat:'Confirm purchase',
-    nouveau_fournisseur:'+ New supplier', valeur_totale_stock:'Total stock value (at purchase price)',
-    rechercher_produit:'Search a product...',
-    historique_title:'History', ventes:'Sales', achats:'Purchases', rechercher_historique:'Search a number, client, supplier...',
-    bilan_title:'Dashboard', jour:'Day', semaine_p:'Week', mois_p:'Month', annee:'Year', perso:'Custom', du:'From', au:'To',
-    total_ventes:'Total sales', benefice_estime:'Estimated profit', nombre_ventes:'Number of sales',
-    total_credits:'Total client credit', valeur_stock2:'Stock value', classement_vendeurs:'🏆 Seller leaderboard',
-    caisse_title:'Cash register', solde_caisse:'Current cash balance', mouvement:'+ Movement',
-    capital_investi:'Capital invested (total)', recupere:'Recovered (total)', fonds_roulement_net:'Net working capital',
-    historique_mouvements:'Movement history', sauvegarde:'Backup',
-    sauvegarde_desc:'Export your data regularly to avoid any loss (phone change, uninstall...).',
-    exporter:'⬇️ Export (JSON)', importer:'⬆️ Import',
-    nom_produit:'Product name', prix_achat:'Purchase price', prix_vente:'Sale price', stock_initial:'Initial stock',
-    seuil_alerte:'Low stock alert threshold', enregistrer:'Save', supprimer_produit:'🗑️ Delete this product',
-    nom:'Name', telephone:'Phone', solde_initial_label:'Opening balance (existing debt, if the client has one)',
-    ca_initial:'Initial revenue (sales made before the app)', supprimer_client:'🗑️ Delete this client',
-    solde_initial_f:'Opening balance (existing debt owed to them)', ca_initial_f:'Initial purchases (made before the app)',
-    supprimer_fournisseur:'🗑️ Delete this supplier',
-    solde_du:'Balance (credit owed)', ca_realise:'Revenue generated', montant_recu:'Amount received', encaisser:'Collect',
-    historique_ventes:'Sales history',
-    solde_devons:'Balance (we owe)', achats_realises:'Total purchases', montant_paye_f:'Amount paid', payer:'Pay',
-    categorie:'Category', montant:'Amount', motif:'Reason',
-    bon_vente:'Sale receipt', imprimer_bt:'🖨️ Print (Bluetooth)', partager:'Share', fermer:'Close',
-    reimprimer:'🖨️ Reprint', valider_retour:'Confirm return', valider_retour_marchandise:'Confirm goods return',
-    supprimer:'Delete',
-    parametres:'Settings', vibration:'Vibration', vibration_desc:'Vibrate on confirmations',
-    plusieurs_vendeurs:'Multiple sellers', plusieurs_vendeurs_desc:'Track who made each sale',
-    gerer_vendeurs:'👤 Manage sellers', theme_defaut:'Default theme', clair:'Light', sombre:'Dark', auto:'Automatic (system)',
-    symbole_monetaire:'Currency symbol', seuil_defaut:'Default low stock threshold',
-    seuil_defaut_desc:'Used as the pre-filled value for new products.',
-    langue:'Language', valider:'✓ Save',
-    nom_vendeur:'Seller name', ajouter:'+ Add',
-    modifier:'✏️ Edit',
-    pill_doit:'Owes', pill_ajour:'Up to date', pill_du:'Owed', pill_retour:'Return', pill_inactif:'Inactive', pill_stockbas:'Low stock',
-    empty_produits:"No products yet.<br>Add your first item to start selling.",
-    empty_clients:'No clients registered yet.',
-    empty_fournisseurs:'No suppliers yet.<br>Add one to track your purchases.',
-    empty_ventes_hist:'No sales recorded yet.<br>Your first sale will appear here.',
-    empty_achats_hist:'No purchases recorded yet.',
-    empty_mouvements:'No cash movements yet.',
-    empty_vendeurs:'No sellers yet.',
-    empty_classement:'No sales in this period.',
-    aucun_resultat:'No results for',
-    toast_produit_enregistre:'Product saved ✓', toast_client_enregistre:'Client saved ✓',
-    toast_fournisseur_enregistre:'Supplier saved ✓', toast_vente_enregistree:'Sale recorded ✓',
-    toast_achat_enregistre:'Purchase recorded ✓', toast_paiement_encaisse:'Payment collected ✓',
-    toast_paiement_effectue:'Payment made ✓', toast_mouvement_enregistre:'Movement recorded ✓',
-    toast_mouvement_modifie:'Movement updated ✓', toast_mouvement_supprime:'Movement deleted',
-    toast_client_supprime:'Client deleted', toast_fournisseur_supprime:'Supplier deleted', toast_produit_supprime:'Product deleted',
-    toast_vendeur_ajoute:'Seller added ✓', toast_vendeur_supprime:'Seller deleted',
-    toast_parametres_enregistres:'Settings saved ✓', toast_donnees_restaurees:'Data restored ✓',
-    toast_sauvegarde_exportee:'Backup exported ✓',
-    ancien_fonds_info:"ℹ️ This amount will be added to working capital only — it won't affect the current cash balance, since it represents money that already existed before using the app.",
-    err_date_future:'Cannot choose a future date', err_nom_vendeur:'Enter the seller\'s name',
-    err_nom_produit:'Enter the product name', err_produit_utilise:'Cannot delete: this product appears in recorded sales or purchases.',
-    err_choisir_produit:'Choose a product', err_quantite:'Invalid quantity', err_prix:'Invalid price',
-    err_stock_insuffisant:'Insufficient stock (available: ', err_panier_vide:'The cart is empty',
-    err_client_credit:'Select or create a client for a credit sale', err_vendeur_requis:'Select the seller for this sale',
-    err_qte_retour:'Enter at least one quantity to return',
-    confirm_retour:'Confirm the return for an amount of ', confirm_retour_suite:'? This action is irreversible.',
-    confirm_retour_marchandise:'Confirm the merchandise return for an amount of ',
-    err_rien_imprimer:'Nothing to print', info_recherche_imprimante:'Searching for Bluetooth printer...',
-    toast_ticket_envoye:'Ticket sent to printer', err_impression:'Printing failed: ',
-    err_partage:'Sharing not supported on this browser', err_nom_client:'Enter the client\'s name',
-    err_montant:'Invalid amount', err_client_dette:'Cannot delete: this client still owes ',
-    err_client_dette_suite:'. Collect it first.', err_fournisseur_solde:'Cannot delete: ',
-    err_fournisseur_solde_suite:' is still owed to this supplier.', err_bon_achat_vide:'The purchase order is empty',
-    confirm_supprimer_client_histo:'This client has a sales history. Deleting will hide their name in past sales but keep the data. Continue?',
-    confirm_supprimer_client:'Permanently delete this client? This action is irreversible.',
-    confirm_supprimer_fournisseur_histo:'This supplier has a purchase history. Deleting will hide their name in past purchases but keep the data. Continue?',
-    confirm_supprimer_fournisseur:'Permanently delete this supplier? This action is irreversible.',
-    confirm_supprimer_produit:'Permanently delete',
-    confirm_supprimer_mouvement:'Delete this cash movement? This action is irreversible.',
-    confirm_supprimer_vendeur:'Delete this seller?', confirm_import:'Importing will REPLACE all current data with the file\'s data. Continue?',
-    err_fichier_invalide:'Invalid file: ', err_stockage:'Storage unavailable in this preview. Install the app for real use.',
-    err_maj_dispo:'Update available — reload the app', err_fermer_onglets:'Close the app\'s other tabs/windows, then reopen it',
-    err_rawbt_fallback:'Web Bluetooth unavailable. If nothing opens, install the RawBT app',
-    lien_mouvement_info:'⚠️ This movement is linked to an operation (sale, purchase, payment...). Editing or deleting it here will not cancel that operation itself.',
-    vente_comptant:'Cash sale', sans_fournisseur:'No supplier', merci_confiance:'Thank you for your trust!',
-    ventes_label:'sales', err_vendeur_ventes:'Cannot delete: this seller has recorded sales. Deactivate them instead.',
-    desactiver:'Deactivate', activer:'Activate',
-    err_enregistrement_vente:'Error saving the sale. Please try again.',
-    err_enregistrement_achat:'Error saving the purchase. Please try again.',
-    toast_retour_enregistre:'Return recorded: ', toast_retour_marchandise_enregistre:'Merchandise return recorded: ',
-    err_nom_fournisseur:'Enter the supplier\'s name',
-    aucun_client_trouve:'No client found', aucun_client_enregistre:'No client registered',
-    recu_bon:'Receipt', recu_total:'TOTAL', recu_paye:'Paid', recu_reste:'Balance due',
-    titre_nouvelle_vente:'New sale', titre_mouvement:'Cash movement', titre_bon_vente:'Sale receipt',
-    titre_modifier_mouvement:'Edit movement', titre_vendeurs:'Sellers', titre_parametres:'Settings',
-    solde_actuel_dette:'Current balance (owed)', solde_actuel_devons:'Current balance (we owe)',
-    qte_a_retourner:'Quantity to return (if needed)',
-    nouveau_client:'+ New client',
-    titre_nouveau_produit:'New product', titre_modifier_produit:'Edit product',
-    titre_nouveau_client:'New client', titre_modifier_client:'Edit client',
-    titre_nouveau_fournisseur:'New supplier', titre_modifier_fournisseur:'Edit supplier',
-    vendu:'Sold', achete:'Purchased', deja_retourne:'Already returned',
-    derniers_jours_7:'Last 7 days', ce_mois_ci:'This month',
-    historique_operations:'Operations history',
-    operation_paiement:'Payment received', plus_produit:'+ Product',
-    unite_produit:'Unit', unite_autre:'Other...', unite_autre_placeholder:'Specify the unit',
-    unite_piece:'Piece', unite_kg:'Kg', unite_g:'g', unite_litre:'Liter', unite_ml:'ml', unite_carton:'Carton', unite_sac:'Bag', unite_boite:'Box',
-    pill_paye:'Paid', pill_partiel:'Partial', pill_impaye:'Unpaid',
-    operation_paiement_effectue:'Payment made', empty_operations:'No operations yet.',
-    confirm_nom_existe:'A matching name already exists:', continuer_quand_meme:'Continue anyway?',
-    avert_solde_client_bas:'Heads up: this client still has ', avert_solde_client_bas_milieu:" owed on their sales, but you're entering only ",
-    avert_solde_client_bas_suite:'. This gap will hide real debt. ',
-    avert_solde_fournisseur_bas:'Heads up: there is still ', avert_solde_fournisseur_bas_milieu:" owed on unpaid purchases, but you're entering only ",
-    avert_solde_fournisseur_bas_suite:'. This gap will hide real debt. ',
-    opt_choisir:'-- Choose --', opt_choisir_produit:'-- Choose a product --',
-    stock_ligne_achat:'Buy', stock_ligne_vente:'Sell', stock_ligne_valeur:'Value',
-    mini_cart_articles:'items',
-    ajouter_produit_vente:'+ Add a product to this sale', ajouter_a_vente:'Add to this sale',
-    toast_produit_ajoute_vente:'Product added to the sale ✓', pill_ajoute:'Added',
-    ajouter_produit_achat_existant:'+ Add a product to this purchase', ajouter_a_achat:'Add to this purchase',
-    toast_produit_ajoute_achat:'Product added to the purchase ✓',
-    toast_ligne_modifiee:'Line updated ✓',
-    err_qte_min_retournee:"Quantity can't be lower than what's already been returned: ",
-    err_modif_sous_paye:'Cannot do that: ', err_modif_sous_paye_suite:' is already collected on this record. Use the return to refund that portion.',
-    confirm_annuler_vente:'Cancel this sale? The cart will be cleared.',
-    cat_opt_investissement:"💰 Investment (I'm adding money)", cat_opt_retour_investissement:"↩️ Investment return (I'm withdrawing money)",
-    cat_opt_fonds_ajout:'🔄 Add working capital', cat_opt_fonds_retrait:'🔄 Withdraw working capital',
-    cat_opt_charges:'⛽ Expenses (fuel, bills...)', cat_opt_solde_initial:'📂 Prior funds / opening balance',
-    cat_opt_autre_entree:'➕ Other income', cat_opt_autre_sortie:'➖ Other expense',
-    cat_investissement:'Investment', cat_retour_investissement:'Investment return', cat_fonds_roulement:'Working capital',
-    cat_charges:'Expenses', cat_solde_initial:'Opening balance',
-    motif_vente:'Sale', motif_achat:'Purchase', motif_retour_vente:'Sale return', motif_retour_achat:'Goods return - purchase',
-    motif_reglement_credit:'Credit settlement', motif_paiement_fournisseur:'Supplier payment',
-    motif_annulation_vente:'Sale cancellation', motif_annulation_achat:'Purchase cancellation',
-    mvt_motif_investissement:'Investment / personal contribution', mvt_motif_retour_investissement:'Investment return',
-    mvt_motif_fonds_ajout:'Working capital added', mvt_motif_fonds_retrait:'Working capital withdrawn',
-    mvt_motif_charges:'Expenses (fuel, bills...)', mvt_motif_solde_initial:'Prior funds / opening balance',
-    mvt_motif_autre_entree:'Income', mvt_motif_autre_sortie:'Expense',
-    produit_stock:'Stock product', produit_hors_stock:'Other product', nom_produit_libre:'Product name',
-    pill_hors_stock:'Off-stock', stock_disponible:'Available stock: ',
-    tag_produit:'Product', tag_client:'Client', tag_vente:'Sale',
-    err_client_requis:'Select or create a client for this sale',
-    err_mode_paiement_requis:'Choose Cash or Credit to finalize the sale',
-    err_montant_paye_requis:'Enter the amount paid (cash)',
-    solde_compte_client:'Client account balance',
-    supprimer_vente:'🗑️ Delete this sale', supprimer_achat:'🗑️ Delete this purchase',
-    confirm_supprimer_vente:'Permanently delete the sale', confirm_supprimer_achat:'Permanently delete the purchase',
-    err_suppression_retour_existant:'Cannot delete: a return already exists on this record. Use the return to adjust it instead; deletion is no longer possible.',
-    err_suppression_stock_insuffisant:'Cannot delete: not enough stock to cancel this purchase (some was already sold) - ',
-    toast_vente_supprimee:'Sale deleted', toast_achat_supprime:'Purchase deleted',
+let I18N_ACTIVE = {};
+async function chargerLangue(lang){
+  try{
+    const res = await fetch('./i18n/'+lang+'.json');
+    if(!res.ok) throw new Error('fetch failed');
+    I18N_ACTIVE = await res.json();
+  }catch(e){
+    I18N_ACTIVE = {};
   }
-};
+}
 function t(key){
-  const lang = PARAMETRES.langue || 'fr';
-  return (I18N[lang] && I18N[lang][key]) || (I18N.fr[key]) || key;
+  return I18N_ACTIVE[key] || key;
 }
 
 function fmt(n){
@@ -1416,9 +1130,18 @@ function soldeRestantAchat(a){
   return Math.max(0, (a.total||0) - montantRetourneAchat(a.id) - (a.montantPaye||0));
 }
 function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2200);
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2200);
+}
+function esc(str){
+  const d = document.createElement('div');
+  d.textContent = str==null ? '' : String(str);
+  return d.innerHTML;
+}
+function debounce(fn, ms){
+  let h;
+  return function(...args){ clearTimeout(h); h = setTimeout(()=>fn.apply(this,args), ms); };
 }
 function confirmerAnimation(){
   const overlay = document.getElementById('confirmOverlay');
@@ -1514,6 +1237,7 @@ async function majParametreTheme(valeur){
 async function majParametreLangue(valeur){
   PARAMETRES.langue = valeur;
   await sauverParametres();
+  await chargerLangue(valeur);
   document.documentElement.lang = valeur;
   applyTranslations();
 }
@@ -1608,7 +1332,7 @@ function renderVendeursList(){
   if(VENDEURS.length===0){ card.innerHTML = '<div class="empty">'+t('empty_vendeurs')+'</div>'; return; }
   card.innerHTML = VENDEURS.map(v=>`
     <div class="list-item">
-      <div class="name">${v.nom} ${!v.actif?'<span class="pill warn">'+t('pill_inactif')+'</span>':''}</div>
+      <div class="name">${esc(v.nom)} ${!v.actif?'<span class="pill warn">'+t('pill_inactif')+'</span>':''}</div>
       <div style="display:flex; gap:6px;">
         <button class="btn outline sm" onclick="toggleVendeurActif('${v.id}')">${v.actif?t('desactiver'):t('activer')}</button>
         <button class="btn red sm" onclick="supprimerVendeur('${v.id}')">×</button>
@@ -1619,7 +1343,7 @@ function remplirSelectVendeurs(){
   const sel = document.getElementById('venteVendeurSelect');
   if(!sel) return;
   const actifs = VENDEURS.filter(v=>v.actif);
-  sel.innerHTML = '<option value="">'+t('opt_choisir')+'</option>' + actifs.map(v=>`<option value="${v.id}">${v.nom}</option>`).join('');
+  sel.innerHTML = '<option value="">'+t('opt_choisir')+'</option>' + actifs.map(v=>`<option value="${v.id}">${esc(v.nom)}</option>`).join('');
   if(dernierVendeurUtilise && actifs.some(v=>v.id===dernierVendeurUtilise)) sel.value = dernierVendeurUtilise;
 }
 function caParVendeur(debut, fin){
@@ -1795,7 +1519,7 @@ function renderStock(){
     return `
     <div class="list-item" onclick="openProduitModal('${p.id}')" style="cursor:pointer;">
       <div>
-        <div class="name">${p.nom} ${stockBas?'<span class="pill warn">'+t('pill_stockbas')+'</span>':''}</div>
+        <div class="name">${esc(p.nom)} ${stockBas?'<span class="pill warn">'+t('pill_stockbas')+'</span>':''}</div>
         <div class="meta">${t('stock_ligne_achat')} ${fmt(p.prixAchat)} · ${t('stock_ligne_vente')} ${fmt(p.prixVente)} · ${t('stock_ligne_valeur')} ${fmt((p.stock||0)*(p.prixAchat||0))}</div>
       </div>
       <div class="amount">${fmtQty(p.stock, p.unite)}</div>
@@ -1804,7 +1528,7 @@ function renderStock(){
 }
 function remplirSelectProduits(){
   const opts = '<option value="">'+t('opt_choisir_produit')+'</option>' + PRODUITS.map(p=>
-    `<option value="${p.id}">${p.nom} (stock: ${fmtQty(p.stock, p.unite)})</option>`).join('');
+    `<option value="${p.id}">${esc(p.nom)} (stock: ${fmtQty(p.stock, p.unite)})</option>`).join('');
   document.getElementById('venteProduitSelect').innerHTML = opts;
   document.getElementById('achatProduitSelect').innerHTML = opts;
   document.getElementById('vdProduitSelect').innerHTML = opts;
@@ -1862,8 +1586,8 @@ function filtrerClientVente(){
   box.innerHTML = matches.map(c=>`
     <div class="list-item" style="cursor:pointer; padding:9px 10px;" onmousedown="choisirClientVente('${c.id}')">
       <div>
-        <div class="name">${c.nom}</div>
-        <div class="meta">${c.tel||'—'}${(c.solde||0)>0 ? ' · '+t('pill_doit')+' '+fmt(c.solde) : ''}</div>
+        <div class="name">${esc(c.nom)}</div>
+        <div class="meta">${esc(c.tel)||'—'}${(c.solde||0)>0 ? ' · '+t('pill_doit')+' '+fmt(c.solde) : ''}</div>
       </div>
     </div>`).join('');
   box.style.display='block';
@@ -1924,7 +1648,7 @@ function renderPanierVente(){
     const st = l.qte*l.prixVente; total+=st;
     return `<div class="cart-line">
       <div style="flex:1;">
-        <div style="font-weight:700; font-size:13.5px;">${l.nom} ${l.horsStock?'<span class="pill warn" style="margin-left:4px;">'+t('pill_hors_stock')+'</span>':''}</div>
+        <div style="font-weight:700; font-size:13.5px;">${esc(l.nom)} ${l.horsStock?'<span class="pill warn" style="margin-left:4px;">'+t('pill_hors_stock')+'</span>':''}</div>
         <div class="meta">${fmtQty(l.qte, l.unite)} × ${fmt(l.prixVente)}</div>
       </div>
       <div class="amount">${fmt(st)}</div>
@@ -2025,24 +1749,45 @@ async function validerVente(){
         items: panierVente.slice(), total, montantPaye,
         mode: modePaiementVente, numero: 'V-'+Date.now().toString().slice(-8)
       };
-      await put('ventes', vente);
-      VENTES.push(vente);
 
+      // Aggregate stock deltas per product first: a cart can hold two lines
+      // for the same product added separately, and each must contribute its
+      // own quantity against the SAME base stock value, not overwrite it.
+      const deltaQteParProduit = {};
       for(const l of panierVente){
         if(!l.produitId) continue;
-        const p = PRODUITS.find(x=>x.id===l.produitId);
-        if(p){ p.stock = (p.stock||0) - l.qte; await put('produits', p); }
+        deltaQteParProduit[l.produitId] = (deltaQteParProduit[l.produitId]||0) + l.qte;
       }
-      remplirSelectProduits();
+      const produitsAMaj = Object.keys(deltaQteParProduit).map(pid=>{
+        const p = PRODUITS.find(x=>x.id===pid);
+        if(!p) return null;
+        return Object.assign({}, p, {stock:(p.stock||0)-deltaQteParProduit[pid]});
+      }).filter(Boolean);
 
       const reste = total - montantPaye;
       const c = CLIENTS.find(x=>x.id===clientId);
-      if(c && reste>0){ c.solde = (c.solde||0) + reste; await put('clients', c); }
+      const clientMaj = (c && reste>0) ? Object.assign({}, c, {solde:(c.solde||0)+reste}) : null;
 
-      if(montantPaye>0){
-        const mvt = {id:uid(), date:dateVenteISO, type:'entree', montant:montantPaye, motif:t('motif_vente')+' '+vente.numero, lien:{type:'vente', id:vente.id}};
-        await put('caisse', mvt); CAISSE.push(mvt);
-      }
+      const mvt = montantPaye>0
+        ? {id:uid(), date:dateVenteISO, type:'entree', montant:montantPaye, motif:t('motif_vente')+' '+vente.numero, lien:{type:'vente', id:vente.id}}
+        : null;
+
+      await atomicWrite(['ventes','produits','clients','caisse'], (stores)=>{
+        stores.ventes.put(vente);
+        produitsAMaj.forEach(p=> stores.produits.put(p));
+        if(clientMaj) stores.clients.put(clientMaj);
+        if(mvt) stores.caisse.put(mvt);
+      });
+
+      // Commit succeeded — now sync in-memory state to match what's persisted.
+      VENTES.push(vente);
+      produitsAMaj.forEach(pCopy=>{
+        const p = PRODUITS.find(x=>x.id===pCopy.id);
+        if(p) p.stock = pCopy.stock;
+      });
+      if(clientMaj) c.solde = clientMaj.solde;
+      if(mvt) CAISSE.push(mvt);
+      remplirSelectProduits();
 
       fermerModalVenteApresValidation();
       setTimeout(()=> afficherRecuVente(vente), 80);
@@ -2095,6 +1840,7 @@ function afficherRecuVente(vente){
 }
 
 /* ===================== DETAIL VENTE / REIMPRESSION / RETOUR ===================== */
+let vdLignesMode = 'details';
 function renderVenteDetailContent(v){
   const c = CLIENTS.find(x=>x.id===v.clientId);
   document.getElementById('vdNumero').textContent = v.numero;
@@ -2116,25 +1862,48 @@ function renderVenteDetailContent(v){
     paieCard.style.display = 'none';
   }
 
-  document.getElementById('vdLignesCard').innerHTML = '<label class="field" style="margin-top:0;">'+t('qte_a_retourner')+'</label>' +
+  const label = vdLignesMode==='retour' ? '<label class="field" style="margin-top:0;">'+t('qte_a_retourner')+'</label>' : '';
+  document.getElementById('vdLignesCard').innerHTML = label +
     v.items.map((l,i)=>{
       const dejaRetourne = l.qteRetournee||0;
       const restant = l.qte - dejaRetourne;
-      return `<div class="cart-line">
-        <div style="flex:1;">
-          <div style="font-weight:700; font-size:13.5px;">${l.nom} ${l.ajouteLe?'<span class="pill ok" style="margin-left:4px;">'+t('pill_ajoute')+'</span>':''} <button type="button" class="btn outline sm" style="padding:3px 8px; font-size:11px; margin-left:6px;" onclick="toggleEditLigneVente(${i})">✏️</button></div>
-          <div class="meta">${t('vendu')}: ${fmtQty(l.qte, l.unite)} × ${fmt(l.prixVente)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmtQty(dejaRetourne, l.unite):''}</div>
-          <div id="vdEditLigne_${i}" style="display:none; margin-top:6px;">
+      const pencilBtn = vdLignesMode==='modifier'
+        ? ` <button type="button" class="btn outline sm" style="padding:3px 8px; font-size:11px; margin-left:6px;" onclick="toggleEditLigneVente(${i})">✏️</button>`
+        : '';
+      const editForm = vdLignesMode==='modifier' ? `<div id="vdEditLigne_${i}" style="display:none; margin-top:6px;">
             <div class="grid2">
               <input type="number" id="vdEditQte_${i}" value="${l.qte}" min="${dejaRetourne>0?dejaRetourne:0.01}" step="any" inputmode="decimal">
               <input type="number" id="vdEditPU_${i}" value="${l.prixVente}" min="0" step="any" inputmode="decimal">
             </div>
             <button class="btn amber sm block" id="vdEditSave_${i}" style="margin-top:6px;" onclick="enregistrerModifLigneVente(${i})">${t('enregistrer')}</button>
-          </div>
+          </div>` : '';
+      const retourInput = vdLignesMode==='retour'
+        ? `<input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="vdQte_${i}" ${restant<=0?'disabled':''}>`
+        : '';
+      return `<div class="cart-line">
+        <div style="flex:1;">
+          <div style="font-weight:700; font-size:13.5px;">${esc(l.nom)} ${l.ajouteLe?'<span class="pill ok" style="margin-left:4px;">'+t('pill_ajoute')+'</span>':''}${pencilBtn}</div>
+          <div class="meta">${t('vendu')}: ${fmtQty(l.qte, l.unite)} × ${fmt(l.prixVente)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmtQty(dejaRetourne, l.unite):''}</div>
+          ${editForm}
         </div>
-        <input type="number" min="0" max="${restant}" step="any" value="0" style="width:70px;" id="vdQte_${i}" ${restant<=0?'disabled':''}>
+        ${retourInput}
       </div>`;
     }).join('');
+}
+function setVdLignesMode(mode){
+  vdLignesMode = mode;
+  document.getElementById('vdModeDetails').classList.toggle('active', mode==='details');
+  document.getElementById('vdModeModifier').classList.toggle('active', mode==='modifier');
+  document.getElementById('vdModeRetour').classList.toggle('active', mode==='retour');
+  document.getElementById('btnValiderRetourVente').style.display = (mode==='retour') ? 'block' : 'none';
+  const v = VENTES.find(x=>x.id===window._currentVenteId);
+  if(v) renderVenteDetailContent(v);
+}
+function toggleZoneDangerVente(){
+  const wrap = document.getElementById('vdZoneDangerWrap');
+  const open = wrap.style.display !== 'none';
+  wrap.style.display = open ? 'none' : 'block';
+  document.getElementById('vdZoneDangerToggle').textContent = open ? t('afficher') : t('masquer');
 }
 function toggleEditLigneVente(i){
   const el = document.getElementById('vdEditLigne_'+i);
@@ -2193,6 +1962,13 @@ function openVenteDetail(id){
   if(!v) return;
   window._currentVenteId = id;
   resetVdAjoutProduit();
+  vdLignesMode = 'details';
+  document.getElementById('vdModeDetails').classList.add('active');
+  document.getElementById('vdModeModifier').classList.remove('active');
+  document.getElementById('vdModeRetour').classList.remove('active');
+  document.getElementById('btnValiderRetourVente').style.display = 'none';
+  document.getElementById('vdZoneDangerWrap').style.display = 'none';
+  document.getElementById('vdZoneDangerToggle').textContent = t('afficher');
   renderVenteDetailContent(v);
   openModal('modalVenteDetail');
 }
@@ -2453,7 +2229,7 @@ function renderAchatDetailContent(a){
       const restant = l.qte - dejaRetourne;
       return `<div class="cart-line">
         <div style="flex:1;">
-          <div style="font-weight:700; font-size:13.5px;">${l.nom} ${l.ajouteLe?'<span class="pill ok" style="margin-left:4px;">'+t('pill_ajoute')+'</span>':''} <button type="button" class="btn outline sm" style="padding:3px 8px; font-size:11px; margin-left:6px;" onclick="toggleEditLigneAchat(${i})">✏️</button></div>
+          <div style="font-weight:700; font-size:13.5px;">${esc(l.nom)} ${l.ajouteLe?'<span class="pill ok" style="margin-left:4px;">'+t('pill_ajoute')+'</span>':''} <button type="button" class="btn outline sm" style="padding:3px 8px; font-size:11px; margin-left:6px;" onclick="toggleEditLigneAchat(${i})">✏️</button></div>
           <div class="meta">${t('achete')}: ${fmtQty(l.qte, l.unite)} × ${fmt(l.prixAchat)}${dejaRetourne>0?' · '+t('deja_retourne')+': '+fmtQty(dejaRetourne, l.unite):''}</div>
           <div id="adEditLigne_${i}" style="display:none; margin-top:6px;">
             <div class="grid2">
@@ -2878,8 +2654,25 @@ function setClientSort(mode){
 function renderClients(){
   const q = (document.getElementById('clientSearch').value||'').toLowerCase();
   let list = CLIENTS.filter(c=>c.nom.toLowerCase().includes(q));
+
+  // O(n+m) precompute instead of caClient() doing a fresh VENTES.filter() per row.
+  const retoursParVente = new Map();
+  RETOURS_VENTE.forEach(r=>{
+    retoursParVente.set(r.venteId, (retoursParVente.get(r.venteId)||0) + r.montant);
+  });
+  const ventesParClient = new Map();
+  VENTES.forEach(v=>{
+    if(!ventesParClient.has(v.clientId)) ventesParClient.set(v.clientId, []);
+    ventesParClient.get(v.clientId).push(v);
+  });
+  function caClientFast(c){
+    const ventes = ventesParClient.get(c.id) || [];
+    const net = ventes.reduce((s,v)=> s + (v.total - (retoursParVente.get(v.id)||0)), 0);
+    return net + (c.caInitial||0);
+  }
+
   if(clientSortMode==='ca'){
-    list = list.sort((a,b)=> caClient(b.id)-caClient(a.id));
+    list = list.sort((a,b)=> caClientFast(b)-caClientFast(a));
   } else {
     list = list.sort((a,b)=> (b.solde||0)-(a.solde||0));
   }
@@ -2889,8 +2682,8 @@ function renderClients(){
     list.map(c=>`
     <div class="list-item" onclick="openClientDetail('${c.id}')" style="cursor:pointer;">
       <div>
-        <div class="name">${c.nom}</div>
-        <div class="meta">${c.tel||'—'} · CA: ${fmt(caClient(c.id))}</div>
+        <div class="name">${esc(c.nom)}</div>
+        <div class="meta">${esc(c.tel)||'—'} · CA: ${fmt(caClientFast(c))}</div>
       </div>
       <div>
         ${ (c.solde||0)>0 ? `<span class="pill credit">${t('pill_doit')} ${fmt(c.solde)}</span>` : `<span class="pill ok">${t('pill_ajour')}</span>` }
@@ -2989,7 +2782,7 @@ function switchAchatsTab(tab){
 }
 function remplirSelectFournisseurs(){
   document.getElementById('achatFournisseur').innerHTML = '<option value="">'+t('opt_choisir')+'</option>' +
-    FOURNISSEURS.map(f=>`<option value="${f.id}">${f.nom}</option>`).join('');
+    FOURNISSEURS.map(f=>`<option value="${f.id}">${esc(f.nom)}</option>`).join('');
 }
 function openFournisseurModal(id){
   document.getElementById('fournisseurId').value = id||'';
@@ -3069,9 +2862,26 @@ function achatsRealisesFournisseur(id){
 function renderFournisseurs(){
   const card = document.getElementById('fournisseurListCard');
   if(FOURNISSEURS.length===0){ card.innerHTML='<div class="empty">'+t('empty_fournisseurs')+'</div>'; return; }
+
+  // O(n+m) precompute instead of achatsRealisesFournisseur() doing a fresh ACHATS.filter() per row.
+  const retoursParAchat = new Map();
+  RETOURS_ACHAT.forEach(r=>{
+    retoursParAchat.set(r.achatId, (retoursParAchat.get(r.achatId)||0) + r.montant);
+  });
+  const achatsParFournisseur = new Map();
+  ACHATS.forEach(a=>{
+    if(!achatsParFournisseur.has(a.fournisseurId)) achatsParFournisseur.set(a.fournisseurId, []);
+    achatsParFournisseur.get(a.fournisseurId).push(a);
+  });
+  function achatsRealisesFast(f){
+    const achats = achatsParFournisseur.get(f.id) || [];
+    const net = achats.reduce((s,a)=> s + (a.total - (retoursParAchat.get(a.id)||0)), 0);
+    return net + (f.caInitial||0);
+  }
+
   card.innerHTML = FOURNISSEURS.map(f=>`
     <div class="list-item" onclick="openFournisseurDetail('${f.id}')" style="cursor:pointer;">
-      <div><div class="name">${f.nom}</div><div class="meta">${f.tel||'—'} · Achats: ${fmt(achatsRealisesFournisseur(f.id))}</div></div>
+      <div><div class="name">${esc(f.nom)}</div><div class="meta">${esc(f.tel)||'—'} · Achats: ${fmt(achatsRealisesFast(f))}</div></div>
       <div>${(f.solde||0)>0 ? `<span class="pill credit">${t('pill_du')} ${fmt(f.solde)}</span>` : `<span class="pill ok">${t('pill_ajour')}</span>`}</div>
     </div>`).join('');
 }
@@ -3153,7 +2963,7 @@ function renderPanierAchat(){
   document.getElementById('achatPanierLignes').innerHTML = panierAchat.map((l,i)=>{
     const st=l.qte*l.prixAchat; total+=st;
     return `<div class="cart-line">
-      <div style="flex:1;"><div style="font-weight:700; font-size:13.5px;">${l.nom}</div>
+      <div style="flex:1;"><div style="font-weight:700; font-size:13.5px;">${esc(l.nom)}</div>
       <div class="meta">${fmtQty(l.qte, l.unite)} × ${fmt(l.prixAchat)}</div></div>
       <div class="amount">${fmt(st)}</div>
       <button class="btn sm red" onclick="retirerLigneAchat(${i})">×</button>
@@ -3174,23 +2984,49 @@ async function validerAchat(){
       montantPaye = Math.min(Math.max(0,montantPaye), total);
 
       const achat = {id:uid(), date:nowISO(), fournisseurId, items:panierAchat.slice(), total, montantPaye, numero:'A-'+Date.now().toString().slice(-8)};
-      await put('achats', achat); ACHATS.push(achat);
 
+      // Aggregate deltas per product: a purchase order can hold two lines for
+      // the same product at different prices — each must add its own qty
+      // against the SAME base stock value, and "last line wins" for prixAchat
+      // matches the original sequential-loop behavior exactly.
+      const deltaParProduit = {};
       for(const l of panierAchat){
-        const p = PRODUITS.find(x=>x.id===l.produitId);
-        if(p){ p.stock=(p.stock||0)+l.qte; p.prixAchat = l.prixAchat; await put('produits', p); }
+        if(!deltaParProduit[l.produitId]) deltaParProduit[l.produitId] = {qte:0, prixAchat:l.prixAchat};
+        deltaParProduit[l.produitId].qte += l.qte;
+        deltaParProduit[l.produitId].prixAchat = l.prixAchat;
       }
-      remplirSelectProduits();
+      const produitsAMaj = Object.keys(deltaParProduit).map(pid=>{
+        const p = PRODUITS.find(x=>x.id===pid);
+        if(!p) return null;
+        const d = deltaParProduit[pid];
+        return Object.assign({}, p, {stock:(p.stock||0)+d.qte, prixAchat:d.prixAchat});
+      }).filter(Boolean);
 
       const reste = total - montantPaye;
-      if(fournisseurId && reste>0){
-        const f = FOURNISSEURS.find(x=>x.id===fournisseurId);
-        if(f){ f.solde=(f.solde||0)+reste; await put('fournisseurs', f); }
-      }
-      if(montantPaye>0){
-        const mvt = {id:uid(), date:nowISO(), type:'sortie', montant:montantPaye, motif:t('motif_achat')+' '+achat.numero, lien:{type:'achat', id:achat.id}};
-        await put('caisse', mvt); CAISSE.push(mvt);
-      }
+      const f = fournisseurId ? FOURNISSEURS.find(x=>x.id===fournisseurId) : null;
+      const fournisseurMaj = (f && reste>0) ? Object.assign({}, f, {solde:(f.solde||0)+reste}) : null;
+
+      const mvt = montantPaye>0
+        ? {id:uid(), date:nowISO(), type:'sortie', montant:montantPaye, motif:t('motif_achat')+' '+achat.numero, lien:{type:'achat', id:achat.id}}
+        : null;
+
+      await atomicWrite(['achats','produits','fournisseurs','caisse'], (stores)=>{
+        stores.achats.put(achat);
+        produitsAMaj.forEach(p=> stores.produits.put(p));
+        if(fournisseurMaj) stores.fournisseurs.put(fournisseurMaj);
+        if(mvt) stores.caisse.put(mvt);
+      });
+
+      // Commit succeeded — now sync in-memory state to match what's persisted.
+      ACHATS.push(achat);
+      produitsAMaj.forEach(pCopy=>{
+        const p = PRODUITS.find(x=>x.id===pCopy.id);
+        if(p){ p.stock = pCopy.stock; p.prixAchat = pCopy.prixAchat; }
+      });
+      if(fournisseurMaj) f.solde = fournisseurMaj.solde;
+      if(mvt) CAISSE.push(mvt);
+      remplirSelectProduits();
+
       panierAchat=[]; renderPanierAchat();
       document.getElementById('achatFournisseur').value='';
       renderHomeWidgets();
@@ -3227,7 +3063,7 @@ function renderHistorique(){
       const montantRetour = retours.reduce((s,r)=>s+r.montant,0);
       const st = statutPaiement(v, montantRetour);
       return `<div class="list-item" onclick="openVenteDetail('${v.id}')" style="cursor:pointer;">
-        <div><div class="name">${v.numero} ${c?'· '+c.nom:''} <span class="pill ${st.cls}">${st.label}</span> ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(v.date)}</div></div>
+        <div><div class="name">${v.numero} ${c?'· '+esc(c.nom):''} <span class="pill ${st.cls}">${st.label}</span> ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(v.date)}</div></div>
         <div class="amount">${fmt(v.total)}${montantRetour>0?' <span class="meta neg" style="font-weight:700;">(-'+fmt(montantRetour)+')</span>':''}</div>
       </div>`;
     }).join('') : (q ? '<div class="empty">'+t('aucun_resultat')+' "'+q+'"</div>' : '<div class="empty">'+t('empty_ventes_hist')+'</div>');
@@ -3245,7 +3081,7 @@ function renderHistorique(){
       const montantRetour = retours.reduce((s,r)=>s+r.montant,0);
       const st = statutPaiement(a, montantRetour);
       return `<div class="list-item" onclick="openAchatDetail('${a.id}')" style="cursor:pointer;">
-        <div><div class="name">${a.numero} ${f?'· '+f.nom:''} <span class="pill ${st.cls}">${st.label}</span> ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(a.date)}</div></div>
+        <div><div class="name">${a.numero} ${f?'· '+esc(f.nom):''} <span class="pill ${st.cls}">${st.label}</span> ${montantRetour>0?'<span class="pill warn">'+t('pill_retour')+'</span>':''}</div><div class="meta">${dateFR(a.date)}</div></div>
         <div class="amount">${fmt(a.total)}${montantRetour>0?' <span class="meta neg" style="font-weight:700;">(-'+fmt(montantRetour)+')</span>':''}</div>
       </div>`;
     }).join('') : '<div class="empty">'+t('empty_achats_hist')+'</div>';
@@ -3380,6 +3216,30 @@ async function exporterDonnees(){
   URL.revokeObjectURL(url);
   toast(t('toast_sauvegarde_exportee'));
 }
+/* Rejects a malformed backup before any store is touched — checks array
+   shape, string id presence, and each store's required fields. Skips keys
+   absent from the file (partial exports / older backups stay importable). */
+function validerSchemaImport(data){
+  const erreurs = [];
+  const schemas = {
+    produits: ['id','nom'], clients: ['id','nom'], fournisseurs: ['id','nom'],
+    ventes: ['id','date','items','total'], achats: ['id','date','items','total'],
+    caisse: ['id','date','type','montant'],
+    retoursVente: ['id','venteId','items','montant'], retoursAchat: ['id','achatId','items','montant'],
+    vendeurs: ['id','nom']
+  };
+  for(const key of Object.keys(schemas)){
+    if(data[key]===undefined) continue;
+    if(!Array.isArray(data[key])){ erreurs.push(key+': doit être un tableau'); continue; }
+    data[key].forEach((item,i)=>{
+      if(typeof item!=='object' || item===null){ erreurs.push(key+'['+i+']: entrée invalide'); return; }
+      if(typeof item.id!=='string' || !item.id){ erreurs.push(key+'['+i+']: id manquant'); return; }
+      schemas[key].forEach(f=>{ if(item[f]===undefined) erreurs.push(key+'['+i+']: champ "'+f+'" manquant'); });
+    });
+    if(erreurs.length>8) break; // cap: enough to diagnose without building a huge toast
+  }
+  return erreurs;
+}
 async function importerDonnees(evt){
   const file = evt.target.files[0];
   if(!file) return;
@@ -3389,20 +3249,34 @@ async function importerDonnees(evt){
   try{
     const text = await file.text();
     const data = JSON.parse(text);
-    const stores = {produits:'produits', clients:'clients', fournisseurs:'fournisseurs', ventes:'ventes', achats:'achats', caisse:'caisse', retoursVente:'retoursVente', retoursAchat:'retoursAchat', vendeurs:'vendeurs'};
-    for(const key of Object.keys(stores)){
-      const items = Array.isArray(data[key]) ? data[key] : [];
-      await new Promise((resolve,reject)=>{
-        const r = txStore(stores[key], 'readwrite').clear();
-        r.onsuccess = resolve; r.onerror = reject;
-      });
-      for(const item of items){ await put(stores[key], item); }
+
+    const erreurs = validerSchemaImport(data);
+    if(erreurs.length){
+      toast(t('err_fichier_invalide')+erreurs.slice(0,3).join(' · '));
+      evt.target.value='';
+      return;
     }
+
+    const stores = {produits:'produits', clients:'clients', fournisseurs:'fournisseurs', ventes:'ventes', achats:'achats', caisse:'caisse', retoursVente:'retoursVente', retoursAchat:'retoursAchat', vendeurs:'vendeurs'};
+    const storeNames = Object.values(stores);
+
+    // Single atomic transaction across all 9 stores: either the whole
+    // import lands, or nothing does — no more partially-cleared stores if
+    // a put() fails midway through the old sequential loop.
+    await atomicWrite(storeNames, (txStores)=>{
+      for(const key of Object.keys(stores)){
+        const storeName = stores[key];
+        const items = Array.isArray(data[key]) ? data[key] : [];
+        txStores[storeName].clear();
+        items.forEach(item => txStores[storeName].put(item));
+      }
+    });
+
     PRODUITS = data.produits||[]; CLIENTS = data.clients||[]; FOURNISSEURS = data.fournisseurs||[];
     VENTES = data.ventes||[]; ACHATS = data.achats||[]; CAISSE = data.caisse||[];
     RETOURS_VENTE = data.retoursVente||[]; RETOURS_ACHAT = data.retoursAchat||[];
     VENDEURS = data.vendeurs||[];
-    if(data.parametres){ PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT, data.parametres); await sauverParametres(); }
+    if(data.parametres){ PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT, data.parametres); await sauverParametres(); await chargerLangue(PARAMETRES.langue || 'fr'); applyTranslations(); }
     remplirSelectProduits(); remplirSelectFournisseurs();
     renderBilan(); renderClients(); renderFournisseurs(); renderStock(); renderHistorique();
     renderVentesChart(); renderHomeWidgets(); appliquerVisibiliteVendeur();
@@ -3464,7 +3338,7 @@ function renderBilan(){
     const card = document.getElementById('classementVendeursCard');
     card.innerHTML = lignes.length ? lignes.map((l,i)=>`
       <div class="list-item">
-        <div><div class="name">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}${l.nom}</div><div class="meta">${l.nb} ${t('ventes_label')}</div></div>
+        <div><div class="name">${i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':''}${esc(l.nom)}</div><div class="meta">${l.nb} ${t('ventes_label')}</div></div>
         <div class="amount">${fmt(l.total)}</div>
       </div>`).join('') : '<div class="empty">'+t('empty_classement')+'</div>';
   }
@@ -3484,7 +3358,7 @@ function renderBilan(){
       : m.categorie==='charges' ? '<span class="pill warn" style="margin-right:6px;">'+t('cat_charges')+'</span>'
       : m.categorie==='solde_initial' ? '<span class="pill ok" style="margin-right:6px;">'+t('cat_solde_initial')+'</span>' : '';
     return `<div class="list-item" onclick="openMouvementDetail('${m.id}')" style="cursor:pointer;">
-      <div><div class="name">${badge}${m.motif}</div><div class="meta">${dateFR(m.date)}</div></div>
+      <div><div class="name">${badge}${esc(m.motif)}</div><div class="meta">${dateFR(m.date)}</div></div>
       <div class="amount ${m.type==='entree'?'pos':'neg'}">${m.type==='entree'?'+':'-'}${fmt(m.montant)}</div>
     </div>`;
   }).join('') : '<div class="empty">'+t('empty_mouvements')+'</div>';
@@ -3674,20 +3548,20 @@ function rechercheGlobaleInput(){
   produits.forEach(p=>{
     html += `<div class="search-result-item" onclick="rechercheChoisirProduit('${p.id}')">
       <span class="search-result-tag">${t('tag_produit')}</span>
-      <div style="flex:1;"><div class="name">${p.nom}</div><div class="meta">Stock: ${fmtQty(p.stock, p.unite)} · Vente: ${fmt(p.prixVente)}</div></div>
+      <div style="flex:1;"><div class="name">${esc(p.nom)}</div><div class="meta">Stock: ${fmtQty(p.stock, p.unite)} · Vente: ${fmt(p.prixVente)}</div></div>
     </div>`;
   });
   clients.forEach(c=>{
     html += `<div class="search-result-item" onclick="rechercheOuvrirClient('${c.id}')">
       <span class="search-result-tag">${t('tag_client')}</span>
-      <div style="flex:1;"><div class="name">${c.nom}</div><div class="meta">${(c.solde||0)>0 ? t('pill_doit')+' '+fmt(c.solde) : t('pill_ajour')}</div></div>
+      <div style="flex:1;"><div class="name">${esc(c.nom)}</div><div class="meta">${(c.solde||0)>0 ? t('pill_doit')+' '+fmt(c.solde) : t('pill_ajour')}</div></div>
     </div>`;
   });
   ventes.forEach(v=>{
     const c = CLIENTS.find(x=>x.id===v.clientId);
     html += `<div class="search-result-item" onclick="rechercheOuvrirVente('${v.id}')">
       <span class="search-result-tag">${t('tag_vente')}</span>
-      <div style="flex:1;"><div class="name">${v.numero}${c?' · '+c.nom:''}</div><div class="meta">${fmt(v.total)}</div></div>
+      <div style="flex:1;"><div class="name">${v.numero}${c?' · '+esc(c.nom):''}</div><div class="meta">${fmt(v.total)}</div></div>
     </div>`;
   });
 
@@ -3725,6 +3599,10 @@ document.addEventListener('click', function(e){
   }
 });
 
+const renderClientsDebounced = debounce(renderClients, 150);
+const renderStockDebounced = debounce(renderStock, 150);
+const rechercheGlobaleInputDebounced = debounce(rechercheGlobaleInput, 150);
+
 async function init(){
   try{
     await openDB();
@@ -3735,6 +3613,7 @@ async function init(){
   }catch(e){
     toast(t('err_stockage'));
   }
+  await chargerLangue(PARAMETRES.langue || 'fr');
   document.documentElement.lang = PARAMETRES.langue || 'fr';
   applyTranslations();
   remplirSelectProduits();
