@@ -1,5 +1,5 @@
-const CACHE = 'tajer-v17';
-const ASSETS = ['./index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
+const CACHE = 'tajer-v18';
+const ASSETS = ['./index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png', './i18n/fr.json', './i18n/en.json'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
