@@ -2,13 +2,21 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <title>TAJER</title>
-<link rel="manifest" href="manifest.json">
+<meta name="description" content="TAJER — caisse, stock et clients, 100 % hors-ligne.">
+<meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#131A24">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TAJER">
 <style>
   :root{
     --navy:#1C2534;
@@ -251,6 +259,13 @@
     .modal{ border-radius:18px; max-width:480px; max-height:85vh; }
     .mini-cart-bar{ bottom:24px; left:24px; right:24px; max-width:850px; margin:0 auto; }
   }
+  header{ padding-top:calc(14px + env(safe-area-inset-top)); padding-left:calc(16px + env(safe-area-inset-left)); padding-right:calc(16px + env(safe-area-inset-right)); }
+  :focus-visible{ outline:3px solid var(--amber); outline-offset:2px; }
+  [role="button"]{ cursor:pointer; }
+  .sw-update{ position:fixed; z-index:250; left:50%; transform:translateX(-50%); top:calc(10px + env(safe-area-inset-top));
+    background:var(--amber); color:#131A24; border:none; border-radius:12px; padding:11px 16px; font:inherit; font-weight:800; font-size:13px;
+    box-shadow:0 6px 18px rgba(0,0,0,.3); max-width:calc(100% - 24px); }
+  @media (prefers-reduced-motion: reduce){ *,*::before,*::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
 </style>
 </head>
 <body>
@@ -552,6 +567,12 @@
       </div>
       <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importerDonnees(event)">
     </div>
+
+    <h2 class="title" style="margin-top:16px;" data-i18n="integrite_titre">Intégrité des données</h2>
+    <div class="card">
+      <div class="meta" style="margin-bottom:10px;" data-i18n="integrite_desc">Vérifie la cohérence des soldes, du stock, des retours et des paiements. Rien n'est modifié sans ton accord.</div>
+      <button class="btn outline block" id="btnVerifierIntegrite" onclick="ouvrirRapportIntegrite()"><span data-i18n="integrite_verifier">🩺 Vérifier</span> <span class="pill credit" id="integriteBadge" style="display:none; margin-left:6px;"></span></button>
+    </div>
   </section>
 
 </main>
@@ -805,7 +826,7 @@
         <span class="linklike" id="vdZoneDangerToggle" style="color:var(--red);" data-i18n="afficher">Afficher ▾</span>
       </div>
       <div id="vdZoneDangerWrap" style="display:none; margin-top:10px;">
-        <button class="btn block" style="background:var(--red); color:#fff;" data-i18n="supprimer_vente" onclick="supprimerVente()">🗑️ Supprimer cette vente</button>
+        <button class="btn block" id="btnSupprimerVente" style="background:var(--red); color:#fff;" data-i18n="supprimer_vente" onclick="supprimerVente()">🗑️ Supprimer cette vente</button>
       </div>
     </div>
   </div>
@@ -849,8 +870,8 @@
         <button class="btn amber block" id="btnAjouterProduitAchat" style="margin-top:10px;" data-i18n="ajouter_a_achat" onclick="ajouterProduitAAchat()">Ajouter à cet achat</button>
       </div>
     </div>
-    <button class="btn red block" style="margin-top:10px;" data-i18n="valider_retour_marchandise" onclick="validerRetourAchat()">Valider le retour marchandise</button>
-    <button class="btn red block" style="margin-top:8px; background:transparent; border:1.5px solid var(--red); color:var(--red);" data-i18n="supprimer_achat" onclick="supprimerAchat()">🗑️ Supprimer cet achat</button>
+    <button class="btn red block" id="btnValiderRetourAchat" style="margin-top:10px;" data-i18n="valider_retour_marchandise" onclick="validerRetourAchat()">Valider le retour marchandise</button>
+    <button class="btn red block" id="btnSupprimerAchat" style="margin-top:8px; background:transparent; border:1.5px solid var(--red); color:var(--red);" data-i18n="supprimer_achat" onclick="supprimerAchat()">🗑️ Supprimer cet achat</button>
   </div>
 </div>
 
@@ -879,6 +900,16 @@
       <button class="btn amber" id="btnEnregistrerModifMouvement" data-i18n="enregistrer" onclick="enregistrerModifMouvement()">Enregistrer</button>
       <button class="btn red" id="btnSupprimerMouvement" data-i18n="supprimer" onclick="supprimerMouvement()">Supprimer</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: Intégrité des données -->
+<div class="modal-bg" id="modalIntegrite">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalIntegrite')">×</button>
+    <h3 style="margin-bottom:10px;" data-i18n="integrite_titre">Intégrité des données</h3>
+    <div class="card" id="integriteResume" style="margin-top:0;"></div>
+    <div class="card" id="integriteListe" style="margin-bottom:0; display:none;"></div>
   </div>
 </div>
 
@@ -963,7 +994,7 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <div class="mini-cart-bar" id="miniCartBar" onclick="ouvrirModalVente()">
   <span id="miniCartInfo">🛒 0 article</span>
@@ -984,22 +1015,19 @@ let db;
 const DB_NAME = 'mesventes_db';
 const DB_VERSION = 3;
 
+const STORES = ['produits','clients','fournisseurs','ventes','achats','caisse','retoursVente','retoursAchat','parametres','vendeurs'];
+/* Migrations de STRUCTURE, exécutées dans la transaction versionchange.
+   Étapes cumulatives `if(ancienne < N){…}` : création de stores / index
+   uniquement, jamais de suppression ni d'accès réseau ou await. */
+function migrerStructure(d, ancienne){
+  // v1–v3 : stores de base (idempotent).
+  for(const s of STORES) if(!d.objectStoreNames.contains(s)) d.createObjectStore(s, {keyPath:'id'});
+  // v4+ : ajouter ici les prochaines étapes (ex. index date/clientId, phase D).
+}
 function openDB(){
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = (e) => {
-      const d = e.target.result;
-      if(!d.objectStoreNames.contains('produits')) d.createObjectStore('produits',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('clients')) d.createObjectStore('clients',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('fournisseurs')) d.createObjectStore('fournisseurs',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('ventes')) d.createObjectStore('ventes',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('achats')) d.createObjectStore('achats',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('caisse')) d.createObjectStore('caisse',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('retoursVente')) d.createObjectStore('retoursVente',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('retoursAchat')) d.createObjectStore('retoursAchat',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('parametres')) d.createObjectStore('parametres',{keyPath:'id'});
-      if(!d.objectStoreNames.contains('vendeurs')) d.createObjectStore('vendeurs',{keyPath:'id'});
-    };
+    req.onupgradeneeded = (e) => migrerStructure(e.target.result, e.oldVersion);
     req.onsuccess = (e) => {
       db = e.target.result;
       db.onversionchange = () => {
@@ -1071,6 +1099,433 @@ const PARAMETRES_DEFAUT = {
 };
 let PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT);
 
+/* ===================== MOTEUR TRANSACTIONNEL (vente/achat unifiés) =====================
+   Toute écriture touchant plusieurs stores passe par commit(plan) :
+   1) les plan*() calculent des COPIES (brouillon) sans toucher DB ni UI ;
+   2) commit() écrit tout dans UNE transaction atomicWrite ;
+   3) la mémoire n'est synchronisée qu'après succès (identité des objets préservée).
+   Un échec = aucune donnée modifiée, ni en base ni en mémoire. */
+const EPS = 1e-9;
+const ETAT_STORES = {produits:()=>PRODUITS, clients:()=>CLIENTS, fournisseurs:()=>FOURNISSEURS, ventes:()=>VENTES,
+  achats:()=>ACHATS, caisse:()=>CAISSE, retoursVente:()=>RETOURS_VENTE, retoursAchat:()=>RETOURS_ACHAT};
+const cloner = o => typeof structuredClone==='function' ? structuredClone(o) : JSON.parse(JSON.stringify(o));
+function remplacerEnPlace(cible, src){
+  for(const k of Object.keys(cible)) if(!(k in src)) delete cible[k];
+  Object.assign(cible, src);
+}
+function brouillon(){
+  const objs = new Map(), dels = {};
+  const m = s => objs.get(s) || objs.set(s, new Map()).get(s);
+  return {
+    get(s, o){ const mm = m(s); if(!mm.has(o.id)) mm.set(o.id, cloner(o)); return mm.get(o.id); },
+    ajouter(s, o){ m(s).set(o.id, o); return o; },
+    supprimer(s, id){ (dels[s] = dels[s] || []).push(id); },
+    plan(){ const puts = {}; for(const [s, mm] of objs) puts[s] = [...mm.values()]; return {puts, dels}; }
+  };
+}
+async function commit({puts={}, dels={}}){
+  const stores = [...new Set([...Object.keys(puts), ...Object.keys(dels)])];
+  if(!stores.length) return;
+  await atomicWrite(stores, s=>{
+    for(const n in puts) for(const o of puts[n]) s[n].put(o);
+    for(const n in dels) for(const id of dels[n]) s[n].delete(id);
+  });
+  for(const n in puts){
+    const arr = ETAT_STORES[n] && ETAT_STORES[n]();
+    if(!arr) continue;   // ex. parametres : synchronisé par l'appelant
+    for(const o of puts[n]){ const cur = arr.find(x=>x.id===o.id); cur ? remplacerEnPlace(cur, o) : arr.push(o); }
+  }
+  for(const n in dels){
+    const arr = ETAT_STORES[n] && ETAT_STORES[n]();
+    if(!arr) continue;
+    for(const id of dels[n]){ const i = arr.findIndex(x=>x.id===id); if(i>=0) arr.splice(i, 1); }
+  }
+}
+const DOC = {
+  vente:{ store:'ventes', liste:()=>VENTES, retStore:'retoursVente', retours:()=>RETOURS_VENTE, cleRet:'venteId',
+    tiersStore:'clients', tiers:()=>CLIENTS, cleTiers:'clientId', prix:'prixVente', sensStock:-1, sensCaisse:'entree',
+    errStock:'err_stock_insuffisant', errRetourStock:'err_stock_insuffisant',
+    argStock:(p, dispo)=> fmtQty(dispo, p ? p.unite : '')+')',
+    motifPaiement:'motif_reglement_credit', motifRetour:'motif_retour_vente', motifAnnul:'motif_annulation_vente',
+    confirmRetour:'confirm_retour', confirmSuppr:'confirm_supprimer_vente',
+    lienTiers:'client', lienListe:'ventes', lienRetour:'retourVente', lienAnnul:'venteAnnulee' },
+  achat:{ store:'achats', liste:()=>ACHATS, retStore:'retoursAchat', retours:()=>RETOURS_ACHAT, cleRet:'achatId',
+    tiersStore:'fournisseurs', tiers:()=>FOURNISSEURS, cleTiers:'fournisseurId', prix:'prixAchat', sensStock:+1, sensCaisse:'sortie',
+    errStock:'err_suppression_stock_insuffisant', errRetourStock:'err_retour_stock_insuffisant',
+    argStock:(p, dispo, nom)=> p ? p.nom : (nom||''),
+    majPrixProduit:true,
+    motifPaiement:'motif_paiement_fournisseur', motifRetour:'motif_retour_achat', motifAnnul:'motif_annulation_achat',
+    confirmRetour:'confirm_retour_marchandise', confirmSuppr:'confirm_supprimer_achat',
+    lienTiers:'fournisseur', lienListe:'achats', lienRetour:'retourAchat', lienAnnul:'achatAnnule' }
+};
+const inverseCaisse = s => s==='entree' ? 'sortie' : 'entree';
+const montantRetourne = (K, id) => K.retours().filter(r=>r[K.cleRet]===id).reduce((s,r)=>s+r.montant, 0);
+const soldeRestantDoc = (K, d) => Math.max(0, (d.total||0) - montantRetourne(K, d.id) - payeNet(d));
+/* Garde de stock commune : deltaDoc = variation de quantité sur la ligne du document.
+   Le stock ne passe jamais sous zéro ; ligne hors stock (produitId:null) = aucun impact (A3). */
+function bougerStock(b, K, produitId, deltaDoc, nomLigne, errKey){
+  if(!produitId || !deltaDoc) return null;
+  const p = PRODUITS.find(x=>x.id===produitId);
+  const mvt = K.sensStock * deltaDoc;
+  if(!p) return mvt < 0 ? {err:errKey||K.errStock, arg:K.argStock(null, 0, nomLigne)} : null;
+  const pc = b.get('produits', p);
+  const avant = pc.stock || 0;
+  pc.stock = avant + mvt;
+  return pc.stock < -EPS ? {err:errKey||K.errStock, arg:K.argStock(p, avant, nomLigne)} : null;
+}
+function majSoldeTiers(b, K, doc, delta){
+  const id = doc[K.cleTiers];
+  if(!id || !delta) return;
+  const x = K.tiers().find(y=>y.id===id);
+  if(x){ const xc = b.get(K.tiersStore, x); xc.solde = Math.max(0, (xc.solde||0) + delta); }
+}
+/* Correction de ligne. Si la ligne a déjà des retours et que le prix change,
+   elle est scindée : la part retournée garde son prix (celui remboursé),
+   seule la part conservée est re-tarifée. Somme des lignes = total, toujours. */
+function planModifLigne(K, doc, i, newQte, newPU){
+  const l = doc.items[i];
+  if(!l || !(newQte > 0)) return {err:'err_quantite'};
+  if(!(newPU >= 0)) return {err:'err_prix'};
+  const ret = l.qteRetournee || 0;
+  if(newQte < ret) return {err:'err_qte_min_retournee', arg:fmtQty(ret, l.unite)};
+  const changePrix = newPU !== l[K.prix];
+  if(ret > 0 && changePrix && newQte === ret) return {err:'err_ligne_entierement_retournee'};
+  const delta = (newQte - ret)*newPU - (l.qte - ret)*l[K.prix];
+  const nouveauTotal = (doc.total||0) + delta;
+  if(nouveauTotal - montantRetourne(K, doc.id) < payeNet(doc) - EPS)
+    return {err:'err_modif_sous_paye', arg:fmt(payeNet(doc)), suite:'err_modif_sous_paye_suite'};
+  const b = brouillon();
+  const eStock = bougerStock(b, K, l.produitId, newQte - l.qte, l.nom);
+  if(eStock) return eStock;
+  const d = b.get(K.store, doc), dl = d.items[i];
+  if(ret > 0 && changePrix){
+    d.items.splice(i, 1, Object.assign({}, dl, {qte:ret}),
+      Object.assign({}, dl, {qte:newQte - ret, qteRetournee:0, [K.prix]:newPU, scindeLe:nowISO()}));
+  } else Object.assign(dl, {qte:newQte, [K.prix]:newPU});
+  d.total = nouveauTotal;
+  majSoldeTiers(b, K, doc, delta);
+  return {plan:b.plan()};
+}
+function planAjoutLigne(K, doc, ligne){
+  if(!(ligne.qte > 0)) return {err:'err_quantite'};
+  if(!(ligne[K.prix] >= 0)) return {err:'err_prix'};
+  const b = brouillon();
+  const eStock = bougerStock(b, K, ligne.produitId, ligne.qte, ligne.nom);
+  if(eStock) return eStock;
+  if(K.majPrixProduit && ligne.produitId){
+    const p = PRODUITS.find(x=>x.id===ligne.produitId);
+    if(p) b.get('produits', p).prixAchat = ligne[K.prix];
+  }
+  const montant = ligne.qte * ligne[K.prix];
+  const d = b.get(K.store, doc);
+  d.items.push(ligne);
+  d.total = (d.total||0) + montant;
+  majSoldeTiers(b, K, doc, montant);
+  return {plan:b.plan()};
+}
+/* Moteur de paiement (A3) : ciblé sur un document, ou FIFO sur les plus
+   anciens documents ouverts. Montant borné au reste dû. */
+function planPaiement(K, tiersId, montantSaisi, docIdCible){
+  const x = K.tiers().find(y=>y.id===tiersId);
+  if(!x) return {err:'err_montant'};
+  let montant = parseFloat(montantSaisi);
+  if(!(montant > 0)) return {err:'err_montant'};
+  const b = brouillon(), touches = [];
+  if(docIdCible){
+    const d = K.liste().find(y=>y.id===docIdCible);
+    if(!d) return {err:'err_montant'};
+    montant = Math.min(montant, soldeRestantDoc(K, d));
+    if(!(montant > 0)) return {err:'err_montant'};
+    b.get(K.store, d).montantPaye = (d.montantPaye||0) + montant;
+    touches.push(d.numero);
+  } else {
+    montant = Math.min(montant, x.solde||0);
+    if(!(montant > 0)) return {err:'err_montant'};
+    let restant = montant;
+    const ouverts = K.liste().filter(d=>d[K.cleTiers]===tiersId && soldeRestantDoc(K, d) > 0)
+      .sort((a,c)=> new Date(a.date) - new Date(c.date));
+    for(const d of ouverts){
+      if(restant <= 0) break;
+      const alloc = Math.min(restant, soldeRestantDoc(K, d));
+      if(alloc <= 0) continue;
+      b.get(K.store, d).montantPaye = (d.montantPaye||0) + alloc;
+      restant -= alloc;
+      touches.push(d.numero);
+    }
+    // Reliquat non imputé à un document = remboursement de l'ancienne dette.
+    if(restant > EPS){ const xc = b.get(K.tiersStore, x); xc.soldeInitial = Math.max(0, (xc.soldeInitial||0) - restant); }
+  }
+  b.get(K.tiersStore, x).solde = Math.max(0, (x.solde||0) - montant);
+  const motif = t(K.motifPaiement)+' - '+x.nom+(touches.length ? ' ('+touches.join(', ')+')' : '');
+  b.ajouter('caisse', {id:uid(), date:nowISO(), type:K.sensCaisse, montant, motif, lien:{type:K.lienTiers, id:x.id, [K.lienListe]:touches}});
+  return {plan:b.plan(), montant};
+}
+/* Retour (A3) : annule d'abord la dette ouverte du document, puis rembourse
+   le surplus via un mouvement de caisse. Stock : ne passe jamais sous zéro. */
+function planRetour(K, doc, qtes){
+  let montantRetour = 0;
+  const sel = [];
+  doc.items.forEach((l,i)=>{
+    const q0 = qtes[i] || 0;
+    if(q0 > 0){
+      const q = Math.min(q0, l.qte - (l.qteRetournee||0));
+      if(q > 0){ montantRetour += q * l[K.prix]; sel.push({i, q}); }
+    }
+  });
+  if(!sel.length) return {err:'err_qte_retour'};
+  const b = brouillon();
+  const d = b.get(K.store, doc);
+  const lignes = sel.map(({i,q})=>{
+    const l = d.items[i];
+    l.qteRetournee = (l.qteRetournee||0) + q;
+    return {produitId:l.produitId, nom:l.nom, qte:q, [K.prix]:l[K.prix]};
+  });
+  for(const l of lignes){
+    const eStock = bougerStock(b, K, l.produitId, -l.qte, l.nom, K.errRetourStock);
+    if(eStock) return eStock;
+  }
+  const detteAnnulee = Math.min(montantRetour, soldeRestantDoc(K, doc));   // retours existants seulement
+  const rembourse = montantRetour - detteAnnulee;
+  if(detteAnnulee > 0) majSoldeTiers(b, K, doc, -detteAnnulee);
+  if(rembourse > 0){
+    d.montantRembourse = (d.montantRembourse||0) + rembourse;
+    b.ajouter('caisse', {id:uid(), date:nowISO(), type:inverseCaisse(K.sensCaisse), montant:rembourse,
+      motif:t(K.motifRetour)+' '+doc.numero, lien:{type:K.lienRetour, id:doc.id}});
+  }
+  b.ajouter(K.retStore, {id:uid(), date:nowISO(), [K.cleRet]:doc.id, [K.cleTiers]:doc[K.cleTiers], items:lignes, montant:montantRetour});
+  return {plan:b.plan(), montant:montantRetour, confirmer:t(K.confirmRetour)+fmt(montantRetour)+t('confirm_retour_suite')};
+}
+/* Suppression (A3) : bloquée si un retour existe ; restaure le stock,
+   rembourse l'encaissé, retire le reste dû du solde du tiers. */
+function planSuppression(K, doc){
+  if(montantRetourne(K, doc.id) > 0) return {err:'err_suppression_retour_existant'};
+  const b = brouillon();
+  for(const l of doc.items){
+    const eStock = bougerStock(b, K, l.produitId, -l.qte, l.nom);
+    if(eStock) return eStock;
+  }
+  if((doc.montantPaye||0) > 0){
+    b.ajouter('caisse', {id:uid(), date:nowISO(), type:inverseCaisse(K.sensCaisse), montant:doc.montantPaye,
+      motif:t(K.motifAnnul)+' '+doc.numero, lien:{type:K.lienAnnul, id:doc.id}});
+  }
+  majSoldeTiers(b, K, doc, -Math.max(0, (doc.total||0) - (doc.montantPaye||0)));
+  b.supprimer(K.store, doc.id);
+  return {plan:b.plan(), confirmer:t(K.confirmSuppr)+' '+doc.numero+t('confirm_retour_suite')};
+}
+/* Exécution commune : verrou anti double-tap → plan → confirmation → commit → rendu. */
+async function executerOperation(btn, construire, apres){
+  await withLock(btn, async ()=>{
+    let r;
+    try{ r = construire(); }catch(e){ console.error(e); toast(t('err_operation_echouee')); return; }
+    if(!r) return;
+    if(r.err){ toast(t(r.err)+(r.arg||'')+(r.suite ? t(r.suite) : '')); return; }
+    if(r.confirmer && !confirm(r.confirmer)) return;
+    try{ await commit(r.plan); }catch(e){ console.error(e); toast(t('err_operation_echouee')); return; }
+    apres(r);
+  });
+}
+const lireNombre = id => parseFloat(document.getElementById(id).value);
+function lireQtesRetour(prefixe, n){
+  const q = [];
+  for(let i=0;i<n;i++){ const el = document.getElementById(prefixe+i); q.push(el ? (parseFloat(el.value)||0) : 0); }
+  return q;
+}
+
+/* ===================== MIGRATIONS DE DONNÉES =====================
+   Additives uniquement (jamais d'écrasement d'une valeur existante),
+   idempotentes, appliquées en UN seul commit au démarrage et après import.
+   Les migrations de STRUCTURE (stores/index) vivent dans migrerStructure(). */
+const num = x => typeof x==='number' && isFinite(x);
+const VERSION_DONNEES = 5;
+const MIGRATIONS_DONNEES = [
+  {version:4, run(b){
+    // soldeInitial = part du solde non rattachée à un document (ancienne dette).
+    // Écart négatif = dérive : stocké à 0 pour que la règle T2 la signale.
+    for(const K of [DOC.vente, DOC.achat]){
+      const reste = restantParTiers(K);
+      for(const x of K.tiers()){
+        if(x.soldeInitial != null) continue;
+        b.get(K.tiersStore, x).soldeInitial = Math.max(0, (x.solde||0) - (reste.get(x.id)||0));
+      }
+    }
+  }},
+  {version:5, run(b){
+    // montantRembourse reconstitué depuis les mouvements de caisse « retour ».
+    // Le reste dû ainsi reconnu (victimes L15) passait jusque-là pour de
+    // l'ancienne dette : on le retire de soldeInitial — le solde ne bouge pas.
+    for(const K of [DOC.vente, DOC.achat]){
+      const remb = new Map();
+      for(const m of CAISSE) if(m.lien && m.lien.type===K.lienRetour && num(m.montant)) remb.set(m.lien.id, (remb.get(m.lien.id)||0) + m.montant);
+      const ret = new Map();
+      for(const r of K.retours()) ret.set(r[K.cleRet], (ret.get(r[K.cleRet])||0) + (r.montant||0));
+      const delta = new Map();
+      for(const d of K.liste()){
+        const rb = remb.get(d.id) || 0;
+        if(d.montantRembourse != null || !(rb > 0)) continue;
+        const net = (d.total||0) - (ret.get(d.id)||0);
+        const avant = Math.max(0, net - (d.montantPaye||0));
+        const apres = Math.max(0, net - ((d.montantPaye||0) - rb));
+        b.get(K.store, d).montantRembourse = rb;
+        if(d[K.cleTiers] && apres > avant) delta.set(d[K.cleTiers], (delta.get(d[K.cleTiers])||0) + apres - avant);
+      }
+      for(const [id, dv] of delta){
+        const x = K.tiers().find(y=>y.id===id);
+        if(!x) continue;
+        const xc = b.get(K.tiersStore, x);
+        xc.soldeInitial = Math.max(0, (xc.soldeInitial||0) - dv);
+      }
+    }
+  }}
+];
+function restantParTiers(K){
+  const ret = new Map();
+  for(const r of K.retours()) ret.set(r[K.cleRet], (ret.get(r[K.cleRet])||0) + (r.montant||0));
+  const m = new Map();
+  for(const d of K.liste()){
+    const id = d[K.cleTiers];
+    if(!id) continue;
+    m.set(id, (m.get(id)||0) + Math.max(0, (d.total||0) - (ret.get(d.id)||0) - payeNet(d)));
+  }
+  return m;
+}
+async function migrerDonnees(){
+  const v = PARAMETRES.versionDonnees || 3;
+  const todo = MIGRATIONS_DONNEES.filter(m=>m.version > v);
+  if(!todo.length) return;
+  const b = brouillon();
+  todo.forEach(m=>m.run(b));
+  const plan = b.plan();
+  const params = Object.assign({}, PARAMETRES, {id:'parametres', versionDonnees:VERSION_DONNEES});
+  plan.puts.parametres = [params];
+  await commit(plan);
+  PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT, params);
+}
+
+/* ===================== INTÉGRITÉ DES DONNÉES =====================
+   Lecture seule, O(n). Aucune correction automatique : seule la règle T2
+   propose « Aligner », sur action explicite et confirmée. */
+const TOL = 0.005;
+function verifierIntegrite(){
+  const res = [];
+  const add = (gravite, code, store, id, info) => res.push({gravite, code, store, id, info:info||{}});
+  const produits = new Map(PRODUITS.map(p=>[p.id, p]));
+  for(const p of PRODUITS) if(!num(p.stock) || p.stock < -TOL) add('erreur','S1','produits',p.id,{stock:p.stock, unite:p.unite});
+  for(const m of CAISSE) if(!num(m.montant) || m.montant < 0) add('erreur','N1','caisse',m.id);
+  for(const K of [DOC.vente, DOC.achat]){
+    const docs = new Map(K.liste().map(d=>[d.id, d]));
+    const retsParDoc = new Map();
+    for(const r of K.retours()){
+      if(!docs.has(r[K.cleRet])){ add('erreur','R3',K.retStore,r.id); continue; }
+      const somme = (r.items||[]).reduce((s,i)=>s + i.qte*i[K.prix], 0);
+      if(!num(r.montant) || Math.abs(somme - r.montant) > TOL) add('erreur','D4',K.retStore,r.id,{attendu:somme, trouve:r.montant, parent:r[K.cleRet]});
+      const arr = retsParDoc.get(r[K.cleRet]);
+      arr ? arr.push(r) : retsParDoc.set(r[K.cleRet], [r]);
+    }
+    for(const d of K.liste()){
+      let somme = 0, invalide = false, d3 = false;
+      const qLig = new Map(), prixLig = new Map();
+      for(const l of d.items||[]){
+        if(!num(l.qte) || l.qte < 0 || !num(l[K.prix]) || l[K.prix] < 0){ invalide = true; continue; }
+        somme += l.qte * l[K.prix];
+        const k = l.produitId || '~'+l.nom;
+        if((l.qteRetournee||0) > l.qte + TOL) d3 = true;
+        qLig.set(k, (qLig.get(k)||0) + (l.qteRetournee||0));
+        (prixLig.get(k) || prixLig.set(k, []).get(k)).push(l[K.prix]);
+        if(l.produitId && !produits.has(l.produitId)) add('erreur','R2',K.store,d.id);
+      }
+      const paye = d.montantPaye||0, remb = d.montantRembourse||0;
+      if(invalide || !num(d.total) || !num(paye) || !num(remb)){ add('erreur','N1',K.store,d.id); continue; }
+      if(Math.abs(somme - d.total) > TOL) add('erreur','D1',K.store,d.id,{attendu:somme, trouve:d.total});
+      const netDoc = d.total - (retsParDoc.get(d.id)||[]).reduce((s,r)=>s+r.montant, 0);
+      if(paye < -TOL || remb < -TOL || remb - paye > TOL || (paye - remb) - netDoc > TOL)
+        add('erreur','D2',K.store,d.id,{attendu:Math.max(0, netDoc), trouve:paye - remb});
+      const qRet = new Map();
+      let d5 = false;
+      for(const r of retsParDoc.get(d.id)||[]) for(const i of r.items||[]){
+        const k = i.produitId || '~'+i.nom;
+        qRet.set(k, (qRet.get(k)||0) + i.qte);
+        const prix = prixLig.get(k);
+        if(prix && !prix.some(p=>Math.abs(p - i[K.prix]) <= TOL)) d5 = true;
+      }
+      for(const k of new Set([...qLig.keys(), ...qRet.keys()])) if(Math.abs((qLig.get(k)||0) - (qRet.get(k)||0)) > TOL) d3 = true;
+      if(d3) add('erreur','D3',K.store,d.id);
+      if(d5) add('avertissement','D5',K.store,d.id);
+    }
+    const reste = restantParTiers(K);
+    for(const x of K.tiers()){
+      if(!num(x.solde) || x.solde < -TOL){ add('erreur','T1',K.tiersStore,x.id,{trouve:x.solde}); continue; }
+      const attendu = (x.soldeInitial||0) + (reste.get(x.id)||0);
+      if(Math.abs(x.solde - attendu) > TOL) add('erreur','T2',K.tiersStore,x.id,{attendu, trouve:x.solde});
+    }
+  }
+  return res;
+}
+function majBadgeIntegrite(res){
+  const n = res.filter(r=>r.gravite==='erreur').length;
+  const badge = document.getElementById('integriteBadge');
+  if(!badge) return;
+  badge.textContent = n;
+  badge.style.display = n ? 'inline-block' : 'none';
+}
+function libelleEntite(store, id){
+  const o = (ETAT_STORES[store] ? ETAT_STORES[store]() : []).find(x=>x.id===id);
+  if(!o) return id;
+  if(store==='retoursVente' || store==='retoursAchat') return t('pill_retour');
+  return o.numero || o.nom || o.motif || id;
+}
+const OUVRIR_ENTITE = {ventes:id=>openVenteDetail(id), achats:id=>openAchatDetail(id), clients:id=>openClientDetail(id),
+  fournisseurs:id=>openFournisseurDetail(id), produits:id=>openProduitModal(id)};
+function ouvrirEntiteIntegrite(store, id){
+  const f = OUVRIR_ENTITE[store];
+  if(!f) return;
+  closeModal('modalIntegrite');
+  setTimeout(()=>f(id), 60);
+}
+const INTEGRITE_MAX = 50;
+function renderRapportIntegrite(){
+  const res = verifierIntegrite();
+  majBadgeIntegrite(res);
+  const nbErr = res.filter(r=>r.gravite==='erreur').length;
+  document.getElementById('integriteResume').innerHTML = res.length
+    ? `<div class="name">${nbErr} ${t('integrite_erreurs')} · ${res.length - nbErr} ${t('integrite_avertissements')}</div>`
+    : `<div class="name" style="color:var(--green);">${t('integrite_ok')}</div>`;
+  const tri = res.slice().sort((a,b)=> (a.gravite===b.gravite ? 0 : a.gravite==='erreur' ? -1 : 1));
+  const html = tri.slice(0, INTEGRITE_MAX).map(r=>{
+    const cible = r.info.parent ? {store:r.store==='retoursVente'?'ventes':'achats', id:r.info.parent} : {store:r.store, id:r.id};
+    const ouvrable = !!OUVRIR_ENTITE[cible.store];
+    let detail = '';
+    if(r.code==='S1') detail = ' — '+t('integrite_trouve')+' '+fmtQty(r.info.stock, r.info.unite);
+    else if(r.info.attendu != null) detail = ' — '+t('integrite_attendu')+' '+fmt(r.info.attendu)+' · '+t('integrite_trouve')+' '+fmt(r.info.trouve);
+    const aligner = r.code==='T2'
+      ? `<button class="btn amber sm" onclick="event.stopPropagation(); alignerSolde('${r.store}','${r.id}')">${t('integrite_aligner')}</button>` : '';
+    return `<div class="list-item"${ouvrable ? ` onclick="ouvrirEntiteIntegrite('${cible.store}','${cible.id}')" style="cursor:pointer;"` : ''}>
+      <div><div class="name"><span class="pill ${r.gravite==='erreur' ? 'credit' : 'warn'}">${r.code}</span> ${esc(libelleEntite(r.store, r.id))}</div>
+      <div class="meta">${t('integrite_'+r.code)}${detail}</div></div>${aligner}
+    </div>`;
+  }).join('');
+  const liste = document.getElementById('integriteListe');
+  liste.style.display = res.length ? 'block' : 'none';
+  liste.innerHTML = html + (res.length > INTEGRITE_MAX ? '<div class="meta" style="padding:8px 0;">'+t('integrite_plus')+'</div>' : '');
+}
+function ouvrirRapportIntegrite(){
+  renderRapportIntegrite();
+  openModal('modalIntegrite');
+}
+/* T2 uniquement : solde := soldeInitial + reste dû, sur confirmation explicite. */
+async function alignerSolde(store, id){
+  const K = store==='clients' ? DOC.vente : DOC.achat;
+  const x = K.tiers().find(y=>y.id===id);
+  if(!x) return;
+  const attendu = (x.soldeInitial||0) + (restantParTiers(K).get(id)||0);
+  if(!confirm(t('confirm_aligner')+'"'+x.nom+'" : '+fmt(x.solde)+' → '+fmt(attendu)+'. '+t('continuer_quand_meme'))) return;
+  const b = brouillon();
+  b.get(K.tiersStore, x).solde = attendu;
+  try{ await commit(b.plan()); }catch(e){ console.error(e); toast(t('err_operation_echouee')); return; }
+  renderClients(); renderFournisseurs(); renderHomeWidgets(); renderBilan();
+  renderRapportIntegrite();
+  toast(t('toast_solde_aligne'));
+}
+
 /* ===================== TRADUCTIONS (FR/EN) ===================== */
 let I18N_ACTIVE = {};
 async function chargerLangue(lang){
@@ -1110,9 +1565,12 @@ function fmtQty(n, unite){
   const label = uniteLabel(unite);
   return label ? base+' '+label : base;
 }
+/* Payé NET = encaissé − remboursé en caisse lors des retours (L15).
+   montantPaye reste le montant brut encaissé, jamais diminué. */
+const payeNet = d => (d.montantPaye||0) - (d.montantRembourse||0);
 function statutPaiement(obj, montantRetourne){
   const total = (obj.total||0) - (montantRetourne||0);
-  const paye = obj.montantPaye||0;
+  const paye = payeNet(obj);
   if(total<=0 || paye >= total) return {cls:'ok', label:t('pill_paye')};
   if(paye > 0) return {cls:'warn', label:t('pill_partiel')};
   return {cls:'credit', label:t('pill_impaye')};
@@ -1124,21 +1582,20 @@ function montantRetourneAchat(achatId){
   return RETOURS_ACHAT.filter(r=>r.achatId===achatId).reduce((s,r)=>s+r.montant,0);
 }
 function soldeRestantVente(v){
-  return Math.max(0, (v.total||0) - montantRetourneVente(v.id) - (v.montantPaye||0));
+  return Math.max(0, (v.total||0) - montantRetourneVente(v.id) - payeNet(v));
 }
 function soldeRestantAchat(a){
-  return Math.max(0, (a.total||0) - montantRetourneAchat(a.id) - (a.montantPaye||0));
+  return Math.max(0, (a.total||0) - montantRetourneAchat(a.id) - payeNet(a));
 }
+let toastTimer;
 function toast(msg){
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'), 2200);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2200);
 }
-function esc(str){
-  const d = document.createElement('div');
-  d.textContent = str==null ? '' : String(str);
-  return d.innerHTML;
-}
+const ESC_MAP = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+function esc(str){ return str==null ? '' : String(str).replace(/[&<>"']/g, c=>ESC_MAP[c]); }
 function debounce(fn, ms){
   let h;
   return function(...args){ clearTimeout(h); h = setTimeout(()=>fn.apply(this,args), ms); };
@@ -1826,7 +2283,7 @@ function afficherRecuVente(vente){
   txt += '------------------------\n';
   txt += t('recu_total')+': '+fmt(vente.total)+'\n';
   txt += t('recu_paye')+': '+fmt(vente.montantPaye)+'\n';
-  const reste = vente.total - vente.montantPaye;
+  const reste = soldeRestantVente(vente);
   if(reste>0) txt += t('recu_reste')+': '+fmt(reste)+'\n';
   if(client){
     txt += '------------------------\n';
@@ -1910,52 +2367,16 @@ function toggleEditLigneVente(i){
   if(!el) return;
   el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
 }
-/* Corrige une ligne déjà enregistrée (typo qté/prix) sans passer par un
-   retour. Ne touche jamais montantPaye : si le nouveau total tomberait
-   sous ce qui est déjà encaissé, on bloque et on renvoie vers "Valider le
-   retour", seul chemin qui sait gérer le remboursement correctement. */
+/* Corrige une ligne déjà enregistrée (typo qté/prix) — logique dans
+   planModifLigne : ne touche jamais montantPaye, bloque si le total net
+   (après retours) tomberait sous l'encaissé, scinde la ligne si retours. */
 async function enregistrerModifLigneVente(i){
-  await withLock(document.getElementById('vdEditSave_'+i), async ()=>{
-    const v = VENTES.find(x=>x.id===window._currentVenteId);
-    if(!v) return;
-    const l = v.items[i];
-    if(!l) return;
-    const newQte = parseFloat(document.getElementById('vdEditQte_'+i).value);
-    const newPU = parseFloat(document.getElementById('vdEditPU_'+i).value);
-    if(!newQte || newQte<=0){ toast(t('err_quantite')); return; }
-    if(isNaN(newPU) || newPU<0){ toast(t('err_prix')); return; }
-    const dejaRetourne = l.qteRetournee||0;
-    if(newQte < dejaRetourne){
-      toast(t('err_qte_min_retournee')+fmtQty(dejaRetourne, l.unite));
-      return;
-    }
-    const deltaQte = newQte - l.qte;
-    let produit = null;
-    if(l.produitId){
-      produit = PRODUITS.find(p=>p.id===l.produitId);
-      if(deltaQte > 0){
-        const dispo = produit ? (produit.stock||0) : 0;
-        if(deltaQte > dispo){ toast(t('err_stock_insuffisant')+fmt(dispo)+')'); return; }
-      }
-    }
-    const delta = (newQte*newPU) - (l.qte*l.prixVente);
-    const nouveauTotal = (v.total||0) + delta;
-    if(nouveauTotal < (v.montantPaye||0)){
-      toast(t('err_modif_sous_paye')+fmt(v.montantPaye)+t('err_modif_sous_paye_suite'));
-      return;
-    }
-    if(produit){ produit.stock = (produit.stock||0) - deltaQte; await put('produits', produit); remplirSelectProduits(); }
-    l.qte = newQte; l.prixVente = newPU;
-    v.total = nouveauTotal;
-    await put('ventes', v);
-    if(v.clientId){
-      const c = CLIENTS.find(x=>x.id===v.clientId);
-      if(c){ c.solde = Math.max(0, (c.solde||0) + delta); await put('clients', c); }
-    }
-    renderVenteDetailContent(v);
-    renderHistorique(); renderClients(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
-    toast(t('toast_ligne_modifiee'));
-  });
+  const v = VENTES.find(x=>x.id===window._currentVenteId);
+  await executerOperation(document.getElementById('vdEditSave_'+i),
+    ()=> v && planModifLigne(DOC.vente, v, i, lireNombre('vdEditQte_'+i), lireNombre('vdEditPU_'+i)),
+    ()=>{ remplirSelectProduits(); renderVenteDetailContent(v);
+      renderHistorique(); renderClients(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
+      toast(t('toast_ligne_modifiee')); });
 }
 function openVenteDetail(id){
   const v = VENTES.find(x=>x.id===id);
@@ -2005,108 +2426,34 @@ function setVdTypeProduit(type){
    stock) et la dette du client d'un montant identique — pour ne jamais
    désynchroniser le solde client des ventes réelles. */
 async function ajouterProduitAVente(){
-  await withLock(document.getElementById('btnAjouterProduitVente'), async ()=>{
-    const v = VENTES.find(x=>x.id===window._currentVenteId);
-    if(!v) return;
-    const qte = parseFloat(document.getElementById('vdAjoutQte').value);
-    const pu = parseFloat(document.getElementById('vdAjoutPU').value);
-    if(!qte || qte<=0){ toast(t('err_quantite')); return; }
-    if(isNaN(pu) || pu<0){ toast(t('err_prix')); return; }
-
-    let ligne;
+  const v = VENTES.find(x=>x.id===window._currentVenteId);
+  await executerOperation(document.getElementById('btnAjouterProduitVente'), ()=>{
+    if(!v) return null;
+    const qte = lireNombre('vdAjoutQte'), pu = lireNombre('vdAjoutPU');
+    if(!(qte > 0)) return {err:'err_quantite'};
+    if(isNaN(pu) || pu < 0) return {err:'err_prix'};
     if(vdTypeProduitActuel==='horsstock'){
       const nom = document.getElementById('vdProduitNomLibre').value.trim();
-      if(!nom){ toast(t('err_nom_produit')); return; }
-      ligne = {produitId:null, nom, qte, prixVente:pu, prixAchat:null, unite:'', horsStock:true, ajouteLe:nowISO()};
-    } else {
-      const pid = document.getElementById('vdProduitSelect').value;
-      const produit = PRODUITS.find(p=>p.id===pid);
-      if(!produit){ toast(t('err_choisir_produit')); return; }
-      if(qte > (produit.stock||0)){
-        toast(t('err_stock_insuffisant')+fmt(produit.stock||0)+')');
-        return;
-      }
-      ligne = {produitId:produit.id, nom:produit.nom, qte, prixVente:pu, prixAchat:produit.prixAchat, unite:produit.unite, horsStock:false, ajouteLe:nowISO()};
-      produit.stock = (produit.stock||0) - qte;
-      await put('produits', produit);
-      remplirSelectProduits();
+      if(!nom) return {err:'err_nom_produit'};
+      return planAjoutLigne(DOC.vente, v, {produitId:null, nom, qte, prixVente:pu, prixAchat:null, unite:'', horsStock:true, ajouteLe:nowISO()});
     }
-
-    v.items.push(ligne);
-    v.total = (v.total||0) + qte*pu;
-    await put('ventes', v);
-
-    if(v.clientId){
-      const c = CLIENTS.find(x=>x.id===v.clientId);
-      if(c){ c.solde = (c.solde||0) + qte*pu; await put('clients', c); }
-    }
-
-    resetVdAjoutProduit();
-    renderVenteDetailContent(v);
+    const produit = PRODUITS.find(p=>p.id===document.getElementById('vdProduitSelect').value);
+    if(!produit) return {err:'err_choisir_produit'};
+    return planAjoutLigne(DOC.vente, v, {produitId:produit.id, nom:produit.nom, qte, prixVente:pu, prixAchat:produit.prixAchat, unite:produit.unite, horsStock:false, ajouteLe:nowISO()});
+  }, ()=>{
+    remplirSelectProduits(); resetVdAjoutProduit(); renderVenteDetailContent(v);
     renderHistorique(); renderClients(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
     toast(t('toast_produit_ajoute_vente'));
   });
 }
-/* Single source of truth for client payments: either targeted at one sale
-   (venteIdCible) or allocated FIFO across the client's oldest open sales
-   when applied generically (venteIdCible=null). Keeps client.solde and the
-   sum of per-sale balances from ever drifting apart. */
-async function appliquerPaiementClient(clientId, montantSaisi, venteIdCible){
-  const c = CLIENTS.find(x=>x.id===clientId);
-  if(!c) return {ok:false};
-  let montant = parseFloat(montantSaisi);
-  if(!montant || montant<=0) return {ok:false};
 
-  const ventesTouchees = [];
-  if(venteIdCible){
-    const v = VENTES.find(x=>x.id===venteIdCible);
-    if(!v) return {ok:false};
-    montant = Math.min(montant, soldeRestantVente(v));
-    if(montant<=0) return {ok:false};
-    v.montantPaye = (v.montantPaye||0) + montant;
-    await put('ventes', v);
-    ventesTouchees.push(v.numero);
-  } else {
-    montant = Math.min(montant, c.solde||0);
-    if(montant<=0) return {ok:false};
-    let restant = montant;
-    const ventesOuvertes = VENTES.filter(v=>v.clientId===clientId && soldeRestantVente(v)>0)
-      .sort((a,b)=> new Date(a.date)-new Date(b.date));
-    for(const v of ventesOuvertes){
-      if(restant<=0) break;
-      const alloc = Math.min(restant, soldeRestantVente(v));
-      if(alloc<=0) continue;
-      v.montantPaye = (v.montantPaye||0) + alloc;
-      await put('ventes', v);
-      restant -= alloc;
-      ventesTouchees.push(v.numero);
-    }
-  }
-
-  c.solde = Math.max(0, (c.solde||0) - montant);
-  await put('clients', c);
-
-  const motif = ventesTouchees.length
-    ? t('motif_reglement_credit')+' - '+c.nom+' ('+ventesTouchees.join(', ')+')'
-    : t('motif_reglement_credit')+' - '+c.nom;
-  const mvt = {id:uid(), date:nowISO(), type:'entree', montant, motif, lien:{type:'client', id:c.id, ventes:ventesTouchees}};
-  await put('caisse', mvt); CAISSE.push(mvt);
-
-  return {ok:true, montant, ventesTouchees};
-}
 async function payerVenteDepuisHistorique(){
-  await withLock(document.getElementById('btnPayerVente'), async ()=>{
-    const v = VENTES.find(x=>x.id===window._currentVenteId);
-    if(!v || !v.clientId) { toast(t('err_montant')); return; }
-    const montantSaisi = document.getElementById('vdMontantPaiement').value;
-    const res = await appliquerPaiementClient(v.clientId, montantSaisi, v.id);
-    if(!res.ok){ toast(t('err_montant')); return; }
-
-    renderVenteDetailContent(v);
-    renderHistorique(); renderClients(); renderHomeWidgets(); renderBilan();
-    confirmerAnimation();
-    toast(t('toast_paiement_encaisse'));
-  });
+  const v = VENTES.find(x=>x.id===window._currentVenteId);
+  await executerOperation(document.getElementById('btnPayerVente'),
+    ()=> (v && v.clientId) ? planPaiement(DOC.vente, v.clientId, document.getElementById('vdMontantPaiement').value, v.id) : {err:'err_montant'},
+    ()=>{ renderVenteDetailContent(v);
+      renderHistorique(); renderClients(); renderHomeWidgets(); renderBilan();
+      confirmerAnimation(); toast(t('toast_paiement_encaisse')); });
 }
 function reimprimerVente(){
   const v = VENTES.find(x=>x.id===window._currentVenteId);
@@ -2114,91 +2461,19 @@ function reimprimerVente(){
 }
 async function validerRetourVente(){
   const v = VENTES.find(x=>x.id===window._currentVenteId);
-  if(!v) return;
-  let montantRetour = 0;
-  const retoursTemp = [];
-  v.items.forEach((l,i)=>{
-    const input = document.getElementById('vdQte_'+i);
-    const qte = input ? (parseFloat(input.value)||0) : 0;
-    const restant = l.qte - (l.qteRetournee||0);
-    if(qte>0){
-      const q = Math.min(qte, restant);
-      if(q>0){
-        montantRetour += q * l.prixVente;
-        retoursTemp.push({i, q});
-      }
-    }
-  });
-  if(retoursTemp.length===0){ toast(t('err_qte_retour')); return; }
-  if(!confirm(t('confirm_retour')+fmt(montantRetour)+t('confirm_retour_suite'))) return;
-
-  const lignesRetour = retoursTemp.map(({i,q})=>{
-    const l = v.items[i];
-    l.qteRetournee = (l.qteRetournee||0) + q;
-    return {produitId:l.produitId, nom:l.nom, qte:q, prixVente:l.prixVente};
-  });
-
-  await put('ventes', v);
-
-  for(const l of lignesRetour){
-    const p = PRODUITS.find(x=>x.id===l.produitId);
-    if(p){ p.stock = (p.stock||0) + l.qte; await put('produits', p); }
-  }
-  remplirSelectProduits();
-
-  const soldeAvant = soldeRestantVente(v);
-  const client = CLIENTS.find(c=>c.id===v.clientId);
-  const detteAnnulee = Math.min(montantRetour, soldeAvant);
-  const remboursementCaisse = montantRetour - detteAnnulee;
-  if(client && detteAnnulee>0){
-    client.solde = Math.max(0, (client.solde||0) - detteAnnulee);
-    await put('clients', client);
-  }
-  if(remboursementCaisse>0){
-    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant:remboursementCaisse, motif:t('motif_retour_vente')+' '+v.numero, lien:{type:'retourVente', id:v.id}};
-    await put('caisse', mvt); CAISSE.push(mvt);
-  }
-
-  const retour = {id:uid(), date:nowISO(), venteId:v.id, clientId:v.clientId, items:lignesRetour, montant:montantRetour};
-  await put('retoursVente', retour); RETOURS_VENTE.push(retour);
-
-  closeModal('modalVenteDetail');
-  renderClients(); renderHistorique(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
-  toast(t('toast_retour_enregistre')+fmt(montantRetour));
+  await executerOperation(document.getElementById('btnValiderRetourVente'),
+    ()=> v && planRetour(DOC.vente, v, lireQtesRetour('vdQte_', v.items.length)),
+    (r)=>{ closeModal('modalVenteDetail'); remplirSelectProduits();
+      renderHistorique(); renderClients(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
+      toast(t('toast_retour_enregistre')+fmt(r.montant)); });
 }
 async function supprimerVente(){
   const v = VENTES.find(x=>x.id===window._currentVenteId);
-  if(!v) return;
-  if(montantRetourneVente(v.id) > 0){
-    toast(t('err_suppression_retour_existant'));
-    return;
-  }
-  if(!confirm(t('confirm_supprimer_vente')+' '+v.numero+t('confirm_retour_suite'))) return;
-
-  for(const l of v.items){
-    if(!l.produitId) continue;
-    const p = PRODUITS.find(x=>x.id===l.produitId);
-    if(p){ p.stock = (p.stock||0) + l.qte; await put('produits', p); }
-  }
-  remplirSelectProduits();
-
-  if(v.montantPaye>0){
-    const mvt = {id:uid(), date:nowISO(), type:'sortie', montant:v.montantPaye, motif:t('motif_annulation_vente')+' '+v.numero, lien:{type:'venteAnnulee', id:v.id}};
-    await put('caisse', mvt); CAISSE.push(mvt);
-  }
-
-  const resteNonPaye = Math.max(0, v.total - (v.montantPaye||0));
-  if(v.clientId && resteNonPaye>0){
-    const c = CLIENTS.find(x=>x.id===v.clientId);
-    if(c){ c.solde = Math.max(0, (c.solde||0) - resteNonPaye); await put('clients', c); }
-  }
-
-  await del('ventes', v.id);
-  VENTES = VENTES.filter(x=>x.id!==v.id);
-
-  closeModal('modalVenteDetail');
-  renderClients(); renderHistorique(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
-  toast(t('toast_vente_supprimee'));
+  await executerOperation(document.getElementById('btnSupprimerVente'),
+    ()=> v && planSuppression(DOC.vente, v),
+    ()=>{ closeModal('modalVenteDetail'); remplirSelectProduits();
+      renderHistorique(); renderClients(); renderStock(); renderHomeWidgets(); renderVentesChart(); renderBilan();
+      toast(t('toast_vente_supprimee')); });
 }
 
 /* ===================== DETAIL ACHAT / RETOUR MARCHANDISE ===================== */
@@ -2248,51 +2523,14 @@ function toggleEditLigneAchat(i){
   if(!el) return;
   el.style.display = (el.style.display==='none' || !el.style.display) ? 'block' : 'none';
 }
-/* Miroir de enregistrerModifLigneVente, mais une baisse de quantité ici
-   retire du stock déjà reçu — donc vérifie qu'il en reste assez (une
-   partie a peut-être déjà été revendue) avant d'appliquer. */
+/* Miroir de enregistrerModifLigneVente via planModifLigne(DOC.achat, …). */
 async function enregistrerModifLigneAchat(i){
-  await withLock(document.getElementById('adEditSave_'+i), async ()=>{
-    const a = ACHATS.find(x=>x.id===window._currentAchatId);
-    if(!a) return;
-    const l = a.items[i];
-    if(!l) return;
-    const newQte = parseFloat(document.getElementById('adEditQte_'+i).value);
-    const newPU = parseFloat(document.getElementById('adEditPU_'+i).value);
-    if(!newQte || newQte<=0){ toast(t('err_quantite')); return; }
-    if(isNaN(newPU) || newPU<0){ toast(t('err_prix')); return; }
-    const dejaRetourne = l.qteRetournee||0;
-    if(newQte < dejaRetourne){
-      toast(t('err_qte_min_retournee')+fmtQty(dejaRetourne, l.unite));
-      return;
-    }
-    const deltaQte = newQte - l.qte;
-    const produit = PRODUITS.find(p=>p.id===l.produitId);
-    if(deltaQte < 0){
-      const dispo = produit ? (produit.stock||0) : 0;
-      if(dispo + deltaQte < 0){
-        toast(t('err_suppression_stock_insuffisant')+(produit?produit.nom:l.nom)+')');
-        return;
-      }
-    }
-    const delta = (newQte*newPU) - (l.qte*l.prixAchat);
-    const nouveauTotal = (a.total||0) + delta;
-    if(nouveauTotal < (a.montantPaye||0)){
-      toast(t('err_modif_sous_paye')+fmt(a.montantPaye)+t('err_modif_sous_paye_suite'));
-      return;
-    }
-    if(produit){ produit.stock = (produit.stock||0) + deltaQte; await put('produits', produit); remplirSelectProduits(); }
-    l.qte = newQte; l.prixAchat = newPU;
-    a.total = nouveauTotal;
-    await put('achats', a);
-    if(a.fournisseurId){
-      const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
-      if(f){ f.solde = Math.max(0, (f.solde||0) + delta); await put('fournisseurs', f); }
-    }
-    renderAchatDetailContent(a);
-    renderHistorique(); renderFournisseurs(); renderStock(); renderHomeWidgets(); renderBilan();
-    toast(t('toast_ligne_modifiee'));
-  });
+  const a = ACHATS.find(x=>x.id===window._currentAchatId);
+  await executerOperation(document.getElementById('adEditSave_'+i),
+    ()=> a && planModifLigne(DOC.achat, a, i, lireNombre('adEditQte_'+i), lireNombre('adEditPU_'+i)),
+    ()=>{ remplirSelectProduits(); renderAchatDetailContent(a);
+      renderHistorique(); renderFournisseurs(); renderStock(); renderHomeWidgets(); renderBilan();
+      toast(t('toast_ligne_modifiee')); });
 }
 function openAchatDetail(id){
   const a = ACHATS.find(x=>x.id===id);
@@ -2318,199 +2556,45 @@ function resetAdAjoutProduit(){
   document.getElementById('adProduitSelect').value = '';
 }
 async function ajouterProduitAAchat(){
-  await withLock(document.getElementById('btnAjouterProduitAchat'), async ()=>{
-    const a = ACHATS.find(x=>x.id===window._currentAchatId);
-    if(!a) return;
-    const pid = document.getElementById('adProduitSelect').value;
-    const produit = PRODUITS.find(p=>p.id===pid);
-    if(!produit){ toast(t('err_choisir_produit')); return; }
-    const qte = parseFloat(document.getElementById('adAjoutQte').value);
-    const pu = parseFloat(document.getElementById('adAjoutPU').value);
-    if(!qte || qte<=0){ toast(t('err_quantite')); return; }
-    if(isNaN(pu) || pu<0){ toast(t('err_prix')); return; }
-
-    const ligne = {produitId:produit.id, nom:produit.nom, qte, prixAchat:pu, unite:produit.unite, ajouteLe:nowISO()};
-    produit.stock = (produit.stock||0) + qte;
-    produit.prixAchat = pu;
-    await put('produits', produit);
-    remplirSelectProduits();
-
-    a.items.push(ligne);
-    a.total = (a.total||0) + qte*pu;
-    await put('achats', a);
-
-    if(a.fournisseurId){
-      const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
-      if(f){ f.solde = (f.solde||0) + qte*pu; await put('fournisseurs', f); }
-    }
-
-    resetAdAjoutProduit();
-    renderAchatDetailContent(a);
+  const a = ACHATS.find(x=>x.id===window._currentAchatId);
+  await executerOperation(document.getElementById('btnAjouterProduitAchat'), ()=>{
+    if(!a) return null;
+    const produit = PRODUITS.find(p=>p.id===document.getElementById('adProduitSelect').value);
+    if(!produit) return {err:'err_choisir_produit'};
+    const qte = lireNombre('adAjoutQte'), pu = lireNombre('adAjoutPU');
+    if(!(qte > 0)) return {err:'err_quantite'};
+    if(isNaN(pu) || pu < 0) return {err:'err_prix'};
+    return planAjoutLigne(DOC.achat, a, {produitId:produit.id, nom:produit.nom, qte, prixAchat:pu, unite:produit.unite, ajouteLe:nowISO()});
+  }, ()=>{
+    remplirSelectProduits(); resetAdAjoutProduit(); renderAchatDetailContent(a);
     renderHistorique(); renderFournisseurs(); renderStock(); renderHomeWidgets(); renderBilan();
     toast(t('toast_produit_ajoute_achat'));
   });
 }
-/* Mirrors appliquerPaiementClient for suppliers: targeted at one achat, or
-   FIFO-allocated across the supplier's oldest open achats when generic. */
-async function appliquerPaiementFournisseur(fournisseurId, montantSaisi, achatIdCible){
-  const f = FOURNISSEURS.find(x=>x.id===fournisseurId);
-  if(!f) return {ok:false};
-  let montant = parseFloat(montantSaisi);
-  if(!montant || montant<=0) return {ok:false};
 
-  const achatsTouches = [];
-  if(achatIdCible){
-    const a = ACHATS.find(x=>x.id===achatIdCible);
-    if(!a) return {ok:false};
-    montant = Math.min(montant, soldeRestantAchat(a));
-    if(montant<=0) return {ok:false};
-    a.montantPaye = (a.montantPaye||0) + montant;
-    await put('achats', a);
-    achatsTouches.push(a.numero);
-  } else {
-    montant = Math.min(montant, f.solde||0);
-    if(montant<=0) return {ok:false};
-    let restant = montant;
-    const achatsOuverts = ACHATS.filter(a=>a.fournisseurId===fournisseurId && soldeRestantAchat(a)>0)
-      .sort((a,b)=> new Date(a.date)-new Date(b.date));
-    for(const a of achatsOuverts){
-      if(restant<=0) break;
-      const alloc = Math.min(restant, soldeRestantAchat(a));
-      if(alloc<=0) continue;
-      a.montantPaye = (a.montantPaye||0) + alloc;
-      await put('achats', a);
-      restant -= alloc;
-      achatsTouches.push(a.numero);
-    }
-  }
-
-  f.solde = Math.max(0, (f.solde||0) - montant);
-  await put('fournisseurs', f);
-
-  const motif = achatsTouches.length
-    ? t('motif_paiement_fournisseur')+' - '+f.nom+' ('+achatsTouches.join(', ')+')'
-    : t('motif_paiement_fournisseur')+' - '+f.nom;
-  const mvt = {id:uid(), date:nowISO(), type:'sortie', montant, motif, lien:{type:'fournisseur', id:f.id, achats:achatsTouches}};
-  await put('caisse', mvt); CAISSE.push(mvt);
-
-  return {ok:true, montant, achatsTouches};
-}
 async function payerAchatDepuisHistorique(){
-  await withLock(document.getElementById('btnPayerAchat'), async ()=>{
-    const a = ACHATS.find(x=>x.id===window._currentAchatId);
-    if(!a || !a.fournisseurId){ toast(t('err_montant')); return; }
-    const montantSaisi = document.getElementById('adMontantPaiement').value;
-    const res = await appliquerPaiementFournisseur(a.fournisseurId, montantSaisi, a.id);
-    if(!res.ok){ toast(t('err_montant')); return; }
-
-    renderAchatDetailContent(a);
-    renderHistorique(); renderFournisseurs(); renderHomeWidgets(); renderBilan();
-    toast(t('toast_paiement_effectue'));
-  });
+  const a = ACHATS.find(x=>x.id===window._currentAchatId);
+  await executerOperation(document.getElementById('btnPayerAchat'),
+    ()=> (a && a.fournisseurId) ? planPaiement(DOC.achat, a.fournisseurId, document.getElementById('adMontantPaiement').value, a.id) : {err:'err_montant'},
+    ()=>{ renderAchatDetailContent(a);
+      renderHistorique(); renderFournisseurs(); renderHomeWidgets(); renderBilan();
+      toast(t('toast_paiement_effectue')); });
 }
 async function validerRetourAchat(){
   const a = ACHATS.find(x=>x.id===window._currentAchatId);
-  if(!a) return;
-  let montantRetour = 0;
-  const retoursTemp = [];
-  a.items.forEach((l,i)=>{
-    const input = document.getElementById('adQte_'+i);
-    const qte = input ? (parseFloat(input.value)||0) : 0;
-    const restant = l.qte - (l.qteRetournee||0);
-    if(qte>0){
-      const q = Math.min(qte, restant);
-      if(q>0){
-        montantRetour += q * l.prixAchat;
-        retoursTemp.push({i, q});
-      }
-    }
-  });
-  if(retoursTemp.length===0){ toast(t('err_qte_retour')); return; }
-  if(!confirm(t('confirm_retour_marchandise')+fmt(montantRetour)+t('confirm_retour_suite'))) return;
-
-  const lignesRetour = retoursTemp.map(({i,q})=>{
-    const l = a.items[i];
-    l.qteRetournee = (l.qteRetournee||0) + q;
-    return {produitId:l.produitId, nom:l.nom, qte:q, prixAchat:l.prixAchat};
-  });
-
-  await put('achats', a);
-
-  for(const l of lignesRetour){
-    const p = PRODUITS.find(x=>x.id===l.produitId);
-    if(p){ p.stock = Math.max(0,(p.stock||0) - l.qte); await put('produits', p); }
-  }
-  remplirSelectProduits();
-
-  const soldeAvant = soldeRestantAchat(a);
-  const fournisseur = FOURNISSEURS.find(f=>f.id===a.fournisseurId);
-  const detteAnnulee = Math.min(montantRetour, soldeAvant);
-  const remboursementCaisse = montantRetour - detteAnnulee;
-  if(fournisseur && detteAnnulee>0){
-    fournisseur.solde = Math.max(0, (fournisseur.solde||0) - detteAnnulee);
-    await put('fournisseurs', fournisseur);
-  }
-  if(remboursementCaisse>0){
-    const mvt = {id:uid(), date:nowISO(), type:'entree', montant:remboursementCaisse, motif:t('motif_retour_achat')+' '+a.numero, lien:{type:'retourAchat', id:a.id}};
-    await put('caisse', mvt); CAISSE.push(mvt);
-  }
-
-  const retour = {id:uid(), date:nowISO(), achatId:a.id, fournisseurId:a.fournisseurId, items:lignesRetour, montant:montantRetour};
-  await put('retoursAchat', retour); RETOURS_ACHAT.push(retour);
-
-  closeModal('modalAchatDetail');
-  renderFournisseurs(); renderHistorique(); renderStock(); renderHomeWidgets(); renderBilan();
-  toast(t('toast_retour_marchandise_enregistre')+fmt(montantRetour));
+  await executerOperation(document.getElementById('btnValiderRetourAchat'),
+    ()=> a && planRetour(DOC.achat, a, lireQtesRetour('adQte_', a.items.length)),
+    (r)=>{ closeModal('modalAchatDetail'); remplirSelectProduits();
+      renderFournisseurs(); renderHistorique(); renderFournisseurs(); renderStock(); renderHomeWidgets(); renderBilan();
+      toast(t('toast_retour_marchandise_enregistre')+fmt(r.montant)); });
 }
 async function supprimerAchat(){
   const a = ACHATS.find(x=>x.id===window._currentAchatId);
-  if(!a) return;
-  if(montantRetourneAchat(a.id) > 0){
-    toast(t('err_suppression_retour_existant'));
-    return;
-  }
-  // Un achat qui a déjà partiellement alimenté des ventes ne peut pas être
-  // annulé sans faire passer le stock sous zéro : on cumule d'abord la
-  // quantité requise par produit (une même fiche peut apparaître sur
-  // plusieurs lignes de cet achat) avant de comparer au stock réel.
-  const qteRequiseParProduit = {};
-  for(const l of a.items){
-    if(!l.produitId) continue;
-    qteRequiseParProduit[l.produitId] = (qteRequiseParProduit[l.produitId]||0) + l.qte;
-  }
-  for(const produitId in qteRequiseParProduit){
-    const p = PRODUITS.find(x=>x.id===produitId);
-    const dispo = p ? (p.stock||0) : 0;
-    if(dispo - qteRequiseParProduit[produitId] < 0){
-      toast(t('err_suppression_stock_insuffisant')+(p?p.nom:produitId)+')');
-      return;
-    }
-  }
-  if(!confirm(t('confirm_supprimer_achat')+' '+a.numero+t('confirm_retour_suite'))) return;
-
-  for(const l of a.items){
-    const p = PRODUITS.find(x=>x.id===l.produitId);
-    if(p){ p.stock = Math.max(0, (p.stock||0) - l.qte); await put('produits', p); }
-  }
-  remplirSelectProduits();
-
-  if(a.montantPaye>0){
-    const mvt = {id:uid(), date:nowISO(), type:'entree', montant:a.montantPaye, motif:t('motif_annulation_achat')+' '+a.numero, lien:{type:'achatAnnule', id:a.id}};
-    await put('caisse', mvt); CAISSE.push(mvt);
-  }
-
-  const resteNonPaye = Math.max(0, a.total - (a.montantPaye||0));
-  if(a.fournisseurId && resteNonPaye>0){
-    const f = FOURNISSEURS.find(x=>x.id===a.fournisseurId);
-    if(f){ f.solde = Math.max(0, (f.solde||0) - resteNonPaye); await put('fournisseurs', f); }
-  }
-
-  await del('achats', a.id);
-  ACHATS = ACHATS.filter(x=>x.id!==a.id);
-
-  closeModal('modalAchatDetail');
-  renderFournisseurs(); renderHistorique(); renderStock(); renderHomeWidgets(); renderBilan();
-  toast(t('toast_achat_supprime'));
+  await executerOperation(document.getElementById('btnSupprimerAchat'),
+    ()=> a && planSuppression(DOC.achat, a),
+    ()=>{ closeModal('modalAchatDetail'); remplirSelectProduits();
+      renderHistorique(); renderFournisseurs(); renderStock(); renderHomeWidgets(); renderBilan();
+      toast(t('toast_achat_supprime')); });
 }
 
 /* ===================== IMPRESSION TICKET (ESC/POS Bluetooth + fallback RawBT) ===================== */
@@ -2622,9 +2706,9 @@ async function enregistrerClient(){
     }
   }
   let c;
-  if(id){ c = CLIENTS.find(x=>x.id===id); c.nom=nom; c.tel=tel; c.solde=solde; c.caInitial=caInitial; }
+  if(id){ c = CLIENTS.find(x=>x.id===id); c.nom=nom; c.tel=tel; c.solde=solde; c.soldeInitial=Math.max(0, solde - detteOuverteVentesClient(id)); c.caInitial=caInitial; }
   else {
-    c = {id:uid(), nom, tel, solde, caInitial};
+    c = {id:uid(), nom, tel, solde, soldeInitial:solde, caInitial};
     CLIENTS.push(c);
   }
   await put('clients', c);
@@ -2733,19 +2817,11 @@ function openClientDetail(id){
   openModal('modalClientDetail');
 }
 async function encaisserPaiementClient(){
-  await withLock(document.getElementById('btnEncaisserPaiement'), async ()=>{
-    const id = window._currentClientId;
-    const montantSaisi = document.getElementById('cdPaiement').value;
-    const res = await appliquerPaiementClient(id, montantSaisi, null);
-    if(!res.ok){ toast(t('err_montant')); return; }
-    closeModal('modalClientDetail');
-    renderClients();
-    confirmerAnimation();
-    renderVentesChart();
-    renderHomeWidgets();
-    renderBilan();
-    toast(t('toast_paiement_encaisse'));
-  });
+  await executerOperation(document.getElementById('btnEncaisserPaiement'),
+    ()=> planPaiement(DOC.vente, window._currentClientId, document.getElementById('cdPaiement').value, null),
+    ()=>{ closeModal('modalClientDetail');
+      renderClients(); confirmerAnimation(); renderVentesChart(); renderHomeWidgets(); renderBilan();
+      toast(t('toast_paiement_encaisse')); });
 }
 
 async function supprimerClient(){
@@ -2821,9 +2897,9 @@ async function enregistrerFournisseur(){
     }
   }
   let f;
-  if(id){ f = FOURNISSEURS.find(x=>x.id===id); f.nom=nom; f.tel=tel; f.solde=solde; f.caInitial=caInitial; }
+  if(id){ f = FOURNISSEURS.find(x=>x.id===id); f.nom=nom; f.tel=tel; f.solde=solde; f.soldeInitial=Math.max(0, solde - detteOuverteAchatsFournisseur(id)); f.caInitial=caInitial; }
   else {
-    f = {id:uid(), nom, tel, solde, caInitial};
+    f = {id:uid(), nom, tel, solde, soldeInitial:solde, caInitial};
     FOURNISSEURS.push(f);
   }
   await put('fournisseurs', f);
@@ -2928,17 +3004,11 @@ function openFournisseurDetail(id){
   openModal('modalFournisseurDetail');
 }
 async function payerFournisseur(){
-  await withLock(document.getElementById('btnPayerFournisseur'), async ()=>{
-    const id = window._currentFournisseurId;
-    const montantSaisi = document.getElementById('fdPaiement').value;
-    const res = await appliquerPaiementFournisseur(id, montantSaisi, null);
-    if(!res.ok){ toast(t('err_montant')); return; }
-    closeModal('modalFournisseurDetail');
-    renderFournisseurs();
-    renderHomeWidgets();
-    renderBilan();
-    toast(t('toast_paiement_effectue'));
-  });
+  await executerOperation(document.getElementById('btnPayerFournisseur'),
+    ()=> planPaiement(DOC.achat, window._currentFournisseurId, document.getElementById('fdPaiement').value, null),
+    ()=>{ closeModal('modalFournisseurDetail');
+      renderFournisseurs(); renderHomeWidgets(); renderBilan();
+      toast(t('toast_paiement_effectue')); });
 }
 function ajouterLigneAchat(){
   const pid = document.getElementById('achatProduitSelect').value;
@@ -3238,6 +3308,16 @@ function validerSchemaImport(data){
     });
     if(erreurs.length>8) break; // cap: enough to diagnose without building a huge toast
   }
+  // Stored-XSS guard: every id / *Id field must match the uid() alphabet.
+  const ID_OK = /^[A-Za-z0-9_-]{1,64}$/;
+  (function scan(o, path, depth){
+    if(erreurs.length>8 || depth>6 || o===null || typeof o!=='object') return;
+    for(const k of Object.keys(o)){
+      const v = o[k];
+      if((k==='id' || /Id$/.test(k)) && v!=null && v!=='' && !(typeof v==='string' && ID_OK.test(v))) erreurs.push(path+'.'+k+': identifiant invalide');
+      else if(v && typeof v==='object') scan(v, path+'.'+k, depth+1);
+    }
+  })(data, 'import', 0);
   return erreurs;
 }
 async function importerDonnees(evt){
@@ -3276,7 +3356,11 @@ async function importerDonnees(evt){
     VENTES = data.ventes||[]; ACHATS = data.achats||[]; CAISSE = data.caisse||[];
     RETOURS_VENTE = data.retoursVente||[]; RETOURS_ACHAT = data.retoursAchat||[];
     VENDEURS = data.vendeurs||[];
-    if(data.parametres){ PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT, data.parametres); await sauverParametres(); await chargerLangue(PARAMETRES.langue || 'fr'); applyTranslations(); }
+    if(data.parametres){ PARAMETRES = Object.assign({}, PARAMETRES_DEFAUT, data.parametres); await chargerLangue(PARAMETRES.langue || 'fr'); applyTranslations(); }
+    // Version de données du FICHIER (absente = sauvegarde ancienne → 3) : rejoue les migrations.
+    PARAMETRES.versionDonnees = (data.parametres && data.parametres.versionDonnees) || 3;
+    await sauverParametres();
+    await migrerDonnees();
     remplirSelectProduits(); remplirSelectFournisseurs();
     renderBilan(); renderClients(); renderFournisseurs(); renderStock(); renderHistorique();
     renderVentesChart(); renderHomeWidgets(); appliquerVisibiliteVendeur();
@@ -3603,6 +3687,93 @@ const renderClientsDebounced = debounce(renderClients, 150);
 const renderStockDebounced = debounce(renderStock, 150);
 const rechercheGlobaleInputDebounced = debounce(rechercheGlobaleInput, 150);
 
+/* ===================== PLATEFORME PWA ===================== */
+const ROUTES = ['vente','clients','achats','historique','bilan'];
+function routerHash(raw){
+  let h = '';
+  try{ h = decodeURIComponent(String(raw||'').replace(/^#/,'')); }catch(e){ return; }
+  if(h.startsWith('proto=')) h = h.slice(6).replace(/^web\+tajer:(\/\/)?/i,'').split(/[\/?#]/)[0];
+  if(!h) return;
+  history.replaceState(history.state, '', location.pathname + location.search);
+  if(h==='nouvelle-vente'){ switchView('vente'); ouvrirModalVente(); }
+  else if(ROUTES.includes(h)) switchView(h);
+}
+function proposerMiseAJour(reg){
+  if(document.getElementById('swUpdate')) return;
+  const b = document.createElement('button');
+  b.id = 'swUpdate'; b.type = 'button'; b.className = 'sw-update';
+  b.textContent = t('maj_disponible');
+  b.addEventListener('click', ()=>{
+    if(panierVente.length && !confirm(t('maj_panier_perdu'))) return;
+    if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+  });
+  document.body.appendChild(b);
+}
+async function enregistrerSW(){
+  if(!('serviceWorker' in navigator)) return;
+  const avaitControleur = !!navigator.serviceWorker.controller;
+  let recharge = false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(!avaitControleur || recharge) return;   // first install: no reload
+    recharge = true; location.reload();
+  });
+  try{
+    const reg = await navigator.serviceWorker.register('service-worker.js', {updateViaCache:'none'});
+    const suivre = (w)=> w && w.addEventListener('statechange', ()=>{
+      if(w.state==='installed' && navigator.serviceWorker.controller) proposerMiseAJour(reg);
+    });
+    if(reg.waiting && navigator.serviceWorker.controller) proposerMiseAJour(reg);
+    suivre(reg.installing);
+    reg.addEventListener('updatefound', ()=>suivre(reg.installing));
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState==='visible') reg.update().catch(()=>{});
+    });
+  }catch(e){}
+}
+async function demanderPersistance(){
+  // Business ledger in IndexedDB: opt out of storage eviction.
+  try{
+    if(navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) await navigator.storage.persist();
+  }catch(e){}
+}
+function rendreActivable(root){
+  const sel = '[onclick]:not(button):not(a):not(input):not(select):not(textarea):not(label), [onmousedown]:not(button):not(input)';
+  const els = root.matches && root.matches(sel) ? [root] : [];
+  root.querySelectorAll && els.push(...root.querySelectorAll(sel));
+  for(const el of els){
+    if(!el.hasAttribute('tabindex')) el.tabIndex = 0;
+    if(!el.hasAttribute('role')) el.setAttribute('role','button');
+  }
+}
+function a11yInit(){
+  rendreActivable(document.body);
+  new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes) if(n.nodeType===1) rendreActivable(n); })
+    .observe(document.body, {childList:true, subtree:true});
+  document.addEventListener('keydown', (e)=>{
+    const el = e.target;
+    if((e.key!=='Enter' && e.key!==' ') || !el.matches || !el.matches('[role="button"]:not(button)')) return;
+    e.preventDefault();
+    if(el.hasAttribute('onmousedown') && !el.hasAttribute('onclick')) el.dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
+    else el.click();
+  });
+}
+function plateformeInit(){
+  a11yInit();
+  enregistrerSW();
+  demanderPersistance();
+  if('launchQueue' in window){
+    window.launchQueue.setConsumer(async (p)=>{
+      if(p.files && p.files.length){
+        const file = await p.files[0].getFile();
+        importerDonnees({target:{files:[file], value:''}});
+      }else if(p.targetURL){
+        routerHash(new URL(p.targetURL).hash);
+      }
+    });
+  }
+  routerHash(location.hash);
+}
+
 async function init(){
   try{
     await openDB();
@@ -3613,6 +3784,7 @@ async function init(){
   }catch(e){
     toast(t('err_stockage'));
   }
+  try{ if(db) await migrerDonnees(); }catch(e){ console.error(e); toast(t('err_operation_echouee')); }
   await chargerLangue(PARAMETRES.langue || 'fr');
   document.documentElement.lang = PARAMETRES.langue || 'fr';
   applyTranslations();
@@ -3627,9 +3799,8 @@ async function init(){
   appliquerVisibiliteVendeur();
   document.getElementById('venteDateHeure').value = auMaintenantLocal();
 
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
-  }
+  plateformeInit();
+  (window.requestIdleCallback || (f=>setTimeout(f, 1500)))(()=>{ try{ majBadgeIntegrite(verifierIntegrite()); }catch(e){ console.error(e); } });
 
   const loader = document.getElementById('loadingOverlay');
   if(loader){
